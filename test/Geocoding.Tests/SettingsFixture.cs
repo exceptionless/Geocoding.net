@@ -15,39 +15,45 @@ public class SettingsFixture
             .Build();
     }
 
-    public String YahooConsumerKey
+    public String GoogleApiKey
     {
-        get { return _configuration.GetValue<String>("yahooConsumerKey"); }
+        get { return GetValue("googleApiKey"); }
     }
 
-    public String YahooConsumerSecret
+    public String AzureMapsKey
     {
-        get { return _configuration.GetValue<String>("yahooConsumerSecret"); }
+        get { return GetValue("azureMapsKey"); }
     }
 
     public String BingMapsKey
     {
-        get { return _configuration.GetValue<String>("bingMapsKey"); }
+        get { return GetValue("bingMapsKey"); }
     }
 
-    public String GoogleApiKey
+    public String HereApiKey
     {
-        get { return _configuration.GetValue<String>("googleApiKey"); }
+        get { return GetValue("hereApiKey"); }
     }
 
     public String MapQuestKey
     {
-        get { return _configuration.GetValue<String>("mapQuestKey"); }
+        get { return GetValue("mapQuestKey"); }
     }
 
-    public String HereAppId
+    public String YahooConsumerKey
     {
-        get { return _configuration.GetValue<String>("hereAppId"); }
+        get { return GetValue("yahooConsumerKey"); }
     }
 
-    public String HereAppCode
+    public String YahooConsumerSecret
     {
-        get { return _configuration.GetValue<String>("hereAppCode"); }
+        get { return GetValue("yahooConsumerSecret"); }
+    }
+
+    private String GetValue(string key)
+    {
+        String value = _configuration.GetValue<String>(key);
+        return String.IsNullOrWhiteSpace(value) ? String.Empty : value;
     }
 
     public static void SkipIfMissing(String value, String settingName)

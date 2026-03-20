@@ -20,15 +20,18 @@ public abstract class BatchGeocoderTest
 
     [Theory]
     [MemberData(nameof(BatchGeoCodeData))]
-    public virtual async Task CanGeoCodeAddress(String[] addresses)
+    public virtual async Task GeocodeAsync_MultipleAddresses_ReturnsMatchingResults(String[] addresses)
     {
+        // Arrange
         Assert.NotEmpty(addresses);
+        var addressSet = new HashSet<String>(addresses);
 
+        // Act
         var results = await _batchGeocoder.GeocodeAsync(addresses, TestContext.Current.CancellationToken);
+
+        // Assert
         Assert.NotEmpty(results);
         Assert.Equal(addresses.Length, results.Count());
-
-        var addressSet = new HashSet<String>(addresses);
         Assert.Equal(addressSet.Count, results.Count());
 
         foreach (ResultItem resultItem in results)

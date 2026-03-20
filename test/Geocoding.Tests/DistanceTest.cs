@@ -5,27 +5,31 @@ namespace Geocoding.Tests;
 public class DistanceTest
 {
     [Fact]
-    public void CanCreate()
+    public void Constructor_ValidValues_SetsProperties()
     {
+        // Arrange & Act
         Distance distance = new Distance(5.7, DistanceUnits.Miles);
 
+        // Assert
         Assert.Equal(5.7, distance.Value);
         Assert.Equal(DistanceUnits.Miles, distance.Units);
     }
 
     [Fact]
-    public void CanRoundValueToEightDecimalPlaces()
+    public void Constructor_LongDecimalValue_RoundsToEightPlaces()
     {
         Distance distance = new Distance(0.123456789101112131415, DistanceUnits.Miles);
         Assert.Equal(0.12345679, distance.Value);
     }
 
     [Fact]
-    public void CanCompareForEquality()
+    public void Equals_SameValueAndUnits_ReturnsTrue()
     {
+        // Arrange
         Distance distance1 = new Distance(5, DistanceUnits.Miles);
         Distance distance2 = new Distance(5, DistanceUnits.Miles);
 
+        // Assert
         Assert.True(distance1.Equals(distance2));
         Assert.Equal(distance1.GetHashCode(), distance2.GetHashCode());
     }
@@ -36,14 +40,17 @@ public class DistanceTest
     [InlineData(1, 1)]
     [InlineData(0, 0)]
     [InlineData(5, 6)]
-    public void CanCompareForEqualityWithNormalizedUnits(double miles, double kilometers)
+    public void Equals_NormalizedUnits_ReturnsExpectedResult(double miles, double kilometers)
     {
+        // Arrange
         Distance mileDistance = Distance.FromMiles(miles);
         Distance kilometerDistance = Distance.FromKilometers(kilometers);
 
+        // Act
         bool expected = mileDistance.Equals(kilometerDistance.ToMiles());
         bool actual = mileDistance.Equals(kilometerDistance, true);
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -53,11 +60,15 @@ public class DistanceTest
     [InlineData(1, 1.609344)]
     [InlineData(5, 8.04672)]
     [InlineData(10, 16.09344001)]
-    public void CanConvertFromMilesToKilometers(double miles, double expectedKilometers)
+    public void ToKilometers_FromMiles_ReturnsExpectedValue(double miles, double expectedKilometers)
     {
+        // Arrange
         Distance mileDistance = Distance.FromMiles(miles);
+
+        // Act
         Distance kilometerDistance = mileDistance.ToKilometers();
 
+        // Assert
         Assert.Equal(expectedKilometers, kilometerDistance.Value);
         Assert.Equal(DistanceUnits.Kilometers, kilometerDistance.Units);
     }
@@ -68,11 +79,15 @@ public class DistanceTest
     [InlineData(1, 0.62137119)]
     [InlineData(5, 3.10685596)]
     [InlineData(10, 6.21371192)]
-    public void CanConvertFromKilometersToMiles(double kilometers, double expectedMiles)
+    public void ToMiles_FromKilometers_ReturnsExpectedValue(double kilometers, double expectedMiles)
     {
+        // Arrange
         Distance kilometerDistance = Distance.FromKilometers(kilometers);
+
+        // Act
         Distance mileDistance = kilometerDistance.ToMiles();
 
+        // Assert
         Assert.Equal(expectedMiles, mileDistance.Value);
         Assert.Equal(DistanceUnits.Miles, mileDistance.Units);
     }
@@ -85,13 +100,16 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanMultiply(double value, double multiplier)
+    public void MultiplyOperator_TwoValues_ReturnsExpectedResult(double value, double multiplier)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(value);
-
         Distance expected = Distance.FromMiles(value * multiplier);
+
+        // Act
         Distance actual = distance1 * multiplier;
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -101,14 +119,17 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanAdd(double left, double right)
+    public void AddOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
-
         Distance expected = Distance.FromMiles(left + right);
+
+        // Act
         Distance actual = distance1 + distance2;
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -118,14 +139,17 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanSubtract(double left, double right)
+    public void SubtractOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
-
         Distance expected = Distance.FromMiles(left - right);
+
+        // Act
         Distance actual = distance1 - distance2;
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -135,11 +159,13 @@ public class DistanceTest
     [InlineData(5, -5)]
     [InlineData(3, 3)]
     [InlineData(3.8, 3.8)]
-    public void CanCompareWithEqualSign(double left, double right)
+    public void EqualityOperator_TwoValues_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
+        // Act & Assert
         bool expectedEqual = left == right;
         Assert.Equal(expectedEqual, distance1 == distance2);
         Assert.Equal(!expectedEqual, distance1 != distance2);
@@ -151,11 +177,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareLessThan(double left, double right)
+    public void LessThanOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
+        // Act & Assert
         bool expected = left < right;
         Assert.Equal(expected, distance1 < distance2);
     }
@@ -166,11 +194,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareLessThanEqualTo(double left, double right)
+    public void LessThanOrEqualOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
+        // Act & Assert
         bool expected = left <= right;
         Assert.Equal(expected, distance1 <= distance2);
     }
@@ -181,11 +211,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareGreaterThan(double left, double right)
+    public void GreaterThanOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
+        // Act & Assert
         bool expected = left > right;
         Assert.Equal(expected, distance1 > distance2);
     }
@@ -196,17 +228,19 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareGreaterThanEqualTo(double left, double right)
+    public void GreaterThanOrEqualOperator_SameUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
+        // Act & Assert
         bool expected = left >= right;
         Assert.Equal(expected, distance1 >= distance2);
     }
 
     [Fact]
-    public void CanImplicitlyConvertToDouble()
+    public void ImplicitConversion_ToDouble_ReturnsValue()
     {
         Distance distance = Distance.FromMiles(56);
         double d = distance;
@@ -223,14 +257,17 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanAddWithDifferentUnits(double left, double right)
+    public void AddOperator_DifferentUnits_ConvertsAndReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
-
         Distance expected = distance1 + distance2.ToMiles();
+
+        // Act
         Distance actual = distance1 + distance2;
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -240,14 +277,17 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanSubtractWithDifferentUnits(double left, double right)
+    public void SubtractOperator_DifferentUnits_ConvertsAndReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
-
         Distance expected = distance1 - distance2.ToMiles();
+
+        // Act
         Distance actual = distance1 - distance2;
 
+        // Assert
         Assert.Equal(expected, actual);
     }
 
@@ -257,11 +297,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareLessThanWithDifferentUnits(double left, double right)
+    public void LessThanOperator_DifferentUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
 
+        // Act & Assert
         bool expected = distance1 < distance2.ToMiles();
         Assert.Equal(expected, distance1 < distance2);
     }
@@ -272,11 +314,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareLessThanEqualToWithDifferentUnits(double left, double right)
+    public void LessThanOrEqualOperator_DifferentUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
 
+        // Act & Assert
         bool expected = distance1 <= distance2.ToMiles();
         Assert.Equal(expected, distance1 <= distance2);
     }
@@ -287,11 +331,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareGreaterThanWithDifferentUnits(double left, double right)
+    public void GreaterThanOperator_DifferentUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
 
+        // Act & Assert
         bool expected = distance1 > distance2.ToMiles();
         Assert.Equal(expected, distance1 > distance2);
     }
@@ -302,11 +348,13 @@ public class DistanceTest
     [InlineData(9, 5)]
     [InlineData(5, -5)]
     [InlineData(3, 0)]
-    public void CanCompareGreaterThanEqualToWithDifferentUnits(double left, double right)
+    public void GreaterThanOrEqualOperator_DifferentUnits_ReturnsExpectedResult(double left, double right)
     {
+        // Arrange
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromKilometers(right);
 
+        // Act & Assert
         bool expected = distance1 >= distance2.ToMiles();
         Assert.Equal(expected, distance1 >= distance2);
     }

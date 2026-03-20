@@ -11,8 +11,7 @@ public class HereAsyncGeocoderTest : AsyncGeocoderTest
 
     protected override IGeocoder CreateAsyncGeocoder()
     {
-        SettingsFixture.SkipIfMissing(_settings.HereAppId, nameof(SettingsFixture.HereAppId));
-        SettingsFixture.SkipIfMissing(_settings.HereAppCode, nameof(SettingsFixture.HereAppCode));
-        return new HereGeocoder(_settings.HereAppId, _settings.HereAppCode);
+        SettingsFixture.SkipIfMissing(_settings.HereApiKey, nameof(SettingsFixture.HereApiKey));
+        return new HereGeocoder(_settings.HereApiKey);
     }
 }

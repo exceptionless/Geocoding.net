@@ -22,7 +22,7 @@ public class MapQuestGeocoderTest : GeocoderTest
     }
 
     [Fact]
-    public virtual async Task CanGeocodeNeighborhood()
+    public virtual async Task Geocode_NeighborhoodAddress_ReturnsResults()
     {
         // Regression test: Addresses with Quality=NEIGHBORHOOD are not returned
         var addresses = (await _mapQuestGeocoder.GeocodeAsync("North Sydney, New South Wales, Australia", TestContext.Current.CancellationToken)).ToArray();

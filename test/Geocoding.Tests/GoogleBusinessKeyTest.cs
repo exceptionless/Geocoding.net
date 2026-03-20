@@ -6,7 +6,7 @@ namespace Geocoding.Tests;
 public class GoogleBusinessKeyTest
 {
     [Fact]
-    public void Should_throw_exception_on_null_client_id()
+    public void Constructor_NullClientId_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(delegate
         {
@@ -15,7 +15,7 @@ public class GoogleBusinessKeyTest
     }
 
     [Fact]
-    public void Should_throw_exception_on_null_signing_key()
+    public void Constructor_NullSigningKey_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(delegate
         {
@@ -24,60 +24,71 @@ public class GoogleBusinessKeyTest
     }
 
     [Fact]
-    public void Should_trim_client_id_and_signing_key()
+    public void Constructor_WhitespaceValues_TrimsClientIdAndSigningKey()
     {
+        // Act
         var key = new BusinessKey("  client-id    ", " signing-key   ");
 
+        // Assert
         Assert.Equal("client-id", key.ClientId);
         Assert.Equal("signing-key", key.SigningKey);
     }
 
     [Fact]
-    public void Should_be_equal_by_value()
+    public void Equals_SameValues_ReturnsTrue()
     {
+        // Arrange
         var key1 = new BusinessKey("client-id", "signing-key");
         var key2 = new BusinessKey("client-id", "signing-key");
 
+        // Assert
         Assert.Equal(key1, key2);
         Assert.Equal(key1.GetHashCode(), key2.GetHashCode());
     }
 
     [Fact]
-    public void Should_not_be_equal_with_different_client_ids()
+    public void Equals_DifferentClientIds_ReturnsFalse()
     {
+        // Arrange
         var key1 = new BusinessKey("client-id1", "signing-key");
         var key2 = new BusinessKey("client-id2", "signing-key");
 
+        // Assert
         Assert.NotEqual(key1, key2);
         Assert.NotEqual(key1.GetHashCode(), key2.GetHashCode());
     }
 
     [Fact]
-    public void Should_not_be_equal_with_different_signing_keys()
+    public void Equals_DifferentSigningKeys_ReturnsFalse()
     {
+        // Arrange
         var key1 = new BusinessKey("client-id", "signing-key1");
         var key2 = new BusinessKey("client-id", "signing-key2");
 
+        // Assert
         Assert.NotEqual(key1, key2);
         Assert.NotEqual(key1.GetHashCode(), key2.GetHashCode());
     }
 
     [Fact]
-    public void Should_generate_signature_from_url()
+    public void GenerateSignature_ValidUrl_ReturnsSignedUrl()
     {
+        // Arrange
         var key = new BusinessKey("clientID", "vNIXE0xscrmjlyV-12Nj_BvUPaw=");
 
-        string signedUrl = key.GenerateSignature("http://maps.googleapis.com/maps/api/geocode/json?address=New+York&sensor=false&client=clientID");
+        // Act
+        string signedUrl = key.GenerateSignature("http://maps.googleapis.com/maps/api/geocode/json?address=New+York&client=clientID");
 
+        // Assert
         Assert.NotNull(signedUrl);
-        Assert.Equal("http://maps.googleapis.com/maps/api/geocode/json?address=New+York&sensor=false&client=clientID&signature=KrU1TzVQM7Ur0i8i7K3huiw3MsA=", signedUrl);
+        Assert.Equal("http://maps.googleapis.com/maps/api/geocode/json?address=New+York&client=clientID&signature=chaRF2hTJKOScPr-RQCEhZbSzIE=", signedUrl);
     }
 
     [Theory]
     [InlineData("   Channel_1   ")]
     [InlineData(" channel-1")]
     [InlineData("CUSTOMER ")]
-    public void Should_trim_and_lower_channel_name(string channel)
+    public void Constructor_ChannelWithWhitespace_TrimsAndLowercases(string channel)
     {
         var key = new BusinessKey("client-id", "signature", channel);
         Assert.Equal(channel.Trim().ToLower(), key.Channel);
@@ -86,7 +97,7 @@ public class GoogleBusinessKeyTest
     [Theory]
     [InlineData(null)]
     [InlineData("channel_1-2.")]
-    public void Doesnt_throw_exception_on_alphanumeric_perioric_underscore_hyphen_character_in_channel(string channel)
+    public void Constructor_ValidChannelCharacters_DoesNotThrow(string channel)
     {
         new BusinessKey("client-id", "signature", channel);
     }
@@ -94,7 +105,7 @@ public class GoogleBusinessKeyTest
     [Theory]
     [InlineData("channel 1")]
     [InlineData("channel&1")]
-    public void Should_throw_exception_on_special_characters_in_channel(string channel)
+    public void Constructor_SpecialCharactersInChannel_ThrowsArgumentException(string channel)
     {
         Assert.Throws<ArgumentException>(delegate
         {
@@ -103,21 +114,31 @@ public class GoogleBusinessKeyTest
     }
 
     [Fact]
-    public void ServiceUrl_should_contains_channel_name()
+    public void ServiceUrl_WithBusinessKeyChannel_ContainsChannelName()
     {
+        // Arrange
         var channel = "channel1";
         var key = new BusinessKey("client-id", "signature", channel);
         var geocoder = new GoogleGeocoder(key);
 
+        // Assert
         Assert.Contains("channel=" + channel, geocoder.ServiceUrl);
     }
 
     [Fact]
-    public void ServiceUrl_doesnt_contains_channel_on_apikey()
+    public void ServiceUrl_WithApiKey_DoesNotContainChannel()
     {
         var geocoder = new GoogleGeocoder("apikey");
 
         Assert.DoesNotContain("channel=", geocoder.ServiceUrl);
+    }
+
+    [Fact]
+    public void ServiceUrl_Default_DoesNotIncludeSensor()
+    {
+        var geocoder = new GoogleGeocoder();
+
+        Assert.DoesNotContain("sensor=", geocoder.ServiceUrl);
     }
 
     [Fact]

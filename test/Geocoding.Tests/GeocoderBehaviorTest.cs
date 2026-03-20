@@ -18,17 +18,17 @@ public class GeocoderBehaviorTest : GeocoderTest
 
     [Theory]
     [MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
-    public override async Task CanGeocodeAddressUnderDifferentCultures(string cultureName)
+    public override async Task Geocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
-        await base.CanGeocodeAddressUnderDifferentCultures(cultureName);
+        await base.Geocode_DifferentCulture_ReturnsExpectedResult(cultureName);
         Assert.Equal(cultureName, _fakeGeocoder.LastCultureName);
     }
 
     [Theory]
     [MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
-    public override async Task CanReverseGeocodeAddressUnderDifferentCultures(string cultureName)
+    public override async Task ReverseGeocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
-        await base.CanReverseGeocodeAddressUnderDifferentCultures(cultureName);
+        await base.ReverseGeocode_DifferentCulture_ReturnsExpectedResult(cultureName);
         Assert.Equal(cultureName, _fakeGeocoder.LastCultureName);
     }
 

@@ -65,14 +65,14 @@ public abstract class GeocoderTest
 
     [Theory]
     [MemberData(nameof(AddressData))]
-    public virtual async Task CanGeocodeAddress(string address)
+    public virtual async Task Geocode_ValidAddress_ReturnsExpectedResult(string address)
     {
         var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
         addresses[0].AssertWhiteHouse();
     }
 
     [Fact]
-    public virtual async Task CanGeocodeNormalizedAddress()
+    public virtual async Task Geocode_NormalizedAddress_ReturnsExpectedResult()
     {
         var addresses = (await _geocoder.GeocodeAsync("1600 pennsylvania ave nw", "washington", "dc", null, null, TestContext.Current.CancellationToken)).ToArray();
         addresses[0].AssertWhiteHouse();
@@ -80,7 +80,7 @@ public abstract class GeocoderTest
 
     [Theory]
     [MemberData(nameof(CultureData))]
-    public virtual Task CanGeocodeAddressUnderDifferentCultures(string cultureName)
+    public virtual Task Geocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
         return RunInCultureAsync(cultureName, async () =>
         {
@@ -92,7 +92,7 @@ public abstract class GeocoderTest
 
     [Theory]
     [MemberData(nameof(CultureData))]
-    public virtual Task CanReverseGeocodeAddressUnderDifferentCultures(string cultureName)
+    public virtual Task ReverseGeocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
         return RunInCultureAsync(cultureName, async () =>
         {
@@ -103,7 +103,7 @@ public abstract class GeocoderTest
     }
 
     [Fact]
-    public virtual async Task ShouldNotBlowUpOnBadAddress()
+    public virtual async Task Geocode_InvalidAddress_ReturnsEmpty()
     {
         var addresses = (await _geocoder.GeocodeAsync("sdlkf;jasl;kjfldksj,fasldf", TestContext.Current.CancellationToken)).ToArray();
         Assert.Empty(addresses);
@@ -111,7 +111,7 @@ public abstract class GeocoderTest
 
     [Theory]
     [MemberData(nameof(SpecialCharacterAddressData))]
-    public virtual async Task CanGeocodeWithSpecialCharacters(string address)
+    public virtual async Task Geocode_SpecialCharacters_ReturnsResults(string address)
     {
         var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
@@ -121,7 +121,7 @@ public abstract class GeocoderTest
 
     [Theory]
     [MemberData(nameof(StreetIntersectionAddressData))]
-    public virtual async Task CanHandleStreetIntersectionsByAmpersand(string address)
+    public virtual async Task Geocode_StreetIntersection_ReturnsResults(string address)
     {
         var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
@@ -130,7 +130,7 @@ public abstract class GeocoderTest
     }
 
     [Fact]
-    public virtual async Task CanReverseGeocodeAsync()
+    public virtual async Task ReverseGeocode_WhiteHouseCoordinates_ReturnsExpectedArea()
     {
         var addresses = (await _geocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
         addresses[0].AssertWhiteHouseArea();
@@ -139,7 +139,7 @@ public abstract class GeocoderTest
     [Theory]
     [MemberData(nameof(InvalidZipCodeAddressData))]
     //https://github.com/chadly/Geocoding.net/issues/6
-    public virtual async Task CanGeocodeInvalidZipCodes(string address)
+    public virtual async Task Geocode_InvalidZipCode_ReturnsResults(string address)
     {
         var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
         Assert.NotEmpty(addresses);

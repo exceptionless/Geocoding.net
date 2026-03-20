@@ -3,17 +3,10 @@
   <PropertyGroup>
     <Description>Includes a model and interface for communicating with four popular Geocoding providers. Current implementations include: Google Maps, Yahoo! PlaceFinder, Bing Maps (aka Virtual Earth), and Mapquest. The API returns latitude/longitude coordinates and normalized address information. This can be used to perform address validation, real time mapping of user-entered addresses, distance calculations, and much more.</Description>
     <AssemblyTitle>Geocoding.net Yahoo</AssemblyTitle>
-    <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Geocoding.Core\Geocoding.Core.csproj" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.3'">
-    <PackageReference Include="System.Net.Requests" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
-    <PackageReference Include="System.Xml.XPath" Version="4.3.0" />
-  </ItemGroup>
-
 </Project>

@@ -41,7 +41,8 @@ jobs:
         id: version
         run: |
           dotnet tool install --global minver-cli --version 7.0.0
-          version=$(minver --tag-prefix v)
+          version=$(minver --tag-prefix v --minimum-major-minor 5.0)
+
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
           echo "### Version: $version" >> $GITHUB_STEP_SUMMARY

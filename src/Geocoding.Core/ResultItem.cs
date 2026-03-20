@@ -1,54 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace Geocoding;
 
-namespace Geocoding
+/// <summary>
+/// Represents a single batch request item and its response values.
+/// </summary>
+public class ResultItem
 {
+	Address input;
 	/// <summary>
-	/// Represents a single batch request item and its response values.
+	/// Original input for this response
 	/// </summary>
-	public class ResultItem
+	public Address Request
 	{
-		Address input;
-		/// <summary>
-		/// Original input for this response
-		/// </summary>
-		public Address Request
+		get { return input; }
+		set
 		{
-			get { return input; }
-			set
-			{
-				if (value == null)
-					throw new ArgumentNullException("Input");
+			if (value == null)
+				throw new ArgumentNullException("Input");
 
-				input = value;
-			}
+			input = value;
 		}
+	}
 
-		IEnumerable<Address> output;
-		/// <summary>
-		/// Output for the given input
-		/// </summary>
-		public IEnumerable<Address> Response
+	IEnumerable<Address> output;
+	/// <summary>
+	/// Output for the given input
+	/// </summary>
+	public IEnumerable<Address> Response
+	{
+		get { return output; }
+		set
 		{
-			get { return output; }
-			set
-			{
-				if (value == null)
-					throw new ArgumentNullException("Response");
+			if (value == null)
+				throw new ArgumentNullException("Response");
 
-				output = value;
-			}
+			output = value;
 		}
+	}
 
-		/// <summary>
-		/// Initializes a new result item.
-		/// </summary>
-		/// <param name="request">The request address.</param>
-		/// <param name="response">The response addresses.</param>
-		public ResultItem(Address request, IEnumerable<Address> response)
-		{
-			Request = request;
-			Response = response;
-		}
+	/// <summary>
+	/// Initializes a new result item.
+	/// </summary>
+	/// <param name="request">The request address.</param>
+	/// <param name="response">The response addresses.</param>
+	public ResultItem(Address request, IEnumerable<Address> response)
+	{
+		Request = request;
+		Response = response;
 	}
 }

@@ -1,291 +1,284 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+﻿using System.Globalization;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.XPath;
 
-namespace Geocoding.Yahoo
+namespace Geocoding.Yahoo;
+
+/// <summary>
+/// Provides geocoding and reverse geocoding through the Yahoo geocoding API.
+/// </summary>
+/// <remarks>
+/// http://developer.yahoo.com/geo/placefinder/
+/// </remarks>
+public class YahooGeocoder : IGeocoder
 {
 	/// <summary>
-	/// Provides geocoding and reverse geocoding through the Yahoo geocoding API.
+	/// The single-line Yahoo geocoding service URL format.
 	/// </summary>
-	/// <remarks>
-	/// http://developer.yahoo.com/geo/placefinder/
-	/// </remarks>
-	public class YahooGeocoder : IGeocoder
+	public const string ServiceUrl = "http://yboss.yahooapis.com/geo/placefinder?q={0}";
+	/// <summary>
+	/// The multi-part Yahoo geocoding service URL format.
+	/// </summary>
+	public const string ServiceUrlNormal = "http://yboss.yahooapis.com/geo/placefinder?street={0}&city={1}&state={2}&postal={3}&country={4}";
+	/// <summary>
+	/// The Yahoo reverse geocoding service URL format.
+	/// </summary>
+	public const string ServiceUrlReverse = "http://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
+
+	readonly string consumerKey, consumerSecret;
+
+	/// <summary>
+	/// Gets the Yahoo consumer key.
+	/// </summary>
+	public string ConsumerKey
 	{
-		/// <summary>
-		/// The single-line Yahoo geocoding service URL format.
-		/// </summary>
-		public const string ServiceUrl = "http://yboss.yahooapis.com/geo/placefinder?q={0}";
-		/// <summary>
-		/// The multi-part Yahoo geocoding service URL format.
-		/// </summary>
-		public const string ServiceUrlNormal = "http://yboss.yahooapis.com/geo/placefinder?street={0}&city={1}&state={2}&postal={3}&country={4}";
-		/// <summary>
-		/// The Yahoo reverse geocoding service URL format.
-		/// </summary>
-		public const string ServiceUrlReverse = "http://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
+		get { return consumerKey; }
+	}
 
-		readonly string consumerKey, consumerSecret;
+	/// <summary>
+	/// Gets the Yahoo consumer secret.
+	/// </summary>
+	public string ConsumerSecret
+	{
+		get { return consumerSecret; }
+	}
 
-		/// <summary>
-		/// Gets the Yahoo consumer key.
-		/// </summary>
-		public string ConsumerKey
+	/// <summary>
+	/// Gets or sets the proxy used for Yahoo requests.
+	/// </summary>
+	public IWebProxy Proxy { get; set; }
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="YahooGeocoder"/> class.
+	/// </summary>
+	/// <param name="consumerKey">The Yahoo consumer key.</param>
+	/// <param name="consumerSecret">The Yahoo consumer secret.</param>
+	public YahooGeocoder(string consumerKey, string consumerSecret)
+	{
+		if (string.IsNullOrEmpty(consumerKey))
+			throw new ArgumentNullException("consumerKey");
+
+		if (string.IsNullOrEmpty(consumerSecret))
+			throw new ArgumentNullException("consumerSecret");
+
+		this.consumerKey = consumerKey;
+		this.consumerSecret = consumerSecret;
+	}
+
+	/// <inheritdoc />
+	public Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
+	{
+		if (string.IsNullOrEmpty(address))
+			throw new ArgumentNullException("address");
+
+		string url = string.Format(ServiceUrl, WebUtility.UrlEncode(address));
+
+		HttpWebRequest request = BuildWebRequest(url);
+		return ProcessRequest(request, cancellationToken);
+	}
+
+	/// <inheritdoc />
+	public Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
+	{
+		string url = string.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
+
+		HttpWebRequest request = BuildWebRequest(url);
+		return ProcessRequest(request, cancellationToken);
+	}
+
+	/// <inheritdoc />
+	public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+	{
+		if (location == null)
+			throw new ArgumentNullException("location");
+
+		return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
+	}
+
+	/// <inheritdoc />
+	public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
+	{
+		string url = string.Format(ServiceUrlReverse, string.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
+
+		HttpWebRequest request = BuildWebRequest(url);
+		return ProcessRequest(request, cancellationToken);
+	}
+
+	private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpWebRequest request, CancellationToken cancellationToken)
+	{
+		try
 		{
-			get { return consumerKey; }
-		}
-
-		/// <summary>
-		/// Gets the Yahoo consumer secret.
-		/// </summary>
-		public string ConsumerSecret
-		{
-			get { return consumerSecret; }
-		}
-
-		/// <summary>
-		/// Gets or sets the proxy used for Yahoo requests.
-		/// </summary>
-		public IWebProxy Proxy { get; set; }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="YahooGeocoder"/> class.
-		/// </summary>
-		/// <param name="consumerKey">The Yahoo consumer key.</param>
-		/// <param name="consumerSecret">The Yahoo consumer secret.</param>
-		public YahooGeocoder(string consumerKey, string consumerSecret)
-		{
-			if (string.IsNullOrEmpty(consumerKey))
-				throw new ArgumentNullException("consumerKey");
-
-			if (string.IsNullOrEmpty(consumerSecret))
-				throw new ArgumentNullException("consumerSecret");
-
-			this.consumerKey = consumerKey;
-			this.consumerSecret = consumerSecret;
-		}
-
-		/// <inheritdoc />
-		public Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
-		{
-			if (string.IsNullOrEmpty(address))
-				throw new ArgumentNullException("address");
-
-			string url = string.Format(ServiceUrl, WebUtility.UrlEncode(address));
-
-			HttpWebRequest request = BuildWebRequest(url);
-			return ProcessRequest(request, cancellationToken);
-		}
-
-		/// <inheritdoc />
-		public Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
-		{
-			string url = string.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
-
-			HttpWebRequest request = BuildWebRequest(url);
-			return ProcessRequest(request, cancellationToken);
-		}
-
-		/// <inheritdoc />
-		public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
-		{
-			if (location == null)
-				throw new ArgumentNullException("location");
-
-			return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
-		}
-
-		/// <inheritdoc />
-		public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
-		{
-			string url = string.Format(ServiceUrlReverse, string.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
-
-			HttpWebRequest request = BuildWebRequest(url);
-			return ProcessRequest(request, cancellationToken);
-		}
-
-		private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpWebRequest request, CancellationToken cancellationToken)
-		{
-			try
+			using(cancellationToken.Register(request.Abort, false))
+			using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
 			{
-				using(cancellationToken.Register(request.Abort, false))
-				using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
-				{
-					cancellationToken.ThrowIfCancellationRequested();
-					return ProcessWebResponse(response);
-				}
-			}
-			catch (YahooGeocodingException)
-			{
-				//let these pass through
-				throw;
-			}
-			catch (Exception ex)
-			{
-				//wrap in yahoo exception
-				throw new YahooGeocodingException(ex);
+				cancellationToken.ThrowIfCancellationRequested();
+				return ProcessWebResponse(response);
 			}
 		}
-
-		async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string address, CancellationToken cancellationToken)
+		catch (YahooGeocodingException)
 		{
-			return await GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
+			//let these pass through
+			throw;
 		}
-
-		async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken)
+		catch (Exception ex)
 		{
-			return await GeocodeAsync(street, city, state, postalCode, country, cancellationToken).ConfigureAwait(false);
+			//wrap in yahoo exception
+			throw new YahooGeocodingException(ex);
 		}
+	}
 
-		async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(Location location, CancellationToken cancellationToken)
+	async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string address, CancellationToken cancellationToken)
+	{
+		return await GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
+	}
+
+	async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken)
+	{
+		return await GeocodeAsync(street, city, state, postalCode, country, cancellationToken).ConfigureAwait(false);
+	}
+
+	async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(Location location, CancellationToken cancellationToken)
+	{
+		return await ReverseGeocodeAsync(location, cancellationToken).ConfigureAwait(false);
+	}
+
+	async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken)
+	{
+		return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
+	}
+
+	private HttpWebRequest BuildWebRequest(string url)
+	{
+		url = GenerateOAuthSignature(new Uri(url));
+		var req = WebRequest.Create(url) as HttpWebRequest;
+		req.Method = "GET";
+		if (this.Proxy != null)
 		{
-			return await ReverseGeocodeAsync(location, cancellationToken).ConfigureAwait(false);
+			req.Proxy = this.Proxy;
 		}
+		return req;
+	}
 
-		async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken)
+	string GenerateOAuthSignature(Uri uri)
+	{
+		string url, param;
+
+		var oAuth = new OAuthBase();
+		var nonce = oAuth.GenerateNonce();
+		var timeStamp = oAuth.GenerateTimeStamp();
+
+		var signature = oAuth.GenerateSignature(
+			uri,
+			consumerKey,
+			consumerSecret,
+			string.Empty,
+			string.Empty,
+			"GET",
+			timeStamp,
+			nonce,
+			OAuthBase.SignatureTypes.HMACSHA1,
+			out url,
+			out param
+		);
+
+		return string.Format("{0}?{1}&oauth_signature={2}", url, param, signature);
+	}
+
+	private IEnumerable<YahooAddress> ProcessWebResponse(WebResponse response)
+	{
+		XPathDocument xmlDoc = LoadXmlResponse(response);
+		XPathNavigator nav = xmlDoc.CreateNavigator();
+
+		YahooError error = EvaluateError(Convert.ToInt32(nav.Evaluate("number(/ResultSet/Error)")));
+
+		if (error != YahooError.NoError)
+			throw new YahooGeocodingException(error);
+
+		return ParseAddresses(nav.Select("/ResultSet/Result")).ToArray();
+	}
+
+	private XPathDocument LoadXmlResponse(WebResponse response)
+	{
+		using (Stream stream = response.GetResponseStream())
 		{
-			return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
+			XPathDocument doc = new XPathDocument(stream);
+			return doc;
 		}
+	}
 
-		private HttpWebRequest BuildWebRequest(string url)
+	private IEnumerable<YahooAddress> ParseAddresses(XPathNodeIterator nodes)
+	{
+		while (nodes.MoveNext())
 		{
-			url = GenerateOAuthSignature(new Uri(url));
-			var req = WebRequest.Create(url) as HttpWebRequest;
-			req.Method = "GET";
-			if (this.Proxy != null)
-			{
-				req.Proxy = this.Proxy;
-			}
-			return req;
-		}
+			XPathNavigator nav = nodes.Current;
 
-		string GenerateOAuthSignature(Uri uri)
-		{
-			string url, param;
+			int quality = Convert.ToInt32(nav.Evaluate("number(quality)"));
+			string formattedAddress = ParseFormattedAddress(nav);
 
-			var oAuth = new OAuthBase();
-			var nonce = oAuth.GenerateNonce();
-			var timeStamp = oAuth.GenerateTimeStamp();
+			double latitude = (double)nav.Evaluate("number(latitude)");
+			double longitude = (double)nav.Evaluate("number(longitude)");
+			Location coordinates = new Location(latitude, longitude);
 
-			var signature = oAuth.GenerateSignature(
-				uri,
-				consumerKey,
-				consumerSecret,
-				string.Empty,
-				string.Empty,
-				"GET",
-				timeStamp,
-				nonce,
-				OAuthBase.SignatureTypes.HMACSHA1,
-				out url,
-				out param
+			string name = (string)nav.Evaluate("string(name)");
+			string house = (string)nav.Evaluate("string(house)");
+			string street = (string)nav.Evaluate("string(street)");
+			string unit = (string)nav.Evaluate("string(unit)");
+			string unitType = (string)nav.Evaluate("string(unittype)");
+			string neighborhood = (string)nav.Evaluate("string(neighborhood)");
+			string city = (string)nav.Evaluate("string(city)");
+			string county = (string)nav.Evaluate("string(county)");
+			string countyCode = (string)nav.Evaluate("string(countycode)");
+			string state = (string)nav.Evaluate("string(state)");
+			string stateCode = (string)nav.Evaluate("string(statecode)");
+			string postalCode = (string)nav.Evaluate("string(postal)");
+			string country = (string)nav.Evaluate("string(country)");
+			string countryCode = (string)nav.Evaluate("string(countrycode)");
+
+			yield return new YahooAddress(
+				formattedAddress,
+				coordinates,
+				name,
+				house,
+				street,
+				unit,
+				unitType,
+				neighborhood,
+				city,
+				county,
+				countyCode,
+				state,
+				stateCode,
+				postalCode,
+				country,
+				countryCode,
+				quality
 			);
-
-			return string.Format("{0}?{1}&oauth_signature={2}", url, param, signature);
 		}
+	}
 
-		private IEnumerable<YahooAddress> ProcessWebResponse(WebResponse response)
-		{
-			XPathDocument xmlDoc = LoadXmlResponse(response);
-			XPathNavigator nav = xmlDoc.CreateNavigator();
+	private string ParseFormattedAddress(XPathNavigator nav)
+	{
+		string[] lines = new string[4];
+		lines[0] = (string)nav.Evaluate("string(line1)");
+		lines[1] = (string)nav.Evaluate("string(line2)");
+		lines[2] = (string)nav.Evaluate("string(line3)");
+		lines[3] = (string)nav.Evaluate("string(line4)");
 
-			YahooError error = EvaluateError(Convert.ToInt32(nav.Evaluate("number(/ResultSet/Error)")));
+		lines = lines.Select(s => (s ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
+		return string.Join(", ", lines);
+	}
 
-			if (error != YahooError.NoError)
-				throw new YahooGeocodingException(error);
+	private YahooError EvaluateError(int errorCode)
+	{
+		if (errorCode >= 1000)
+			return YahooError.UnknownError;
 
-			return ParseAddresses(nav.Select("/ResultSet/Result")).ToArray();
-		}
+		return (YahooError)errorCode;
+	}
 
-		private XPathDocument LoadXmlResponse(WebResponse response)
-		{
-			using (Stream stream = response.GetResponseStream())
-			{
-				XPathDocument doc = new XPathDocument(stream);
-				return doc;
-			}
-		}
-
-		private IEnumerable<YahooAddress> ParseAddresses(XPathNodeIterator nodes)
-		{
-			while (nodes.MoveNext())
-			{
-				XPathNavigator nav = nodes.Current;
-
-				int quality = Convert.ToInt32(nav.Evaluate("number(quality)"));
-				string formattedAddress = ParseFormattedAddress(nav);
-
-				double latitude = (double)nav.Evaluate("number(latitude)");
-				double longitude = (double)nav.Evaluate("number(longitude)");
-				Location coordinates = new Location(latitude, longitude);
-
-				string name = (string)nav.Evaluate("string(name)");
-				string house = (string)nav.Evaluate("string(house)");
-				string street = (string)nav.Evaluate("string(street)");
-				string unit = (string)nav.Evaluate("string(unit)");
-				string unitType = (string)nav.Evaluate("string(unittype)");
-				string neighborhood = (string)nav.Evaluate("string(neighborhood)");
-				string city = (string)nav.Evaluate("string(city)");
-				string county = (string)nav.Evaluate("string(county)");
-				string countyCode = (string)nav.Evaluate("string(countycode)");
-				string state = (string)nav.Evaluate("string(state)");
-				string stateCode = (string)nav.Evaluate("string(statecode)");
-				string postalCode = (string)nav.Evaluate("string(postal)");
-				string country = (string)nav.Evaluate("string(country)");
-				string countryCode = (string)nav.Evaluate("string(countrycode)");
-
-				yield return new YahooAddress(
-					formattedAddress,
-					coordinates,
-					name,
-					house,
-					street,
-					unit,
-					unitType,
-					neighborhood,
-					city,
-					county,
-					countyCode,
-					state,
-					stateCode,
-					postalCode,
-					country,
-					countryCode,
-					quality
-				);
-			}
-		}
-
-		private string ParseFormattedAddress(XPathNavigator nav)
-		{
-			string[] lines = new string[4];
-			lines[0] = (string)nav.Evaluate("string(line1)");
-			lines[1] = (string)nav.Evaluate("string(line2)");
-			lines[2] = (string)nav.Evaluate("string(line3)");
-			lines[3] = (string)nav.Evaluate("string(line4)");
-
-			lines = lines.Select(s => (s ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-			return string.Join(", ", lines);
-		}
-
-		private YahooError EvaluateError(int errorCode)
-		{
-			if (errorCode >= 1000)
-				return YahooError.UnknownError;
-
-			return (YahooError)errorCode;
-		}
-
-		/// <inheritdoc />
-		public override string ToString()
-		{
-			return string.Format("Yahoo Geocoder: {0}, {1}", consumerKey, consumerSecret);
-		}
+	/// <inheritdoc />
+	public override string ToString()
+	{
+		return string.Format("Yahoo Geocoder: {0}, {1}", consumerKey, consumerSecret);
 	}
 }

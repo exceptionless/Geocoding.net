@@ -1,20 +1,18 @@
-﻿﻿using System;
-using Geocoding.Core;
+﻿using Geocoding.Core;
 
-namespace Geocoding.Microsoft
+namespace Geocoding.Microsoft;
+
+/// <summary>
+/// Represents an error returned by the Bing Maps geocoding provider.
+/// </summary>
+public class BingGeocodingException : GeocodingException
 {
-	/// <summary>
-	/// Represents an error returned by the Bing Maps geocoding provider.
-	/// </summary>
-	public class BingGeocodingException : GeocodingException
-	{
-		const string defaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
+	const string defaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BingGeocodingException"/> class.
-		/// </summary>
-		/// <param name="innerException">The underlying provider exception.</param>
-		public BingGeocodingException(Exception innerException)
-			: base(defaultMessage, innerException) { }
-	}
+	/// <summary>
+	/// Initializes a new instance of the <see cref="BingGeocodingException"/> class.
+	/// </summary>
+	/// <param name="innerException">The underlying provider exception.</param>
+	public BingGeocodingException(Exception innerException)
+		: base(defaultMessage, innerException) { }
 }

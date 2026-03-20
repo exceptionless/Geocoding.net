@@ -1,31 +1,29 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace Geocoding.MapQuest
+namespace Geocoding.MapQuest;
+
+/// <summary>
+/// Represents MapQuest response metadata.
+/// </summary>
+public class ResponseInfo
 {
 	/// <summary>
-	/// Represents MapQuest response metadata.
+	/// Extended copyright info
 	/// </summary>
-	public class ResponseInfo
-	{
-		/// <summary>
-		/// Extended copyright info
-		/// </summary>
-		//[JsonDictionary]
-		[JsonProperty("copyright")]
-		public IDictionary<string, string> Copyright { get; set; }
+	//[JsonDictionary]
+	[JsonProperty("copyright")]
+	public IDictionary<string, string> Copyright { get; set; }
 
-		/// <summary>
-		/// Maps to HTTP response code generally
-		/// </summary>
-		[JsonProperty("statuscode")]
-		public ResponseStatus Status { get; set; }
+	/// <summary>
+	/// Maps to HTTP response code generally
+	/// </summary>
+	[JsonProperty("statuscode")]
+	public ResponseStatus Status { get; set; }
 
-		/// <summary>
-		/// Error or status messages if applicable
-		/// </summary>
-		//[JsonArray(AllowNullItems=true)]
-		[JsonProperty("messages")]
-		public IList<string> Messages { get; set; }
-	}
+	/// <summary>
+	/// Error or status messages if applicable
+	/// </summary>
+	//[JsonArray(AllowNullItems=true)]
+	[JsonProperty("messages")]
+	public IList<string> Messages { get; set; }
 }

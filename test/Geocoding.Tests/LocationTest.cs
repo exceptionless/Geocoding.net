@@ -1,41 +1,40 @@
 ﻿﻿using Xunit;
 
-namespace Geocoding.Tests
-{
-	public class LocationTest
-	{
-		[Fact]
-		public void CanCreate()
-		{
-			const double lat = 85.6789;
-			const double lon = 92.4517;
+ namespace Geocoding.Tests;
 
-			Location loc = new Location(lat, lon);
+ public class LocationTest
+ {
+	 [Fact]
+	 public void CanCreate()
+	 {
+		 const double lat = 85.6789;
+		 const double lon = 92.4517;
 
-			Assert.Equal(lat, loc.Latitude);
-			Assert.Equal(lon, loc.Longitude);
-		}
+		 Location loc = new Location(lat, lon);
 
-		[Fact]
-		public void CanCompareForEquality()
-		{
-			Location loc1 = new Location(85.6789, 92.4517);
-			Location loc2 = new Location(85.6789, 92.4517);
+		 Assert.Equal(lat, loc.Latitude);
+		 Assert.Equal(lon, loc.Longitude);
+	 }
 
-			Assert.True(loc1.Equals(loc2));
-			Assert.Equal(loc1.GetHashCode(), loc2.GetHashCode());
-		}
+	 [Fact]
+	 public void CanCompareForEquality()
+	 {
+		 Location loc1 = new Location(85.6789, 92.4517);
+		 Location loc2 = new Location(85.6789, 92.4517);
 
-		[Fact]
-		public void CanCalculateHaversineDistanceBetweenTwoAddresses()
-		{
-			Location loc1 = new Location(0, 0);
-			Location loc2 = new Location(40, 20);
+		 Assert.True(loc1.Equals(loc2));
+		 Assert.Equal(loc1.GetHashCode(), loc2.GetHashCode());
+	 }
 
-			Distance distance1 = loc1.DistanceBetween(loc2);
-			Distance distance2 = loc2.DistanceBetween(loc1);
+	 [Fact]
+	 public void CanCalculateHaversineDistanceBetweenTwoAddresses()
+	 {
+		 Location loc1 = new Location(0, 0);
+		 Location loc2 = new Location(40, 20);
 
-			Assert.Equal(distance1, distance2);
-		}
-	}
-}
+		 Distance distance1 = loc1.DistanceBetween(loc2);
+		 Distance distance2 = loc2.DistanceBetween(loc1);
+
+		 Assert.Equal(distance1, distance2);
+	 }
+ }

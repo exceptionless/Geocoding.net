@@ -1,19 +1,16 @@
-﻿using System;
+﻿namespace Geocoding;
 
-namespace Geocoding
+/// <summary>
+/// Distance units supported by the library.
+/// </summary>
+public enum DistanceUnits
 {
 	/// <summary>
-	/// Distance units supported by the library.
+	/// Statute miles.
 	/// </summary>
-	public enum DistanceUnits
-	{
-		/// <summary>
-		/// Statute miles.
-		/// </summary>
-		Miles,
-		/// <summary>
-		/// Kilometers.
-		/// </summary>
-		Kilometers
-	}
+	Miles,
+	/// <summary>
+	/// Kilometers.
+	/// </summary>
+	Kilometers
 }

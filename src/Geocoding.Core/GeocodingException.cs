@@ -1,20 +1,17 @@
-﻿using System;
+﻿namespace Geocoding.Core;
 
-namespace Geocoding.Core
+/// <summary>
+/// Base exception used for geocoding failures.
+/// </summary>
+public class GeocodingException : Exception
 {
 	/// <summary>
-	/// Base exception used for geocoding failures.
+	/// Initializes a new geocoding exception.
 	/// </summary>
-	public class GeocodingException : Exception
+	/// <param name="message">The exception message.</param>
+	/// <param name="innerException">The inner exception.</param>
+	public GeocodingException(string message, Exception innerException = null)
+		: base(message, innerException)
 	{
-		/// <summary>
-		/// Initializes a new geocoding exception.
-		/// </summary>
-		/// <param name="message">The exception message.</param>
-		/// <param name="innerException">The inner exception.</param>
-		public GeocodingException(string message, Exception innerException = null)
-			: base(message, innerException)
-		{
-		}
 	}
 }

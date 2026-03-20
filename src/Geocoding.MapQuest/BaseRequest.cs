@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest;
@@ -18,8 +18,7 @@ public abstract class BaseRequest
         Key = key;
     }
 
-    [JsonIgnore]
-    string key;
+    [JsonIgnore] private string _key;
     /// <summary>
     /// A required unique key to authorize use of the routing service.
     /// See http://developer.mapquest.com/.
@@ -27,13 +26,13 @@ public abstract class BaseRequest
     [JsonIgnore]
     public virtual string Key
     {
-        get { return key; }
+        get { return _key; }
         set
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("An application key is required for MapQuest");
 
-            key = value;
+            _key = value;
         }
     }
 
@@ -49,21 +48,20 @@ public abstract class BaseRequest
     [JsonIgnore]
     public virtual DataFormat OutputFormat { get; private set; }
 
-    [JsonIgnore]
-    RequestOptions op = new RequestOptions();
+    [JsonIgnore] private RequestOptions _op = new RequestOptions();
     /// <summary>
     /// Optional settings
     /// </summary>
     [JsonProperty("options")]
     public virtual RequestOptions Options
     {
-        get { return op; }
+        get { return _op; }
         protected set
         {
             if (value == null)
                 throw new ArgumentNullException("Options");
 
-            op = value;
+            _op = value;
         }
     }
 
@@ -117,8 +115,7 @@ public abstract class BaseRequest
     [JsonIgnore]
     public abstract string RequestAction { get; }
 
-    [JsonIgnore]
-    string _verb = "POST";
+    [JsonIgnore] private string _verb = "POST";
     /// <summary>
     /// Default request verb is POST for security and large batch payloads
     /// </summary>

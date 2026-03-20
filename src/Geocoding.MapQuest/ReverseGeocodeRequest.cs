@@ -35,21 +35,20 @@ public class ReverseGeocodeRequest : BaseRequest
         Location = loc;
     }
 
-    [JsonIgnore]
-    LocationRequest loc;
+    [JsonIgnore] private LocationRequest _loc;
     /// <summary>
     /// Latitude and longitude for the request
     /// </summary>
     [JsonProperty("location")]
     public virtual LocationRequest Location
     {
-        get { return loc; }
+        get { return _loc; }
         set
         {
             if (value == null)
                 throw new ArgumentNullException("Location");
 
-            loc = value;
+            _loc = value;
         }
     }
 

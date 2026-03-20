@@ -1,4 +1,4 @@
-# Generic C# Geocoding API [![CI](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml) [![Publish Packages](https://github.com/exceptionless/Geocoding.net/actions/workflows/publish-packages.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/publish-packages.yml) [![CodeQL](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml)
+# Generic C# Geocoding API [![CI](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml) [![CodeQL](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml)
 
 Includes a model and interface for communicating with five popular Geocoding providers.  Current implementations include:
 
@@ -65,7 +65,7 @@ The Microsoft and Yahoo implementations each provide their own address class as 
 
 ## API Keys
 
-Google [requires a new Server API Key](https://developers.google.com/maps/documentation/javascript/tutorial#api_key) to access its service.
+Google can use a [Server API Key](https://developers.google.com/maps/documentation/javascript/tutorial#api_key), and some environments now require one to access the service reliably.
 
 Bing [requires an API key](http://msdn.microsoft.com/en-us/library/ff428642.aspx) to access its service.
 

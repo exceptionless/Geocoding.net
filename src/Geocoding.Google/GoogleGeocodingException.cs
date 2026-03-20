@@ -7,7 +7,7 @@ namespace Geocoding.Google;
 /// </summary>
 public class GoogleGeocodingException : GeocodingException
 {
-    const string defaultMessage = "There was an error processing the geocoding request. See Status or InnerException for more information.";
+    private const string DEFAULT_MESSAGE = "There was an error processing the geocoding request. See Status or InnerException for more information.";
 
     /// <summary>
     /// Gets the Google status associated with the failure.
@@ -19,9 +19,9 @@ public class GoogleGeocodingException : GeocodingException
     /// </summary>
     /// <param name="status">The Google status associated with the failure.</param>
     public GoogleGeocodingException(GoogleStatus status)
-        : base(defaultMessage)
+        : base(DEFAULT_MESSAGE)
     {
-        this.Status = status;
+        Status = status;
     }
 
     /// <summary>
@@ -29,8 +29,8 @@ public class GoogleGeocodingException : GeocodingException
     /// </summary>
     /// <param name="innerException">The underlying provider exception.</param>
     public GoogleGeocodingException(Exception innerException)
-        : base(defaultMessage, innerException)
+        : base(DEFAULT_MESSAGE, innerException)
     {
-        this.Status = GoogleStatus.Error;
+        Status = GoogleStatus.Error;
     }
 }

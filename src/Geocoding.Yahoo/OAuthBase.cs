@@ -29,8 +29,8 @@ public class OAuthBase
     /// </summary>
     protected class QueryParameter
     {
-        private string name = null;
-        private string value = null;
+        private string _name = null;
+        private string _value = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryParameter"/> class.
@@ -39,8 +39,8 @@ public class OAuthBase
         /// <param name="value">The parameter value.</param>
         public QueryParameter(string name, string value)
         {
-            this.name = name;
-            this.value = value;
+            _name = name;
+            _value = value;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ public class OAuthBase
         /// </summary>
         public string Name
         {
-            get { return name; }
+            get { return _name; }
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ public class OAuthBase
         /// </summary>
         public string Value
         {
-            get { return value; }
+            get { return _value; }
         }
     }
 
@@ -179,7 +179,7 @@ public class OAuthBase
             throw new ArgumentNullException("data");
         }
 
-        byte[] dataBuffer = System.Text.Encoding.ASCII.GetBytes(data);
+        byte[] dataBuffer = Encoding.ASCII.GetBytes(data);
         byte[] hashBytes = hashAlgorithm.ComputeHash(dataBuffer);
 
         return Convert.ToBase64String(hashBytes);
@@ -240,7 +240,7 @@ public class OAuthBase
             }
             else
             {
-                result.Append('%' + string.Format("{0:X2}", (int)symbol));
+                result.Append('%' + $"{(int)symbol:X2}");
             }
         }
 
@@ -328,7 +328,7 @@ public class OAuthBase
 
         parameters.Sort(new QueryParameterComparer());
 
-        normalizedUrl = string.Format("{0}://{1}", url.Scheme, url.Host);
+        normalizedUrl = $"{url.Scheme}://{url.Host}";
         if (!((url.Scheme == "http" && url.Port == 80) || (url.Scheme == "https" && url.Port == 443)))
         {
             normalizedUrl += ":" + url.Port;
@@ -397,12 +397,13 @@ public class OAuthBase
         switch (signatureType)
         {
             case SignatureTypes.PLAINTEXT:
-                return WebUtility.UrlEncode(string.Format("{0}&{1}", consumerSecret, tokenSecret));
+                return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}");
             case SignatureTypes.HMACSHA1:
                 string signatureBase = GenerateSignatureBase(url, consumerKey, token, tokenSecret, httpMethod, timeStamp, nonce, HMACSHA1SignatureType, out normalizedUrl, out normalizedRequestParameters);
 
                 HMACSHA1 hmacsha1 = new HMACSHA1();
-                hmacsha1.Key = Encoding.ASCII.GetBytes(string.Format("{0}&{1}", UrlEncode(consumerSecret), string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret)));
+                hmacsha1.Key = Encoding.ASCII.GetBytes(
+                    $"{UrlEncode(consumerSecret)}&{(string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
 
                 return GenerateSignatureUsingHash(signatureBase, hmacsha1);
             case SignatureTypes.RSASHA1:

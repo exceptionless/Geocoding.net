@@ -5,15 +5,15 @@
 /// </summary>
 public class HereAddress : Address
 {
-    readonly string street, houseNumber, city, state, country, postalCode;
-    readonly HereLocationType type;
+    private readonly string _street, _houseNumber, _city, _state, _country, _postalCode;
+    private readonly HereLocationType _type;
 
     /// <summary>
     /// Gets the street portion of the HERE result.
     /// </summary>
     public string AddressLine
     {
-        get { return street ?? ""; }
+        get { return _street ?? ""; }
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ public class HereAddress : Address
     /// </summary>
     public string AdminDistrict
     {
-        get { return houseNumber ?? ""; }
+        get { return _houseNumber ?? ""; }
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public class HereAddress : Address
     /// </summary>
     public string AdminDistrict2
     {
-        get { return city ?? ""; }
+        get { return _city ?? ""; }
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class HereAddress : Address
     /// </summary>
     public string CountryRegion
     {
-        get { return state ?? ""; }
+        get { return _state ?? ""; }
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class HereAddress : Address
     /// </summary>
     public string Neighborhood
     {
-        get { return country ?? ""; }
+        get { return _country ?? ""; }
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class HereAddress : Address
     /// </summary>
     public string PostalCode
     {
-        get { return postalCode ?? ""; }
+        get { return _postalCode ?? ""; }
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class HereAddress : Address
     /// </summary>
     public HereLocationType Type
     {
-        get { return type; }
+        get { return _type; }
     }
 
     /// <summary>
@@ -80,12 +80,12 @@ public class HereAddress : Address
         string state, string postalCode, string country, HereLocationType type)
         : base(formattedAddress, coordinates, "HERE")
     {
-        this.street = street;
-        this.houseNumber = houseNumber;
-        this.city = city;
-        this.state = state;
-        this.postalCode = postalCode;
-        this.country = country;
-        this.type = type;
+        _street = street;
+        _houseNumber = houseNumber;
+        _city = city;
+        _state = state;
+        _postalCode = postalCode;
+        _country = country;
+        _type = type;
     }
 }

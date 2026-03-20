@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Geocoding;
@@ -40,7 +40,7 @@ public static class Extensions
     }
 
     //Universal ISO DT Converter
-    static readonly JsonConverter[] JSON_CONVERTERS = new JsonConverter[]
+    private static readonly JsonConverter[] JSON_CONVERTERS = new JsonConverter[]
     {
         new IsoDateTimeConverter { DateTimeStyles = System.Globalization.DateTimeStyles.AssumeUniversal },
         new StringEnumConverter(),

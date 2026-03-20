@@ -14,18 +14,18 @@ namespace Geocoding.Here;
 /// </remarks>
 public class HereGeocoder : IGeocoder
 {
-    const string GEOCODING_QUERY = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
-    const string REVERSE_GEOCODING_QUERY = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
-    const string SEARCHTEXT = "searchtext={0}";
-    const string PROX = "prox={0}";
-    const string STREET = "street={0}";
-    const string CITY = "city={0}";
-    const string STATE = "state={0}";
-    const string POSTAL_CODE = "postalcode={0}";
-    const string COUNTRY = "country={0}";
+    private const string GeocodingQuery = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
+    private const string ReverseGeocodingQuery = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
+    private const string Searchtext = "searchtext={0}";
+    private const string Prox = "prox={0}";
+    private const string Street = "street={0}";
+    private const string City = "city={0}";
+    private const string State = "state={0}";
+    private const string PostalCode = "postalcode={0}";
+    private const string Country = "country={0}";
 
-    readonly string appId;
-    readonly string appCode;
+    private readonly string _appId;
+    private readonly string _appCode;
 
     /// <summary>
     /// Gets or sets the proxy used for HERE requests.
@@ -57,39 +57,39 @@ public class HereGeocoder : IGeocoder
         if (string.IsNullOrWhiteSpace(appCode))
             throw new ArgumentException("appCode can not be null or empty");
 
-        this.appId = appId;
-        this.appCode = appCode;
+        _appId = appId;
+        _appCode = appCode;
     }
 
     private string GetQueryUrl(string address)
     {
         var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, address, SEARCHTEXT, true);
+        var first = AppendParameter(parameters, address, Searchtext, true);
         AppendGlobalParameters(parameters, first);
 
-        return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
+        return string.Format(GeocodingQuery, _appId, _appCode, parameters.ToString());
     }
 
     private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
     {
         var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, street, STREET, true);
-        first = AppendParameter(parameters, city, CITY, first);
-        first = AppendParameter(parameters, state, STATE, first);
-        first = AppendParameter(parameters, postalCode, POSTAL_CODE, first);
-        first = AppendParameter(parameters, country, COUNTRY, first);
+        var first = AppendParameter(parameters, street, Street, true);
+        first = AppendParameter(parameters, city, City, first);
+        first = AppendParameter(parameters, state, State, first);
+        first = AppendParameter(parameters, postalCode, PostalCode, first);
+        first = AppendParameter(parameters, country, Country, first);
         AppendGlobalParameters(parameters, first);
 
-        return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
+        return string.Format(GeocodingQuery, _appId, _appCode, parameters.ToString());
     }
 
     private string GetQueryUrl(double latitude, double longitude)
     {
         var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), PROX, true);
+        var first = AppendParameter(parameters, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), Prox, true);
         AppendGlobalParameters(parameters, first);
 
-        return string.Format(REVERSE_GEOCODING_QUERY, appId, appCode, parameters.ToString());
+        return string.Format(ReverseGeocodingQuery, _appId, _appCode, parameters.ToString());
     }
 
     private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
@@ -244,18 +244,18 @@ public class HereGeocoder : IGeocoder
 
     private HttpClient BuildClient()
     {
-        if (this.Proxy == null)
+        if (Proxy == null)
             return new HttpClient();
 
-        var handler = new HttpClientHandler { Proxy = this.Proxy };
+        var handler = new HttpClientHandler { Proxy = Proxy };
         return new HttpClient(handler);
     }
 
-    private async Task<Json.Response> GetResponse(string queryURL, CancellationToken cancellationToken)
+    private async Task<Json.Response> GetResponse(string queryUrl, CancellationToken cancellationToken)
     {
         using (var client = BuildClient())
         {
-            var response = await client.SendAsync(CreateRequest(queryURL), cancellationToken).ConfigureAwait(false);
+            var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 var jsonSerializer = new DataContractJsonSerializer(typeof(Json.ServerResponse));

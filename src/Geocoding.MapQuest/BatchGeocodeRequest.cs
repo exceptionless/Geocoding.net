@@ -21,8 +21,7 @@ public class BatchGeocodeRequest : BaseRequest
         Locations = (from l in addresses select new LocationRequest(l)).ToArray();
     }
 
-    [JsonIgnore]
-    readonly List<LocationRequest> _locations = new List<LocationRequest>();
+    [JsonIgnore] private readonly List<LocationRequest> _locations = new List<LocationRequest>();
     /// <summary>
     /// Required collection of concatenated address string
     /// Note input will be hashed for uniqueness.

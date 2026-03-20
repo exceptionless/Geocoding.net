@@ -5,20 +5,20 @@
 /// </summary>
 public class GoogleAddress : Address
 {
-    readonly GoogleAddressType type;
-    readonly GoogleLocationType locationType;
-    readonly GoogleAddressComponent[] components;
-    readonly bool isPartialMatch;
-    readonly GoogleViewport viewport;
-    readonly Bounds bounds;
-    readonly string placeId;
+    private readonly GoogleAddressType _type;
+    private readonly GoogleLocationType _locationType;
+    private readonly GoogleAddressComponent[] _components;
+    private readonly bool _isPartialMatch;
+    private readonly GoogleViewport _viewport;
+    private readonly Bounds _bounds;
+    private readonly string _placeId;
 
     /// <summary>
     /// Gets the primary Google address type for the result.
     /// </summary>
     public GoogleAddressType Type
     {
-        get { return type; }
+        get { return _type; }
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ public class GoogleAddress : Address
     /// </summary>
     public GoogleLocationType LocationType
     {
-        get { return locationType; }
+        get { return _locationType; }
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public class GoogleAddress : Address
     /// </summary>
     public GoogleAddressComponent[] Components
     {
-        get { return components; }
+        get { return _components; }
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class GoogleAddress : Address
     /// </summary>
     public bool IsPartialMatch
     {
-        get { return isPartialMatch; }
+        get { return _isPartialMatch; }
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class GoogleAddress : Address
     /// </summary>
     public GoogleViewport Viewport
     {
-        get { return viewport; }
+        get { return _viewport; }
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class GoogleAddress : Address
     /// </summary>
     public Bounds Bounds
     {
-        get { return bounds; }
+        get { return _bounds; }
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class GoogleAddress : Address
     /// </summary>
     public string PlaceId
     {
-        get { return placeId; }
+        get { return _placeId; }
     }
 
     /// <summary>
@@ -98,12 +98,12 @@ public class GoogleAddress : Address
         if (components == null)
             throw new ArgumentNullException("components");
 
-        this.type = type;
-        this.components = components;
-        this.isPartialMatch = isPartialMatch;
-        this.viewport = viewport;
-        this.bounds = bounds;
-        this.locationType = locationType;
-        this.placeId = placeId;
+        _type = type;
+        _components = components;
+        _isPartialMatch = isPartialMatch;
+        _viewport = viewport;
+        _bounds = bounds;
+        _locationType = locationType;
+        _placeId = placeId;
     }
 }

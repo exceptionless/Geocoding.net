@@ -32,7 +32,7 @@ public class GeocoderBehaviorTest : GeocoderTest
         Assert.Equal(cultureName, _fakeGeocoder.LastCultureName);
     }
 
-    sealed class FakeGeocoder : IGeocoder
+    private sealed class FakeGeocoder : IGeocoder
     {
         public String LastCultureName { get; private set; }
 
@@ -65,22 +65,22 @@ public class GeocoderBehaviorTest : GeocoderTest
 
         private static IEnumerable<Address> CreateAddresses(string address)
         {
-            if (address.Contains("1600 pennsylvania", System.StringComparison.OrdinalIgnoreCase))
+            if (address.Contains("1600 pennsylvania", StringComparison.OrdinalIgnoreCase))
                 return new[] { CreateWhiteHouseAddress() };
 
-            if (address.Contains("24 sussex", System.StringComparison.OrdinalIgnoreCase))
+            if (address.Contains("24 sussex", StringComparison.OrdinalIgnoreCase))
                 return new[] { new FakeAddress("24 Sussex Dr Ottawa ON K1M 1M4 Canada", new Location(45.44, -75.70)) };
 
             return new[] { new FakeAddress(address, new Location(38.90, -77.04)) };
         }
 
-        static FakeAddress CreateWhiteHouseAddress()
+        private static FakeAddress CreateWhiteHouseAddress()
         {
             return new FakeAddress("1600 Pennsylvania Ave NW Washington DC 20500", new Location(38.8977, -77.0365));
         }
     }
 
-    sealed class FakeAddress : Address
+    private sealed class FakeAddress : Address
     {
         public FakeAddress(string formattedAddress, Location coordinates)
             : base(formattedAddress, coordinates, "Fake") { }

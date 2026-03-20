@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 
 namespace Geocoding.MapQuest;
@@ -11,16 +11,16 @@ namespace Geocoding.MapQuest;
 /// </remarks>
 public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 {
-    readonly string key;
+    private readonly string _key;
 
-    volatile bool useOSM;
+    private volatile bool _useOsm;
     /// <summary>
     /// When true, will use the Open Street Map API
     /// </summary>
     public virtual bool UseOSM
     {
-        get { return useOSM; }
-        set { useOSM = value; }
+        get { return _useOsm; }
+        set { _useOsm = value; }
     }
 
     /// <summary>
@@ -37,10 +37,10 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         if (string.IsNullOrWhiteSpace(key))
             throw new ArgumentException("key can not be null or blank");
 
-        this.key = key;
+        _key = key;
     }
 
-    IEnumerable<Address> HandleSingleResponse(MapQuestResponse res)
+    private IEnumerable<Address> HandleSingleResponse(MapQuestResponse res)
     {
         if (res != null && !res.Results.IsNullOrEmpty())
         {
@@ -53,7 +53,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             return new Address[0];
     }
 
-    IEnumerable<Address> HandleSingleResponse(IEnumerable<MapQuestLocation> locs)
+    private IEnumerable<Address> HandleSingleResponse(IEnumerable<MapQuestLocation> locs)
     {
         if (locs == null)
             return new Address[0];
@@ -74,7 +74,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         if (string.IsNullOrWhiteSpace(address))
             throw new ArgumentException("address can not be null or empty!");
 
-        var f = new GeocodeRequest(key, address) { UseOSM = this.UseOSM };
+        var f = new GeocodeRequest(_key, address) { UseOSM = UseOSM };
         MapQuestResponse res = await Execute(f, cancellationToken).ConfigureAwait(false);
         return HandleSingleResponse(res);
     }
@@ -113,7 +113,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         if (location == null)
             throw new ArgumentNullException("location");
 
-        var f = new ReverseGeocodeRequest(key, location) { UseOSM = this.UseOSM };
+        var f = new ReverseGeocodeRequest(_key, location) { UseOSM = UseOSM };
         MapQuestResponse res = await Execute(f, cancellationToken).ConfigureAwait(false);
         return HandleSingleResponse(res);
     }
@@ -169,7 +169,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             case "DELETE":
             case "HEAD":
             {
-                var u = string.Format("{0}json={1}&", f.RequestUri, WebUtility.UrlEncode(f.RequestBody));
+                var u = $"{f.RequestUri}json={WebUtility.UrlEncode(f.RequestBody)}&";
                 request = WebRequest.Create(u) as HttpWebRequest;
             }
             break;
@@ -208,7 +208,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         if (request == null)
             throw new ArgumentNullException("request");
 
-        string requestInfo = string.Format("[{0}] {1}", request.Method, request.RequestUri);
+        string requestInfo = $"[{request.Method}] {request.RequestUri}";
         try
         {
             string json;
@@ -260,12 +260,12 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         if (adr.IsNullOrEmpty())
             throw new ArgumentException("Atleast one none blank item is required in addresses");
 
-        var f = new BatchGeocodeRequest(key, adr) { UseOSM = this.UseOSM };
+        var f = new BatchGeocodeRequest(_key, adr) { UseOSM = UseOSM };
         MapQuestResponse res = await Execute(f, cancellationToken).ConfigureAwait(false);
         return HandleBatchResponse(res);
     }
 
-    ICollection<ResultItem> HandleBatchResponse(MapQuestResponse res)
+    private ICollection<ResultItem> HandleBatchResponse(MapQuestResponse res)
     {
         if (res != null && !res.Results.IsNullOrEmpty())
         {

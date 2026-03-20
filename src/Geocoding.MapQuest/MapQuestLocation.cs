@@ -9,8 +9,8 @@ namespace Geocoding.MapQuest;
 /// </summary>
 public class MapQuestLocation : ParsedAddress
 {
-    const string UNKNOWN = "unknown";
-    static readonly string DEFAULT_LOC = new Location(0, 0).ToString();
+    private const string Unknown = "unknown";
+    private static readonly string DEFAULT_LOC = new Location(0, 0).ToString();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MapQuestLocation"/> class.
@@ -19,7 +19,7 @@ public class MapQuestLocation : ParsedAddress
     /// <param name="coordinates">The coordinates.</param>
     public MapQuestLocation(string formattedAddress, Location coordinates)
         : base(
-            string.IsNullOrWhiteSpace(formattedAddress) ? UNKNOWN : formattedAddress,
+            string.IsNullOrWhiteSpace(formattedAddress) ? Unknown : formattedAddress,
             coordinates ?? new Location(0, 0),
             "MapQuest")
     {
@@ -78,7 +78,7 @@ public class MapQuestLocation : ParsedAddress
     /// <inheritdoc />
     public override string ToString()
     {
-        if (base.FormattedAddress != UNKNOWN)
+        if (base.FormattedAddress != Unknown)
             return base.FormattedAddress;
         else
         {
@@ -113,7 +113,7 @@ public class MapQuestLocation : ParsedAddress
             else if (Coordinates != null && Coordinates.ToString() != DEFAULT_LOC)
                 return Coordinates.ToString();
             else
-                return UNKNOWN;
+                return Unknown;
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
@@ -14,17 +14,17 @@ namespace Geocoding.Microsoft;
 /// </remarks>
 public class BingMapsGeocoder : IGeocoder
 {
-    const string UNFORMATTED_QUERY = "http://dev.virtualearth.net/REST/v1/Locations/{0}?key={1}";
-    const string FORMATTED_QUERY = "http://dev.virtualearth.net/REST/v1/Locations?{0}&key={1}";
-    const string QUERY = "q={0}";
-    const string COUNTRY = "countryRegion={0}";
-    const string ADMIN = "adminDistrict={0}";
-    const string ZIP = "postalCode={0}";
-    const string CITY = "locality={0}";
-    const string ADDRESS = "addressLine={0}";
-    const int BINGMAXRESULTSVALUE = 20;
+    private const string UnformattedQuery = "http://dev.virtualearth.net/REST/v1/Locations/{0}?key={1}";
+    private const string FormattedQuery = "http://dev.virtualearth.net/REST/v1/Locations?{0}&key={1}";
+    private const string Query = "q={0}";
+    private const string Country = "countryRegion={0}";
+    private const string Admin = "adminDistrict={0}";
+    private const string Zip = "postalCode={0}";
+    private const string City = "locality={0}";
+    private const string Address = "addressLine={0}";
+    private const int Bingmaxresultsvalue = 20;
 
-    readonly string bingKey;
+    private readonly string _bingKey;
 
     /// <summary>
     /// Gets or sets the proxy used for Bing Maps requests.
@@ -64,36 +64,36 @@ public class BingMapsGeocoder : IGeocoder
         if (string.IsNullOrWhiteSpace(bingKey))
             throw new ArgumentException("bingKey can not be null or empty");
 
-        this.bingKey = bingKey;
+        _bingKey = bingKey;
     }
 
     private string GetQueryUrl(string address)
     {
         var parameters = new StringBuilder();
         bool first = true;
-        first = AppendParameter(parameters, address, QUERY, first);
+        first = AppendParameter(parameters, address, Query, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return string.Format(FORMATTED_QUERY, parameters.ToString(), bingKey);
+        return string.Format(FormattedQuery, parameters.ToString(), _bingKey);
     }
 
     private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
     {
         StringBuilder parameters = new StringBuilder();
         bool first = true;
-        first = AppendParameter(parameters, city, CITY, first);
-        first = AppendParameter(parameters, state, ADMIN, first);
-        first = AppendParameter(parameters, postalCode, ZIP, first);
-        first = AppendParameter(parameters, country, COUNTRY, first);
-        first = AppendParameter(parameters, street, ADDRESS, first);
+        first = AppendParameter(parameters, city, City, first);
+        first = AppendParameter(parameters, state, Admin, first);
+        first = AppendParameter(parameters, postalCode, Zip, first);
+        first = AppendParameter(parameters, country, Country, first);
+        first = AppendParameter(parameters, street, Address, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return string.Format(FORMATTED_QUERY, parameters.ToString(), bingKey);
+        return string.Format(FormattedQuery, parameters.ToString(), _bingKey);
     }
 
     private string GetQueryUrl(double latitude, double longitude)
     {
-        var builder = new StringBuilder(string.Format(UNFORMATTED_QUERY, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), bingKey));
+        var builder = new StringBuilder(string.Format(UnformattedQuery, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), _bingKey));
         AppendGlobalParameters(builder, false);
         return builder.ToString();
     }
@@ -116,7 +116,7 @@ public class BingMapsGeocoder : IGeocoder
             yield return new KeyValuePair<string, string>("inclnb", IncludeNeighborhood ? "1" : "0");
 
         if (MaxResults != null && MaxResults.Value > 0)
-            yield return new KeyValuePair<string, string>("maxResults", Math.Min(MaxResults.Value, BINGMAXRESULTSVALUE).ToString());
+            yield return new KeyValuePair<string, string>("maxResults", Math.Min(MaxResults.Value, Bingmaxresultsvalue).ToString());
     }
 
     private bool AppendGlobalParameters(StringBuilder parameters, bool first)
@@ -260,21 +260,21 @@ public class BingMapsGeocoder : IGeocoder
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    HttpClient BuildClient()
+    private HttpClient BuildClient()
     {
-        if (this.Proxy == null)
+        if (Proxy == null)
             return new HttpClient();
 
         var handler = new HttpClientHandler();
-        handler.Proxy = this.Proxy;
+        handler.Proxy = Proxy;
         return new HttpClient(handler);
     }
 
-    private async Task<Json.Response> GetResponse(string queryURL, CancellationToken cancellationToken)
+    private async Task<Json.Response> GetResponse(string queryUrl, CancellationToken cancellationToken)
     {
         using (var client = BuildClient())
         {
-            var response = await client.SendAsync(CreateRequest(queryURL), cancellationToken).ConfigureAwait(false);
+            var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(Json.Response));

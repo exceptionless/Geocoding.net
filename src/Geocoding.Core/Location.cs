@@ -7,8 +7,8 @@ namespace Geocoding;
 /// </summary>
 public class Location
 {
-    double latitude;
-    double longitude;
+    private double _latitude;
+    private double _longitude;
 
     /// <summary>
     /// Gets or sets the latitude in decimal degrees.
@@ -16,7 +16,7 @@ public class Location
     [JsonProperty("lat")]
     public virtual double Latitude
     {
-        get { return latitude; }
+        get { return _latitude; }
         set
         {
             if (value < -90 || value > 90)
@@ -25,7 +25,7 @@ public class Location
             if (double.IsNaN(value))
                 throw new ArgumentException("Latitude must be a valid number.", "Latitude");
 
-            latitude = value;
+            _latitude = value;
         }
     }
 
@@ -35,7 +35,7 @@ public class Location
     [JsonProperty("lng")]
     public virtual double Longitude
     {
-        get { return longitude; }
+        get { return _longitude; }
         set
         {
             if (value < -180 || value > 180)
@@ -44,7 +44,7 @@ public class Location
             if (double.IsNaN(value))
                 throw new ArgumentException("Longitude must be a valid number.", "Longitude");
 
-            longitude = value;
+            _longitude = value;
         }
     }
 
@@ -73,7 +73,7 @@ public class Location
     /// <returns>The value in radians.</returns>
     protected virtual double ToRadian(double val)
     {
-        return (Math.PI / 180.0) * val;
+        return Math.PI / 180.0 * val;
     }
 
     /// <summary>
@@ -94,13 +94,13 @@ public class Location
     /// <returns>The calculated distance.</returns>
     public virtual Distance DistanceBetween(Location location, DistanceUnits units)
     {
-        double earthRadius = (units == DistanceUnits.Miles) ? Distance.EarthRadiusInMiles : Distance.EarthRadiusInKilometers;
+        double earthRadius = units == DistanceUnits.Miles ? Distance.EarthRadiusInMiles : Distance.EarthRadiusInKilometers;
 
-        double latRadian = ToRadian(location.Latitude - this.Latitude);
-        double longRadian = ToRadian(location.Longitude - this.Longitude);
+        double latRadian = ToRadian(location.Latitude - Latitude);
+        double longRadian = ToRadian(location.Longitude - Longitude);
 
         double a = Math.Pow(Math.Sin(latRadian / 2.0), 2) +
-                   Math.Cos(ToRadian(this.Latitude)) *
+                   Math.Cos(ToRadian(Latitude)) *
                    Math.Cos(ToRadian(location.Latitude)) *
                    Math.Pow(Math.Sin(longRadian / 2.0), 2);
 
@@ -130,7 +130,7 @@ public class Location
         if (coor == null)
             return false;
 
-        return (this.Latitude == coor.Latitude && this.Longitude == coor.Longitude);
+        return Latitude == coor.Latitude && Longitude == coor.Longitude;
     }
 
     /// <summary>
@@ -148,6 +148,6 @@ public class Location
     /// <returns>A string representation of the location.</returns>
     public override string ToString()
     {
-        return string.Format("{0}, {1}", latitude, longitude);
+        return $"{_latitude}, {_longitude}";
     }
 }

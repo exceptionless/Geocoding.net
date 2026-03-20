@@ -15,8 +15,7 @@ public class RequestOptions
     //[JsonProperty("delimiter")]
     //public virtual char Delimiter { get; private set; }
 
-    [JsonIgnore]
-    int _maxResults = -1;
+    [JsonIgnore] private int _maxResults = -1;
     /// <summary>
     /// The number of results to limit the response to in the case of an ambiguous address.
     /// Defaults: -1 (indicates no limit)

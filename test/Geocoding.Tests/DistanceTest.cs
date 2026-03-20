@@ -140,7 +140,7 @@ public class DistanceTest
         Distance distance1 = Distance.FromMiles(left);
         Distance distance2 = Distance.FromMiles(right);
 
-        bool expectedEqual = (left == right);
+        bool expectedEqual = left == right;
         Assert.Equal(expectedEqual, distance1 == distance2);
         Assert.Equal(!expectedEqual, distance1 != distance2);
     }

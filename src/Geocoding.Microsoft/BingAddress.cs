@@ -5,16 +5,16 @@
 /// </summary>
 public class BingAddress : Address
 {
-    readonly string addressLine, adminDistrict, adminDistrict2, countryRegion, locality, neighborhood, postalCode;
-    readonly EntityType type;
-    readonly ConfidenceLevel confidence;
+    private readonly string _addressLine, _adminDistrict, _adminDistrict2, _countryRegion, _locality, _neighborhood, _postalCode;
+    private readonly EntityType _type;
+    private readonly ConfidenceLevel _confidence;
 
     /// <summary>
     /// Gets the street address line.
     /// </summary>
     public string AddressLine
     {
-        get { return addressLine ?? ""; }
+        get { return _addressLine ?? ""; }
     }
 
     /// <summary>
@@ -22,7 +22,7 @@ public class BingAddress : Address
     /// </summary>
     public string AdminDistrict
     {
-        get { return adminDistrict ?? ""; }
+        get { return _adminDistrict ?? ""; }
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public class BingAddress : Address
     /// </summary>
     public string AdminDistrict2
     {
-        get { return adminDistrict2 ?? ""; }
+        get { return _adminDistrict2 ?? ""; }
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public class BingAddress : Address
     /// </summary>
     public string CountryRegion
     {
-        get { return countryRegion ?? ""; }
+        get { return _countryRegion ?? ""; }
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public class BingAddress : Address
     /// </summary>
     public string Locality
     {
-        get { return locality ?? ""; }
+        get { return _locality ?? ""; }
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class BingAddress : Address
     /// </summary>
     public string Neighborhood
     {
-        get { return neighborhood ?? ""; }
+        get { return _neighborhood ?? ""; }
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class BingAddress : Address
     /// </summary>
     public string PostalCode
     {
-        get { return postalCode ?? ""; }
+        get { return _postalCode ?? ""; }
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public class BingAddress : Address
     /// </summary>
     public EntityType Type
     {
-        get { return type; }
+        get { return _type; }
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class BingAddress : Address
     /// </summary>
     public ConfidenceLevel Confidence
     {
-        get { return confidence; }
+        get { return _confidence; }
     }
 
     /// <summary>
@@ -99,14 +99,14 @@ public class BingAddress : Address
         string countryRegion, string locality, string neighborhood, string postalCode, EntityType type, ConfidenceLevel confidence)
         : base(formattedAddress, coordinates, "Bing")
     {
-        this.addressLine = addressLine;
-        this.adminDistrict = adminDistrict;
-        this.adminDistrict2 = adminDistrict2;
-        this.countryRegion = countryRegion;
-        this.locality = locality;
-        this.neighborhood = neighborhood;
-        this.postalCode = postalCode;
-        this.type = type;
-        this.confidence = confidence;
+        _addressLine = addressLine;
+        _adminDistrict = adminDistrict;
+        _adminDistrict2 = adminDistrict2;
+        _countryRegion = countryRegion;
+        _locality = locality;
+        _neighborhood = neighborhood;
+        _postalCode = postalCode;
+        _type = type;
+        _confidence = confidence;
     }
 }

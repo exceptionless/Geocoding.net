@@ -5,35 +5,35 @@
 /// </summary>
 public class ResultItem
 {
-    Address input;
+    private Address _input;
     /// <summary>
     /// Original input for this response
     /// </summary>
     public Address Request
     {
-        get { return input; }
+        get { return _input; }
         set
         {
             if (value == null)
                 throw new ArgumentNullException("Input");
 
-            input = value;
+            _input = value;
         }
     }
 
-    IEnumerable<Address> output;
+    private IEnumerable<Address> _output;
     /// <summary>
     /// Output for the given input
     /// </summary>
     public IEnumerable<Address> Response
     {
-        get { return output; }
+        get { return _output; }
         set
         {
             if (value == null)
                 throw new ArgumentNullException("Response");
 
-            output = value;
+            _output = value;
         }
     }
 

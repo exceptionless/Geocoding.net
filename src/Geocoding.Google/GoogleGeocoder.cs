@@ -14,14 +14,16 @@ namespace Geocoding.Google;
 /// </remarks>
 public class GoogleGeocoder : IGeocoder
 {
-    string apiKey;
-    BusinessKey businessKey;
-    const string keyMessage = "Only one of BusinessKey or ApiKey should be set on the GoogleGeocoder.";
+    private string _apiKey;
+    private BusinessKey _businessKey;
+    private const string KeyMessage = "Only one of BusinessKey or ApiKey should be set on the GoogleGeocoder.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GoogleGeocoder"/> class.
     /// </summary>
-    public GoogleGeocoder() { }
+    public GoogleGeocoder()
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GoogleGeocoder"/> class.
@@ -46,15 +48,15 @@ public class GoogleGeocoder : IGeocoder
     /// </summary>
     public string ApiKey
     {
-        get { return apiKey; }
+        get { return _apiKey; }
         set
         {
-            if (businessKey != null)
-                throw new InvalidOperationException(keyMessage);
+            if (_businessKey != null)
+                throw new InvalidOperationException(KeyMessage);
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("ApiKey can not be null or empty");
 
-            apiKey = value;
+            _apiKey = value;
         }
     }
 
@@ -63,15 +65,15 @@ public class GoogleGeocoder : IGeocoder
     /// </summary>
     public BusinessKey BusinessKey
     {
-        get { return businessKey; }
+        get { return _businessKey; }
         set
         {
-            if (!string.IsNullOrEmpty(apiKey))
-                throw new InvalidOperationException(keyMessage);
+            if (!string.IsNullOrEmpty(_apiKey))
+                throw new InvalidOperationException(KeyMessage);
             if (value == null)
                 throw new ArgumentException("BusinessKey can not be null");
 
-            businessKey = value;
+            _businessKey = value;
         }
     }
 
@@ -214,13 +216,13 @@ public class GoogleGeocoder : IGeocoder
         }
     }
 
-    HttpClient BuildClient()
+    private HttpClient BuildClient()
     {
-        if (this.Proxy == null)
+        if (Proxy == null)
             return new HttpClient();
 
         var handler = new HttpClientHandler();
-        handler.Proxy = this.Proxy;
+        handler.Proxy = Proxy;
         return new HttpClient(handler);
     }
 

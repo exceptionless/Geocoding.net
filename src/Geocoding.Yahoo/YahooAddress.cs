@@ -5,15 +5,15 @@
 /// </summary>
 public class YahooAddress : Address
 {
-    readonly string name, house, street, unit, unitType, neighborhood, city, county, countyCode, state, stateCode, postalCode, country, countryCode;
-    readonly int quality;
+    private readonly string _name, _house, _street, _unit, _unitType, _neighborhood, _city, _county, _countyCode, _state, _stateCode, _postalCode, _country, _countryCode;
+    private readonly int _quality;
 
     /// <summary>
     /// Gets the result name.
     /// </summary>
     public string Name
     {
-        get { return name ?? ""; }
+        get { return _name ?? ""; }
     }
 
     /// <summary>
@@ -21,7 +21,7 @@ public class YahooAddress : Address
     /// </summary>
     public string House
     {
-        get { return house ?? ""; }
+        get { return _house ?? ""; }
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public class YahooAddress : Address
     /// </summary>
     public string Street
     {
-        get { return street ?? ""; }
+        get { return _street ?? ""; }
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class YahooAddress : Address
     /// </summary>
     public string Unit
     {
-        get { return unit ?? ""; }
+        get { return _unit ?? ""; }
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class YahooAddress : Address
     /// </summary>
     public string UnitType
     {
-        get { return unitType ?? ""; }
+        get { return _unitType ?? ""; }
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class YahooAddress : Address
     /// </summary>
     public string Neighborhood
     {
-        get { return neighborhood ?? ""; }
+        get { return _neighborhood ?? ""; }
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class YahooAddress : Address
     /// </summary>
     public string City
     {
-        get { return city ?? ""; }
+        get { return _city ?? ""; }
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class YahooAddress : Address
     /// </summary>
     public string County
     {
-        get { return county ?? ""; }
+        get { return _county ?? ""; }
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class YahooAddress : Address
     /// </summary>
     public string CountyCode
     {
-        get { return countyCode ?? ""; }
+        get { return _countyCode ?? ""; }
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class YahooAddress : Address
     /// </summary>
     public string State
     {
-        get { return state ?? ""; }
+        get { return _state ?? ""; }
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class YahooAddress : Address
     /// </summary>
     public string StateCode
     {
-        get { return stateCode ?? ""; }
+        get { return _stateCode ?? ""; }
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class YahooAddress : Address
     /// </summary>
     public string PostalCode
     {
-        get { return postalCode ?? ""; }
+        get { return _postalCode ?? ""; }
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class YahooAddress : Address
     /// </summary>
     public string Country
     {
-        get { return country ?? ""; }
+        get { return _country ?? ""; }
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public class YahooAddress : Address
     /// </summary>
     public string CountryCode
     {
-        get { return countryCode ?? ""; }
+        get { return _countryCode ?? ""; }
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public class YahooAddress : Address
     /// </summary>
     public int Quality
     {
-        get { return quality; }
+        get { return _quality; }
     }
 
     /// <remarks>
@@ -199,20 +199,20 @@ public class YahooAddress : Address
         string stateCode, string postalCode, string country, string countryCode, int quality)
         : base(formattedAddress, coordinates, "Yahoo")
     {
-        this.name = name;
-        this.house = house;
-        this.street = street;
-        this.unit = unit;
-        this.unitType = unitType;
-        this.neighborhood = neighborhood;
-        this.city = city;
-        this.county = county;
-        this.countyCode = countyCode;
-        this.state = state;
-        this.stateCode = stateCode;
-        this.postalCode = postalCode;
-        this.country = country;
-        this.countryCode = countryCode;
-        this.quality = quality;
+        _name = name;
+        _house = house;
+        _street = street;
+        _unit = unit;
+        _unitType = unitType;
+        _neighborhood = neighborhood;
+        _city = city;
+        _county = county;
+        _countyCode = countyCode;
+        _state = state;
+        _stateCode = stateCode;
+        _postalCode = postalCode;
+        _country = country;
+        _countryCode = countryCode;
+        _quality = quality;
     }
 }

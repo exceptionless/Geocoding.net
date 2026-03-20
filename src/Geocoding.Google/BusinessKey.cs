@@ -26,7 +26,7 @@ public class BusinessKey
     /// https://developers.google.com/maps/documentation/directions/get-api-key
     /// https://developers.google.com/maps/premium/reports/usage-reports#channels
     /// </summary>
-    private string channel;
+    private string _channel;
     /// <summary>
     /// Gets or sets the usage reporting channel.
     /// </summary>
@@ -34,7 +34,7 @@ public class BusinessKey
     {
         get
         {
-            return channel;
+            return _channel;
         }
         set
         {
@@ -45,7 +45,7 @@ public class BusinessKey
             string formattedChannel = value.Trim().ToLower();
             if (Regex.IsMatch(formattedChannel, @"^[a-z_0-9.-]+$"))
             {
-                channel = formattedChannel;
+                _channel = formattedChannel;
             }
             else
             {
@@ -72,12 +72,12 @@ public class BusinessKey
     /// <param name="channel">The optional usage channel.</param>
     public BusinessKey(string clientId, string signingKey, string channel = null)
     {
-        this.ClientId = CheckParam(clientId, "clientId");
-        this.SigningKey = CheckParam(signingKey, "signingKey");
-        this.Channel = channel;
+        ClientId = CheckParam(clientId, "clientId");
+        SigningKey = CheckParam(signingKey, "signingKey");
+        Channel = channel;
     }
 
-    string CheckParam(string value, string name)
+    private string CheckParam(string value, string name)
     {
         if (string.IsNullOrEmpty(value))
             throw new ArgumentNullException(name, "Value cannot be null or empty.");
@@ -138,6 +138,6 @@ public class BusinessKey
     /// <inheritdoc />
     public override string ToString()
     {
-        return string.Format("ClientId: {0}, SigningKey: {1}", ClientId, SigningKey);
+        return $"ClientId: {ClientId}, SigningKey: {SigningKey}";
     }
 }

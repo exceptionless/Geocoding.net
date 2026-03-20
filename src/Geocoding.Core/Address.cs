@@ -6,9 +6,9 @@ namespace Geocoding;
 /// </summary>
 public abstract class Address
 {
-    string formattedAddress = string.Empty;
-    Location coordinates;
-    string provider = string.Empty;
+    private string _formattedAddress = string.Empty;
+    private Location _coordinates;
+    private string _provider = string.Empty;
 
     /// <summary>
     /// Initializes a new address instance.
@@ -28,13 +28,13 @@ public abstract class Address
     /// </summary>
     public virtual string FormattedAddress
     {
-        get { return formattedAddress; }
+        get { return _formattedAddress; }
         set
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("FormattedAddress is null or blank");
 
-            formattedAddress = value.Trim();
+            _formattedAddress = value.Trim();
         }
     }
 
@@ -43,13 +43,13 @@ public abstract class Address
     /// </summary>
     public virtual Location Coordinates
     {
-        get { return coordinates; }
+        get { return _coordinates; }
         set
         {
             if (value == null)
                 throw new ArgumentNullException("Coordinates");
 
-            coordinates = value;
+            _coordinates = value;
         }
     }
 
@@ -58,13 +58,13 @@ public abstract class Address
     /// </summary>
     public virtual string Provider
     {
-        get { return provider; }
+        get { return _provider; }
         protected set
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Provider can not be null or blank");
 
-            provider = value;
+            _provider = value;
         }
     }
 
@@ -75,7 +75,7 @@ public abstract class Address
     /// <returns>The distance between the two addresses.</returns>
     public virtual Distance DistanceBetween(Address address)
     {
-        return this.Coordinates.DistanceBetween(address.Coordinates);
+        return Coordinates.DistanceBetween(address.Coordinates);
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public abstract class Address
     /// <returns>The distance between the two addresses.</returns>
     public virtual Distance DistanceBetween(Address address, DistanceUnits units)
     {
-        return this.Coordinates.DistanceBetween(address.Coordinates, units);
+        return Coordinates.DistanceBetween(address.Coordinates, units);
     }
 
     /// <summary>

@@ -7,7 +7,7 @@ namespace Geocoding.Here;
 /// </summary>
 public class HereGeocodingException : GeocodingException
 {
-    const string defaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
+    private const string DefaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
 
     /// <summary>
     /// Gets the HERE error type returned by the API.
@@ -24,7 +24,7 @@ public class HereGeocodingException : GeocodingException
     /// </summary>
     /// <param name="innerException">The underlying provider exception.</param>
     public HereGeocodingException(Exception innerException)
-        : base(defaultMessage, innerException)
+        : base(DefaultMessage, innerException)
     {
     }
 

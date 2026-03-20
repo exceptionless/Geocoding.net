@@ -25,14 +25,14 @@ public class YahooGeocoder : IGeocoder
     /// </summary>
     public const string ServiceUrlReverse = "http://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
 
-    readonly string consumerKey, consumerSecret;
+    private readonly string _consumerKey, _consumerSecret;
 
     /// <summary>
     /// Gets the Yahoo consumer key.
     /// </summary>
     public string ConsumerKey
     {
-        get { return consumerKey; }
+        get { return _consumerKey; }
     }
 
     /// <summary>
@@ -40,7 +40,7 @@ public class YahooGeocoder : IGeocoder
     /// </summary>
     public string ConsumerSecret
     {
-        get { return consumerSecret; }
+        get { return _consumerSecret; }
     }
 
     /// <summary>
@@ -61,8 +61,8 @@ public class YahooGeocoder : IGeocoder
         if (string.IsNullOrEmpty(consumerSecret))
             throw new ArgumentNullException("consumerSecret");
 
-        this.consumerKey = consumerKey;
-        this.consumerSecret = consumerSecret;
+        _consumerKey = consumerKey;
+        _consumerSecret = consumerSecret;
     }
 
     /// <inheritdoc />
@@ -152,14 +152,14 @@ public class YahooGeocoder : IGeocoder
         url = GenerateOAuthSignature(new Uri(url));
         var req = WebRequest.Create(url) as HttpWebRequest;
         req.Method = "GET";
-        if (this.Proxy != null)
+        if (Proxy != null)
         {
-            req.Proxy = this.Proxy;
+            req.Proxy = Proxy;
         }
         return req;
     }
 
-    string GenerateOAuthSignature(Uri uri)
+    private string GenerateOAuthSignature(Uri uri)
     {
         string url, param;
 
@@ -169,8 +169,8 @@ public class YahooGeocoder : IGeocoder
 
         var signature = oAuth.GenerateSignature(
             uri,
-            consumerKey,
-            consumerSecret,
+            _consumerKey,
+            _consumerSecret,
             string.Empty,
             string.Empty,
             "GET",
@@ -181,7 +181,7 @@ public class YahooGeocoder : IGeocoder
             out param
         );
 
-        return string.Format("{0}?{1}&oauth_signature={2}", url, param, signature);
+        return $"{url}?{param}&oauth_signature={signature}";
     }
 
     private IEnumerable<YahooAddress> ProcessWebResponse(WebResponse response)
@@ -279,6 +279,6 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public override string ToString()
     {
-        return string.Format("Yahoo Geocoder: {0}, {1}", consumerKey, consumerSecret);
+        return $"Yahoo Geocoder: {_consumerKey}, {_consumerSecret}";
     }
 }

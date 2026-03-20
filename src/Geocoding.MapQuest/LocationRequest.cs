@@ -25,46 +25,44 @@ public class LocationRequest
         Location = location;
     }
 
-    [JsonIgnore]
-    string street;
+    [JsonIgnore] private string _street;
     /// <summary>
     /// Full street address or intersection for geocoding
     /// </summary>
     [JsonProperty("street", NullValueHandling = NullValueHandling.Ignore)]
     public virtual string Street
     {
-        get { return street; }
+        get { return _street; }
         set
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Street can not be null or blank");
 
-            street = value;
+            _street = value;
         }
     }
 
-    [JsonIgnore]
-    Location location;
+    [JsonIgnore] private Location _location;
     /// <summary>
     /// Latitude and longitude for reverse geocoding
     /// </summary>
     [JsonProperty("latLng", NullValueHandling = NullValueHandling.Ignore)]
     public virtual Location Location
     {
-        get { return location; }
+        get { return _location; }
         set
         {
             if (value == null)
                 throw new ArgumentNullException("Location");
 
-            location = value;
+            _location = value;
         }
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return string.Format("street: {0}", Street);
+        return $"street: {Street}";
     }
 
 }

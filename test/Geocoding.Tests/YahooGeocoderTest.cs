@@ -7,7 +7,9 @@ namespace Geocoding.Tests;
 public class YahooGeocoderTest : GeocoderTest
 {
     public YahooGeocoderTest(SettingsFixture settings)
-        : base(settings) { }
+        : base(settings)
+    {
+    }
 
     protected override IGeocoder CreateGeocoder()
     {

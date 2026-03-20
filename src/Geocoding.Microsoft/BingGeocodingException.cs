@@ -7,12 +7,12 @@ namespace Geocoding.Microsoft;
 /// </summary>
 public class BingGeocodingException : GeocodingException
 {
-    const string defaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
+    private const string DefaultMessage = "There was an error processing the geocoding request. See InnerException for more information.";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BingGeocodingException"/> class.
     /// </summary>
     /// <param name="innerException">The underlying provider exception.</param>
     public BingGeocodingException(Exception innerException)
-        : base(defaultMessage, innerException) { }
+        : base(DefaultMessage, innerException) { }
 }

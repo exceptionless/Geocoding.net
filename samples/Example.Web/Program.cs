@@ -1,4 +1,4 @@
-﻿using Geocoding;
+using Geocoding;
 using Geocoding.Google;
 using Geocoding.Here;
 using Geocoding.MapQuest;
@@ -219,13 +219,13 @@ static IResult ProviderProblem(string provider, ProviderOptions options, Excepti
     return Results.Problem(title: "Geocoding provider request failed.", detail: detail, statusCode: StatusCodes.Status502BadGateway);
 }
 
-sealed record GeocodeResponse(string Provider, string Address, AddressResponse[] Results);
+internal sealed record GeocodeResponse(string Provider, string Address, AddressResponse[] Results);
 
-sealed record ReverseGeocodeResponse(string Provider, double Latitude, double Longitude, AddressResponse[] Results);
+internal sealed record ReverseGeocodeResponse(string Provider, double Latitude, double Longitude, AddressResponse[] Results);
 
-sealed record AddressResponse(string FormattedAddress, string Provider, double Latitude, double Longitude);
+internal sealed record AddressResponse(string FormattedAddress, string Provider, double Latitude, double Longitude);
 
-sealed class ProviderOptions
+internal sealed class ProviderOptions
 {
     public GoogleProviderOptions Google { get; init; } = new();
     public BingProviderOptions Bing { get; init; } = new();
@@ -234,29 +234,29 @@ sealed class ProviderOptions
     public YahooProviderOptions Yahoo { get; init; } = new();
 }
 
-sealed class GoogleProviderOptions
+internal sealed class GoogleProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }
 
-sealed class BingProviderOptions
+internal sealed class BingProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }
 
-sealed class HereProviderOptions
+internal sealed class HereProviderOptions
 {
     public String AppId { get; init; } = String.Empty;
     public String AppCode { get; init; } = String.Empty;
 }
 
-sealed class MapQuestProviderOptions
+internal sealed class MapQuestProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
     public bool UseOsm { get; init; }
 }
 
-sealed class YahooProviderOptions
+internal sealed class YahooProviderOptions
 {
     public String ConsumerKey { get; init; } = String.Empty;
     public String ConsumerSecret { get; init; } = String.Empty;

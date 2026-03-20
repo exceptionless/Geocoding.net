@@ -7,15 +7,15 @@ namespace Geocoding;
 /// </summary>
 public class Bounds
 {
-    readonly Location southWest;
-    readonly Location northEast;
+    private readonly Location _southWest;
+    private readonly Location _northEast;
 
     /// <summary>
     /// Gets the southwest corner.
     /// </summary>
     public Location SouthWest
     {
-        get { return southWest; }
+        get { return _southWest; }
     }
 
     /// <summary>
@@ -23,7 +23,7 @@ public class Bounds
     /// </summary>
     public Location NorthEast
     {
-        get { return northEast; }
+        get { return _northEast; }
     }
 
     /// <summary>
@@ -53,8 +53,8 @@ public class Bounds
         if (southWest.Latitude > northEast.Latitude)
             throw new ArgumentException("southWest latitude cannot be greater than northEast latitude");
 
-        this.southWest = southWest;
-        this.northEast = northEast;
+        _southWest = southWest;
+        _northEast = northEast;
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class Bounds
         if (bounds == null)
             return false;
 
-        return (this.SouthWest.Equals(bounds.SouthWest) && this.NorthEast.Equals(bounds.NorthEast));
+        return SouthWest.Equals(bounds.SouthWest) && NorthEast.Equals(bounds.NorthEast);
     }
 
     /// <summary>
@@ -95,6 +95,6 @@ public class Bounds
     /// <returns>A string representation of the bounds.</returns>
     public override string ToString()
     {
-        return string.Format("{0} | {1}", southWest, northEast);
+        return $"{_southWest} | {_northEast}";
     }
 }

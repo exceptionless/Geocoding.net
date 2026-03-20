@@ -32,14 +32,14 @@ public class GoogleAddressComponent
         if (types.Length < 1)
             throw new ArgumentException("Value cannot be empty.", "types");
 
-        this.Types = types;
-        this.LongName = longName;
-        this.ShortName = shortName;
+        Types = types;
+        LongName = longName;
+        ShortName = shortName;
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return string.Format("{0}: {1}", Types[0], LongName);
+        return $"{Types[0]}: {LongName}";
     }
 }

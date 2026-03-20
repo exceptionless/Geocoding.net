@@ -17,6 +17,6 @@ public class GoogleComponentFilter
     /// <param name="value">The component filter value.</param>
     public GoogleComponentFilter(string component, string value)
     {
-        ComponentFilter = string.Format("{0}:{1}", component, value);
+        ComponentFilter = $"{component}:{value}";
     }
 }

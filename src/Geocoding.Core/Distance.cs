@@ -15,15 +15,15 @@ public struct Distance
     public const double EarthRadiusInKilometers = 6378.135;
     private const double ConversionConstant = 0.621371192;
 
-    private readonly double value;
-    private readonly DistanceUnits units;
+    private readonly double _value;
+    private readonly DistanceUnits _units;
 
     /// <summary>
     /// Gets the numeric distance value.
     /// </summary>
     public double Value
     {
-        get { return value; }
+        get { return _value; }
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public struct Distance
     /// </summary>
     public DistanceUnits Units
     {
-        get { return units; }
+        get { return _units; }
     }
 
     /// <summary>
@@ -41,8 +41,8 @@ public struct Distance
     /// <param name="units">The units for the value.</param>
     public Distance(double value, DistanceUnits units)
     {
-        this.value = Math.Round(value, 8);
-        this.units = units;
+        _value = Math.Round(value, 8);
+        _units = units;
     }
 
     #region Helper Factory Methods
@@ -73,16 +73,16 @@ public struct Distance
 
     private Distance ConvertUnits(DistanceUnits units)
     {
-        if (this.units == units) return this;
+        if (_units == units) return this;
 
         double newValue;
         switch (units)
         {
             case DistanceUnits.Miles:
-                newValue = value * ConversionConstant;
+                newValue = _value * ConversionConstant;
                 break;
             case DistanceUnits.Kilometers:
-                newValue = value / ConversionConstant;
+                newValue = _value / ConversionConstant;
                 break;
             default:
                 newValue = 0;
@@ -160,7 +160,7 @@ public struct Distance
     /// <returns>A string representation of this distance.</returns>
     public override string ToString()
     {
-        return string.Format("{0} {1}", value, units);
+        return $"{_value} {_units}";
     }
 
     #region Operators
@@ -231,7 +231,7 @@ public struct Distance
     /// <returns><c>true</c> when left is less than right; otherwise <c>false</c>.</returns>
     public static bool operator <(Distance left, Distance right)
     {
-        return (left.Value < right.ConvertUnits(left.Units).Value);
+        return left.Value < right.ConvertUnits(left.Units).Value;
     }
 
     /// <summary>
@@ -242,7 +242,7 @@ public struct Distance
     /// <returns><c>true</c> when left is less than or equal to right; otherwise <c>false</c>.</returns>
     public static bool operator <=(Distance left, Distance right)
     {
-        return (left.Value <= right.ConvertUnits(left.Units).Value);
+        return left.Value <= right.ConvertUnits(left.Units).Value;
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public struct Distance
     /// <returns><c>true</c> when left is greater than right; otherwise <c>false</c>.</returns>
     public static bool operator >(Distance left, Distance right)
     {
-        return (left.Value > right.ConvertUnits(left.Units).Value);
+        return left.Value > right.ConvertUnits(left.Units).Value;
     }
 
     /// <summary>
@@ -264,7 +264,7 @@ public struct Distance
     /// <returns><c>true</c> when left is greater than or equal to right; otherwise <c>false</c>.</returns>
     public static bool operator >=(Distance left, Distance right)
     {
-        return (left.Value >= right.ConvertUnits(left.Units).Value);
+        return left.Value >= right.ConvertUnits(left.Units).Value;
     }
 
     /// <summary>

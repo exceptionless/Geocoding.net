@@ -127,7 +127,7 @@ public class Location
     /// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
     public bool Equals(Location coor)
     {
-        if (coor == null)
+        if (coor is null)
             return false;
 
         return Latitude == coor.Latitude && Longitude == coor.Longitude;

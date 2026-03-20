@@ -14,8 +14,8 @@ public class ResultItem
         get { return _input; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Input");
+            if (value is null)
+                throw new ArgumentNullException(nameof(Request));
 
             _input = value;
         }
@@ -30,8 +30,8 @@ public class ResultItem
         get { return _output; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Response");
+            if (value is null)
+                throw new ArgumentNullException(nameof(Response));
 
             _output = value;
         }

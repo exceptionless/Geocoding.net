@@ -44,11 +44,11 @@ public class Bounds
     [JsonConstructor]
     public Bounds(Location southWest, Location northEast)
     {
-        if (southWest == null)
-            throw new ArgumentNullException("southWest");
+        if (southWest is null)
+            throw new ArgumentNullException(nameof(southWest));
 
-        if (northEast == null)
-            throw new ArgumentNullException("northEast");
+        if (northEast is null)
+            throw new ArgumentNullException(nameof(northEast));
 
         if (southWest.Latitude > northEast.Latitude)
             throw new ArgumentException("southWest latitude cannot be greater than northEast latitude");
@@ -74,7 +74,7 @@ public class Bounds
     /// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
     public bool Equals(Bounds bounds)
     {
-        if (bounds == null)
+        if (bounds is null)
             return false;
 
         return SouthWest.Equals(bounds.SouthWest) && NorthEast.Equals(bounds.NorthEast);

@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace Geocoding;
 
@@ -16,7 +17,7 @@ public static class Extensions
     /// <returns><c>true</c> when the collection is null or empty.</returns>
     public static bool IsNullOrEmpty<T>(this ICollection<T> col)
     {
-        return col == null || col.Count == 0;
+        return col is null || col.Count == 0;
     }
 
     /// <summary>
@@ -27,10 +28,10 @@ public static class Extensions
     /// <param name="actor">The action to execute for each item.</param>
     public static void ForEach<T>(this IEnumerable<T> self, Action<T> actor)
     {
-        if (actor == null)
-            throw new ArgumentNullException("actor");
+        if (actor is null)
+            throw new ArgumentNullException(nameof(actor));
 
-        if (self == null)
+        if (self is null)
             return;
 
         foreach (T item in self)
@@ -43,8 +44,24 @@ public static class Extensions
     private static readonly JsonConverter[] JSON_CONVERTERS = new JsonConverter[]
     {
         new IsoDateTimeConverter { DateTimeStyles = System.Globalization.DateTimeStyles.AssumeUniversal },
-        new StringEnumConverter(),
+        new TolerantStringEnumConverter(),
     };
+
+    private sealed class TolerantStringEnumConverter : StringEnumConverter
+    {
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            try
+            {
+                return base.ReadJson(reader, objectType, existingValue, serializer);
+            }
+            catch (JsonSerializationException)
+            {
+                var enumType = Nullable.GetUnderlyingType(objectType) ?? objectType;
+                return Enum.ToObject(enumType, 0);
+            }
+        }
+    }
 
     /// <summary>
     /// Serializes an object to JSON.
@@ -54,9 +71,9 @@ public static class Extensions
     public static string ToJSON(this object o)
     {
         string result = null;
-        if (o != null)
+        if (o is not null)
             result = JsonConvert.SerializeObject(o, Formatting.Indented, JSON_CONVERTERS);
-        return result ?? string.Empty;
+        return result ?? String.Empty;
     }
 
     /// <summary>
@@ -68,7 +85,7 @@ public static class Extensions
     public static T FromJSON<T>(this string json)
     {
         T o = default(T);
-        if (!string.IsNullOrWhiteSpace(json))
+        if (!String.IsNullOrWhiteSpace(json))
             o = JsonConvert.DeserializeObject<T>(json, JSON_CONVERTERS);
         return o;
     }

@@ -1,4 +1,4 @@
-namespace Geocoding;
+﻿namespace Geocoding;
 
 /// <summary>
 /// Most basic and generic form of address.
@@ -6,9 +6,9 @@ namespace Geocoding;
 /// </summary>
 public abstract class Address
 {
-    private string _formattedAddress = string.Empty;
+    private string _formattedAddress = String.Empty;
     private Location _coordinates;
-    private string _provider = string.Empty;
+    private string _provider = String.Empty;
 
     /// <summary>
     /// Initializes a new address instance.
@@ -31,8 +31,8 @@ public abstract class Address
         get { return _formattedAddress; }
         set
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("FormattedAddress is null or blank");
+            if (String.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("FormattedAddress can not be null or blank.", nameof(FormattedAddress));
 
             _formattedAddress = value.Trim();
         }
@@ -46,8 +46,8 @@ public abstract class Address
         get { return _coordinates; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Coordinates");
+            if (value is null)
+                throw new ArgumentNullException(nameof(Coordinates));
 
             _coordinates = value;
         }
@@ -61,8 +61,8 @@ public abstract class Address
         get { return _provider; }
         protected set
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Provider can not be null or blank");
+            if (String.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Provider can not be null or blank.", nameof(Provider));
 
             _provider = value;
         }

@@ -10,4 +10,7 @@
   <Folder Name="/test/">
     <Project Path="test/Geocoding.Tests/Geocoding.Tests.csproj" />
   </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Example.Web/Example.Web.csproj" />
+  </Folder>
 </Solution>

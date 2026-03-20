@@ -1,7 +1,5 @@
 {
     "version": "2.0.0",
-    "command": "dotnet",
-    "args": [],
     "tasks": [
         {
             "label": "build",
@@ -9,13 +7,59 @@
             "command": "dotnet",
             "args": [
                 "build",
-                ""
+                "Geocoding.slnx"
             ],
             "problemMatcher": "$msCompile",
             "group": {
-                "_id": "build",
-                "isDefault": false
+                "kind": "build",
+                "isDefault": true
             }
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "--project",
+                "test/Geocoding.Tests/Geocoding.Tests.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "test"
+        },
+        {
+            "label": "pack",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "pack",
+                "Geocoding.slnx",
+                "--configuration",
+                "Release"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build example",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "samples/Example.Web/Example.Web.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "run example",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "samples/Example.Web/Example.Web.csproj"
+            ],
+            "isBackground": true,
+            "problemMatcher": []
         }
     ]
 }

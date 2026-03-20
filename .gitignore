@@ -1,6 +1,6 @@
 /bin
 /packages
-/examples/packages
+/samples/packages
 test/Geocoding.Tests/settings-override.json
 
 .vs

@@ -1,0 +1,19 @@
+@baseUrl = http://localhost:5199
+@provider = google
+@address = 1600 Pennsylvania Ave NW, Washington, DC
+@latitude = 38.8976763
+@longitude = -77.0365298
+
+GET {{baseUrl}}/
+
+###
+
+GET {{baseUrl}}/providers
+
+###
+
+GET {{baseUrl}}/geocode?provider={{provider}}&address={{address}}
+
+###
+
+GET {{baseUrl}}/reverse?provider={{provider}}&latitude={{latitude}}&longitude={{longitude}}

@@ -42,7 +42,7 @@ src/
 └── Geocoding.Yahoo             # Yahoo geocoding provider
 test/
 └── Geocoding.Tests             # xUnit tests for all providers
-examples/
+samples/
 └── Example.Web                 # Sample web application
 ```
 

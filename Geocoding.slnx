@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Geocoding.Core/Geocoding.Core.csproj" />
+    <Project Path="src/Geocoding.Google/Geocoding.Google.csproj" />
+    <Project Path="src/Geocoding.Here/Geocoding.Here.csproj" />
+    <Project Path="src/Geocoding.MapQuest/Geocoding.MapQuest.csproj" />
+    <Project Path="src/Geocoding.Microsoft/Geocoding.Microsoft.csproj" />
+    <Project Path="src/Geocoding.Yahoo/Geocoding.Yahoo.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Geocoding.Tests/Geocoding.Tests.csproj" />
+  </Folder>
+</Solution>

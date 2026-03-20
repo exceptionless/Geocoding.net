@@ -21,58 +21,64 @@ namespace Geocoding.Tests
 		//TODO: delete these when tests are ready to be unskipped
 		//see issue #27
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(AddressData), MemberType = typeof(GeocoderTest))]
 		public override Task CanGeocodeAddress(string address)
 		{
-		    return Task.CompletedTask;
+			return base.CanGeocodeAddress(address);
 		}
 
 		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
 		public override Task CanGeocodeNormalizedAddress()
         {
-            return Task.CompletedTask;
+			return base.CanGeocodeNormalizedAddress();
         }
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
 		public override Task CanGeocodeAddressUnderDifferentCultures(string cultureName)
         {
-            return Task.CompletedTask;
+			return base.CanGeocodeAddressUnderDifferentCultures(cultureName);
         }
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
 		public override Task CanReverseGeocodeAddressUnderDifferentCultures(string cultureName)
         {
-            return Task.CompletedTask;
+			return base.CanReverseGeocodeAddressUnderDifferentCultures(cultureName);
         }
 
 		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
 		public override Task ShouldNotBlowUpOnBadAddress()
         {
-            return Task.CompletedTask;
+			return base.ShouldNotBlowUpOnBadAddress();
         }
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(SpecialCharacterAddressData), MemberType = typeof(GeocoderTest))]
 		public override Task CanGeocodeWithSpecialCharacters(string address)
         {
-            return Task.CompletedTask;
+			return base.CanGeocodeWithSpecialCharacters(address);
         }
 
 		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
 		public override Task CanReverseGeocodeAsync()
         {
-            return Task.CompletedTask;
+			return base.CanReverseGeocodeAsync();
         }
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(InvalidZipCodeAddressData), MemberType = typeof(GeocoderTest))]
 		public override Task CanGeocodeInvalidZipCodes(string address)
         {
-            return Task.CompletedTask;
+			return base.CanGeocodeInvalidZipCodes(address);
         }
 
-		[Fact(Skip = "oauth not working for yahoo - see issue #27")]
+		[Theory(Skip = "oauth not working for yahoo - see issue #27")]
+		[MemberData(nameof(StreetIntersectionAddressData), MemberType = typeof(GeocoderTest))]
 		public override Task CanHandleStreetIntersectionsByAmpersand(string address)
         {
-            return Task.CompletedTask;
+			return base.CanHandleStreetIntersectionsByAmpersand(address);
         }
 	}
 }

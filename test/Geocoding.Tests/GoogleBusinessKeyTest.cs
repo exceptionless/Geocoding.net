@@ -1,7 +1,6 @@
 ﻿using System;
 using Geocoding.Google;
 using Xunit;
-using Xunit.Extensions;
 
 namespace Geocoding.Tests
 {

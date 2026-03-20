@@ -6,6 +6,7 @@ test/Geocoding.Tests/settings-override.json
 .vs
 /artifacts
 project.lock.json
+.idea
 
 #################
 ## Visual Studio
@@ -34,3 +35,4 @@ Thumbs.db
 
 # Folder config file
 Desktop.ini
+

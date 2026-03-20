@@ -2,12 +2,12 @@
 
 Includes a model and interface for communicating with five popular Geocoding providers.  Current implementations include:
 
-  * [Google Maps](https://developers.google.com/maps/) - [docs](https://developers.google.com/maps/documentation/geocoding/)
-  * [Yahoo! BOSS Geo Services](http://developer.yahoo.com/boss/geo/) - [docs](http://developer.yahoo.com/geo/placefinder/guide/index.html)
-  * [Bing Maps (aka Virtual Earth)](http://www.microsoft.com/maps/) - [docs](http://msdn.microsoft.com/en-us/library/ff701715.aspx)
-  * :warning: MapQuest [(Commercial API)](http://www.mapquestapi.com/) - [docs](http://www.mapquestapi.com/geocoding/)
-  * :warning: MapQuest [(OpenStreetMap)](http://open.mapquestapi.com/) - [docs](http://open.mapquestapi.com/geocoding/)
-  * [HERE](https://www.here.com/) - [docs](https://developer.here.com/documentation)
+* [Google Maps](https://developers.google.com/maps/) - [docs](https://developers.google.com/maps/documentation/geocoding/)
+* [Yahoo! BOSS Geo Services](http://developer.yahoo.com/boss/geo/) - [docs](http://developer.yahoo.com/geo/placefinder/guide/index.html)
+* [Bing Maps (aka Virtual Earth)](http://www.microsoft.com/maps/) - [docs](http://msdn.microsoft.com/en-us/library/ff701715.aspx)
+* :warning: MapQuest [(Commercial API)](http://www.mapquestapi.com/) - [docs](http://www.mapquestapi.com/geocoding/)
+* :warning: MapQuest [(OpenStreetMap)](http://open.mapquestapi.com/) - [docs](http://open.mapquestapi.com/geocoding/)
+* [HERE](https://www.here.com/) - [docs](https://developer.here.com/documentation)
 
 The API returns latitude/longitude coordinates and normalized address information.  This can be used to perform address validation, real time mapping of user-entered addresses, distance calculations, and much more.
 
@@ -19,13 +19,13 @@ See latest [release notes](https://github.com/chadly/Geocoding.net/releases/late
 
 Install [via nuget](http://www.nuget.org/packages/Geocoding.net/):
 
-```
+```bash
 Install-Package Geocoding.Core
 ```
 
 and then choose which provider you want to install (or install all of them):
 
-```
+```bash
 Install-Package Geocoding.Google
 Install-Package Geocoding.MapQuest
 Install-Package Geocoding.Microsoft
@@ -71,13 +71,13 @@ Bing [requires an API key](http://msdn.microsoft.com/en-us/library/ff428642.aspx
 
 You will need a [consumer secret and consumer key](http://developer.yahoo.com/boss/geo/BOSS_Signup.pdf) (PDF) for Yahoo.
 
-MapQuest API requires a key. Sign up here: (http://developer.mapquest.com/web/products/open)
+MapQuest API requires a key. Sign up here: (<http://developer.mapquest.com/web/products/open>)
 
 HERE requires an [app ID and app Code](https://developer.here.com/?create=Freemium-Basic&keepState=true&step=account)
 
 ## How to Build from Source
 
-```
+```bash
 dotnet restore
 dotnet build
 ```

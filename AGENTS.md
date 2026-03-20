@@ -139,10 +139,10 @@ Before marking work complete, verify:
 dotnet test
 
 # Specific test class
-dotnet test --filter "FullyQualifiedName~GoogleGeocoderTest"
+dotnet test --project test/Geocoding.Tests/Geocoding.Tests.csproj --filter-class Geocoding.Tests.GoogleBusinessKeyTest
 
 # With logging
-dotnet test --logger "console;verbosity=detailed"
+dotnet test --project test/Geocoding.Tests/Geocoding.Tests.csproj --diagnostic --diagnostic-verbosity Trace
 ```
 
 Note: Most geocoder tests require valid API keys configured in `test/Geocoding.Tests/settings.json`.

@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Authors>chadly,Exceptionless</Authors>
+    <Product>Geocoding.Net</Product>
+    <Description>Generic C# Geocoding API - unified interface for geocoding and reverse geocoding across multiple providers.</Description>
+    <PackageTags>geocoding;geocode;geocoder;maps;address;validation;normalization</PackageTags>
+    <PackageProjectUrl>https://github.com/exceptionless/Geocoding.net</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReleaseNotes>https://github.com/exceptionless/Geocoding.net/releases/latest</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/exceptionless/Geocoding.net.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>

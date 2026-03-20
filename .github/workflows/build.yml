@@ -1,0 +1,114 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  TERM: xterm
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
+  MSBUILDTERMINALLOGGER: auto
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Version
+        id: version
+        run: |
+          dotnet tool install --global minver-cli --version 7.0.0
+          version=$(minver --tag-prefix v)
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
+          echo "### Version: $version" >> $GITHUB_STEP_SUMMARY
+
+      - name: NuGet Restore
+        run: dotnet restore Geocoding.slnx
+
+      - name: Build
+        run: dotnet build Geocoding.slnx --no-restore --configuration Release
+
+      - name: Run Tests
+        run: dotnet test --project test/Geocoding.Tests/Geocoding.Tests.csproj --no-build --configuration Release
+
+  publish:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Set Version Override
+        run: |
+          echo "MINVERVERSIONOVERRIDE=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
+          echo "### Publish Version: ${{ needs.build.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: NuGet Restore
+        run: dotnet restore Geocoding.slnx
+
+      - name: Package
+        run: dotnet pack Geocoding.slnx --no-restore --configuration Release
+
+      - name: Publish CI Packages
+        if: github.actor != 'dependabot[bot]'
+        run: |
+          for package in $(find . -name "*.nupkg" | grep -v "minver"); do
+            if [ -n "${{ secrets.GITHUB_TOKEN }}" ]; then
+              dotnet nuget push "$package" --source https://nuget.pkg.github.com/exceptionless/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+            fi
+
+            if [ -n "${{ secrets.FEEDZ_KEY }}" ]; then
+              dotnet nuget push "$package" --source https://f.feedz.io/exceptionless/geocoding/nuget --api-key ${{ secrets.FEEDZ_KEY }} --skip-duplicate
+            fi
+          done
+
+      - name: Publish Release Packages
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        run: |
+          if [ -n "$NUGET_KEY" ]; then
+            for package in $(find . -name "*.nupkg" | grep -v "minver"); do
+              dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_KEY" --skip-duplicate
+            done
+          fi

@@ -1,9 +1,8 @@
-using Geocoding;
+﻿using Geocoding;
 using Geocoding.Google;
 using Geocoding.Here;
 using Geocoding.MapQuest;
 using Geocoding.Microsoft;
-using Geocoding.Yahoo;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -112,17 +111,17 @@ static string[] GetConfiguredProviders(ProviderOptions options)
 
     configuredProviders.Add("google");
 
+    if (!String.IsNullOrWhiteSpace(options.Azure.ApiKey))
+        configuredProviders.Add("azure");
+
     if (!String.IsNullOrWhiteSpace(options.Bing.ApiKey))
         configuredProviders.Add("bing");
 
-    if (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode))
+    if (!String.IsNullOrWhiteSpace(GetHereApiKey(options)))
         configuredProviders.Add("here");
 
     if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
         configuredProviders.Add("mapquest");
-
-    if (!String.IsNullOrWhiteSpace(options.Yahoo.ConsumerKey) && !String.IsNullOrWhiteSpace(options.Yahoo.ConsumerSecret))
-        configuredProviders.Add("yahoo");
 
     return configuredProviders.ToArray();
 }
@@ -135,6 +134,18 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             geocoder = String.IsNullOrWhiteSpace(options.Google.ApiKey)
                 ? new GoogleGeocoder()
                 : new GoogleGeocoder(options.Google.ApiKey);
+            error = null;
+            return true;
+
+        case "azure":
+            if (String.IsNullOrWhiteSpace(options.Azure.ApiKey))
+            {
+                geocoder = default!;
+                error = "Configure Providers:Azure:ApiKey before using the Azure Maps provider.";
+                return false;
+            }
+
+            geocoder = new AzureMapsGeocoder(options.Azure.ApiKey);
             error = null;
             return true;
 
@@ -151,14 +162,21 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             return true;
 
         case "here":
-            if (String.IsNullOrWhiteSpace(options.Here.AppId) || String.IsNullOrWhiteSpace(options.Here.AppCode))
+            if (!String.IsNullOrWhiteSpace(options.Here.AppId) || !String.IsNullOrWhiteSpace(options.Here.AppCode))
             {
                 geocoder = default!;
-                error = "Configure Providers:Here:AppId and Providers:Here:AppCode before using the HERE provider.";
+                error = "HERE now uses Providers:Here:ApiKey. The legacy AppId/AppCode settings are no longer supported.";
                 return false;
             }
 
-            geocoder = new HereGeocoder(options.Here.AppId, options.Here.AppCode);
+            if (String.IsNullOrWhiteSpace(GetHereApiKey(options)))
+            {
+                geocoder = default!;
+                error = "Configure Providers:Here:ApiKey before using the HERE provider.";
+                return false;
+            }
+
+            geocoder = new HereGeocoder(GetHereApiKey(options));
             error = null;
             return true;
 
@@ -170,6 +188,13 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
                 return false;
             }
 
+            if (options.MapQuest.UseOsm)
+            {
+                geocoder = default!;
+                error = "MapQuest OpenStreetMap mode is no longer supported. Use the commercial MapQuest API instead.";
+                return false;
+            }
+
             geocoder = new MapQuestGeocoder(options.MapQuest.ApiKey)
             {
                 UseOSM = options.MapQuest.UseOsm
@@ -177,23 +202,16 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             error = null;
             return true;
 
-        case "yahoo":
-            if (String.IsNullOrWhiteSpace(options.Yahoo.ConsumerKey) || String.IsNullOrWhiteSpace(options.Yahoo.ConsumerSecret))
-            {
-                geocoder = default!;
-                error = "Configure Providers:Yahoo:ConsumerKey and Providers:Yahoo:ConsumerSecret before using the Yahoo provider.";
-                return false;
-            }
-
-            geocoder = new YahooGeocoder(options.Yahoo.ConsumerKey, options.Yahoo.ConsumerSecret);
-            error = null;
-            return true;
-
         default:
             geocoder = default!;
-            error = $"Unknown provider '{provider}'. Use one of: google, bing, here, mapquest, yahoo.";
+            error = $"Unknown provider '{provider}'. Use one of: google, azure, bing, here, mapquest.";
             return false;
     }
+}
+
+static string GetHereApiKey(ProviderOptions options)
+{
+    return options.Here.ApiKey;
 }
 
 static AddressResponse MapAddress(Address address) =>
@@ -228,13 +246,18 @@ internal sealed record AddressResponse(string FormattedAddress, string Provider,
 internal sealed class ProviderOptions
 {
     public GoogleProviderOptions Google { get; init; } = new();
+    public AzureProviderOptions Azure { get; init; } = new();
     public BingProviderOptions Bing { get; init; } = new();
     public HereProviderOptions Here { get; init; } = new();
     public MapQuestProviderOptions MapQuest { get; init; } = new();
-    public YahooProviderOptions Yahoo { get; init; } = new();
 }
 
 internal sealed class GoogleProviderOptions
+{
+    public String ApiKey { get; init; } = String.Empty;
+}
+
+internal sealed class AzureProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }
@@ -246,6 +269,7 @@ internal sealed class BingProviderOptions
 
 internal sealed class HereProviderOptions
 {
+    public String ApiKey { get; init; } = String.Empty;
     public String AppId { get; init; } = String.Empty;
     public String AppCode { get; init; } = String.Empty;
 }
@@ -254,10 +278,4 @@ internal sealed class MapQuestProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
     public bool UseOsm { get; init; }
-}
-
-internal sealed class YahooProviderOptions
-{
-    public String ConsumerKey { get; init; } = String.Empty;
-    public String ConsumerSecret { get; init; } = String.Empty;
 }

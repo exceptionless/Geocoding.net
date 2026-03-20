@@ -14,268 +14,268 @@ namespace Geocoding.Here;
 /// </remarks>
 public class HereGeocoder : IGeocoder
 {
-	const string GEOCODING_QUERY = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
-	const string REVERSE_GEOCODING_QUERY = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
-	const string SEARCHTEXT = "searchtext={0}";
-	const string PROX = "prox={0}";
-	const string STREET = "street={0}";
-	const string CITY = "city={0}";
-	const string STATE = "state={0}";
-	const string POSTAL_CODE = "postalcode={0}";
-	const string COUNTRY = "country={0}";
+    const string GEOCODING_QUERY = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
+    const string REVERSE_GEOCODING_QUERY = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
+    const string SEARCHTEXT = "searchtext={0}";
+    const string PROX = "prox={0}";
+    const string STREET = "street={0}";
+    const string CITY = "city={0}";
+    const string STATE = "state={0}";
+    const string POSTAL_CODE = "postalcode={0}";
+    const string COUNTRY = "country={0}";
 
-	readonly string appId;
-	readonly string appCode;
+    readonly string appId;
+    readonly string appCode;
 
-	/// <summary>
-	/// Gets or sets the proxy used for HERE requests.
-	/// </summary>
-	public IWebProxy Proxy { get; set; }
-	/// <summary>
-	/// Gets or sets the user location bias for requests.
-	/// </summary>
-	public Location UserLocation { get; set; }
-	/// <summary>
-	/// Gets or sets the map view bias for requests.
-	/// </summary>
-	public Bounds UserMapView { get; set; }
-	/// <summary>
-	/// Gets or sets the maximum number of results to request.
-	/// </summary>
-	public int? MaxResults { get; set; }
+    /// <summary>
+    /// Gets or sets the proxy used for HERE requests.
+    /// </summary>
+    public IWebProxy Proxy { get; set; }
+    /// <summary>
+    /// Gets or sets the user location bias for requests.
+    /// </summary>
+    public Location UserLocation { get; set; }
+    /// <summary>
+    /// Gets or sets the map view bias for requests.
+    /// </summary>
+    public Bounds UserMapView { get; set; }
+    /// <summary>
+    /// Gets or sets the maximum number of results to request.
+    /// </summary>
+    public int? MaxResults { get; set; }
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="HereGeocoder"/> class.
-	/// </summary>
-	/// <param name="appId">The HERE application identifier.</param>
-	/// <param name="appCode">The HERE application code.</param>
-	public HereGeocoder(string appId, string appCode)
-	{
-		if (string.IsNullOrWhiteSpace(appId))
-			throw new ArgumentException("appId can not be null or empty");
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HereGeocoder"/> class.
+    /// </summary>
+    /// <param name="appId">The HERE application identifier.</param>
+    /// <param name="appCode">The HERE application code.</param>
+    public HereGeocoder(string appId, string appCode)
+    {
+        if (string.IsNullOrWhiteSpace(appId))
+            throw new ArgumentException("appId can not be null or empty");
 
-		if (string.IsNullOrWhiteSpace(appCode))
-			throw new ArgumentException("appCode can not be null or empty");
+        if (string.IsNullOrWhiteSpace(appCode))
+            throw new ArgumentException("appCode can not be null or empty");
 
-		this.appId = appId;
-		this.appCode = appCode;
-	}
+        this.appId = appId;
+        this.appCode = appCode;
+    }
 
-	private string GetQueryUrl(string address)
-	{
-		var parameters = new StringBuilder();
-		var first = AppendParameter(parameters, address, SEARCHTEXT, true);
-		AppendGlobalParameters(parameters, first);
+    private string GetQueryUrl(string address)
+    {
+        var parameters = new StringBuilder();
+        var first = AppendParameter(parameters, address, SEARCHTEXT, true);
+        AppendGlobalParameters(parameters, first);
 
-		return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
-	}
+        return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
+    }
 
-	private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
-	{
-		var parameters = new StringBuilder();
-		var first = AppendParameter(parameters, street, STREET, true);
-		first = AppendParameter(parameters, city, CITY, first);
-		first = AppendParameter(parameters, state, STATE, first);
-		first = AppendParameter(parameters, postalCode, POSTAL_CODE, first);
-		first = AppendParameter(parameters, country, COUNTRY, first);
-		AppendGlobalParameters(parameters, first);
+    private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
+    {
+        var parameters = new StringBuilder();
+        var first = AppendParameter(parameters, street, STREET, true);
+        first = AppendParameter(parameters, city, CITY, first);
+        first = AppendParameter(parameters, state, STATE, first);
+        first = AppendParameter(parameters, postalCode, POSTAL_CODE, first);
+        first = AppendParameter(parameters, country, COUNTRY, first);
+        AppendGlobalParameters(parameters, first);
 
-		return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
-	}
+        return string.Format(GEOCODING_QUERY, appId, appCode, parameters.ToString());
+    }
 
-	private string GetQueryUrl(double latitude, double longitude)
-	{
-		var parameters = new StringBuilder();
-		var first = AppendParameter(parameters, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), PROX, true);
-		AppendGlobalParameters(parameters, first);
+    private string GetQueryUrl(double latitude, double longitude)
+    {
+        var parameters = new StringBuilder();
+        var first = AppendParameter(parameters, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), PROX, true);
+        AppendGlobalParameters(parameters, first);
 
-		return string.Format(REVERSE_GEOCODING_QUERY, appId, appCode, parameters.ToString());
-	}
+        return string.Format(REVERSE_GEOCODING_QUERY, appId, appCode, parameters.ToString());
+    }
 
-	private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
-	{
-		if (UserLocation != null)
-			yield return new KeyValuePair<string, string>("prox", UserLocation.ToString());
+    private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
+    {
+        if (UserLocation != null)
+            yield return new KeyValuePair<string, string>("prox", UserLocation.ToString());
 
-		if (UserMapView != null)
-			yield return new KeyValuePair<string, string>("mapview", string.Concat(UserMapView.SouthWest.ToString(), ",", UserMapView.NorthEast.ToString()));
-			
-		if (MaxResults != null && MaxResults.Value > 0)
-			yield return new KeyValuePair<string, string>("maxresults", MaxResults.Value.ToString(CultureInfo.InvariantCulture));
-	}
+        if (UserMapView != null)
+            yield return new KeyValuePair<string, string>("mapview", string.Concat(UserMapView.SouthWest.ToString(), ",", UserMapView.NorthEast.ToString()));
 
-	private bool AppendGlobalParameters(StringBuilder parameters, bool first)
-	{
-		var values = GetGlobalParameters().ToArray();
+        if (MaxResults != null && MaxResults.Value > 0)
+            yield return new KeyValuePair<string, string>("maxresults", MaxResults.Value.ToString(CultureInfo.InvariantCulture));
+    }
 
-		if (!first) parameters.Append("&");
-		parameters.Append(BuildQueryString(values));
+    private bool AppendGlobalParameters(StringBuilder parameters, bool first)
+    {
+        var values = GetGlobalParameters().ToArray();
 
-		return first && !values.Any();
-	}
+        if (!first) parameters.Append("&");
+        parameters.Append(BuildQueryString(values));
 
-	private string BuildQueryString(IEnumerable<KeyValuePair<string, string>> parameters)
-	{
-		var builder = new StringBuilder();
-		foreach (var pair in parameters)
-		{
-			if (builder.Length > 0) builder.Append("&");
+        return first && !values.Any();
+    }
 
-			builder.Append(UrlEncode(pair.Key));
-			builder.Append("=");
-			builder.Append(UrlEncode(pair.Value));
-		}
-		return builder.ToString();
-	}
+    private string BuildQueryString(IEnumerable<KeyValuePair<string, string>> parameters)
+    {
+        var builder = new StringBuilder();
+        foreach (var pair in parameters)
+        {
+            if (builder.Length > 0) builder.Append("&");
 
-	/// <inheritdoc />
-	public async Task<IEnumerable<HereAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
-	{
-		try
-		{
-			var url = GetQueryUrl(address);
-			var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
-			return ParseResponse(response);
-		}
-		catch (Exception ex)
-		{
-			throw new HereGeocodingException(ex);
-		}
-	}
+            builder.Append(UrlEncode(pair.Key));
+            builder.Append("=");
+            builder.Append(UrlEncode(pair.Value));
+        }
+        return builder.ToString();
+    }
 
-	/// <inheritdoc />
-	public async Task<IEnumerable<HereAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
-	{
-		try
-		{
-			var url = GetQueryUrl(street, city, state, postalCode, country);
-			var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
-			return ParseResponse(response);
-		}
-		catch (Exception ex)
-		{
-			throw new HereGeocodingException(ex);
-		}
-	}
+    /// <inheritdoc />
+    public async Task<IEnumerable<HereAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        try
+        {
+            var url = GetQueryUrl(address);
+            var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
+            return ParseResponse(response);
+        }
+        catch (Exception ex)
+        {
+            throw new HereGeocodingException(ex);
+        }
+    }
 
-	/// <inheritdoc />
-	public Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
-	{
-		if (location == null)
-			throw new ArgumentNullException(nameof(location));
+    /// <inheritdoc />
+    public async Task<IEnumerable<HereAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        try
+        {
+            var url = GetQueryUrl(street, city, state, postalCode, country);
+            var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
+            return ParseResponse(response);
+        }
+        catch (Exception ex)
+        {
+            throw new HereGeocodingException(ex);
+        }
+    }
 
-		return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
-	}
+    /// <inheritdoc />
+    public Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
-	/// <inheritdoc />
-	public async Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
-	{
-		try
-		{
-			var url = GetQueryUrl(latitude, longitude);
-			var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
-			return ParseResponse(response);
-		}
-		catch (Exception ex)
-		{
-			throw new HereGeocodingException(ex);
-		}
-	}
+        return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
+    }
 
-	async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string address, CancellationToken cancellationToken)
-	{
-		return await GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
-	}
+    /// <inheritdoc />
+    public async Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        try
+        {
+            var url = GetQueryUrl(latitude, longitude);
+            var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
+            return ParseResponse(response);
+        }
+        catch (Exception ex)
+        {
+            throw new HereGeocodingException(ex);
+        }
+    }
 
-	async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken)
-	{
-		return await GeocodeAsync(street, city, state, postalCode, country, cancellationToken).ConfigureAwait(false);
-	}
+    async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string address, CancellationToken cancellationToken)
+    {
+        return await GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
+    }
 
-	async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(Location location, CancellationToken cancellationToken)
-	{
-		return await ReverseGeocodeAsync(location, cancellationToken).ConfigureAwait(false);
-	}
+    async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken)
+    {
+        return await GeocodeAsync(street, city, state, postalCode, country, cancellationToken).ConfigureAwait(false);
+    }
 
-	async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken)
-	{
-		return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
-	}
+    async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(Location location, CancellationToken cancellationToken)
+    {
+        return await ReverseGeocodeAsync(location, cancellationToken).ConfigureAwait(false);
+    }
 
-	private bool AppendParameter(StringBuilder sb, string parameter, string format, bool first)
-	{
-		if (!string.IsNullOrEmpty(parameter))
-		{
-			if (!first)
-			{
-				sb.Append('&');
-			}
-			sb.Append(string.Format(format, UrlEncode(parameter)));
-			return false;
-		}
-		return first;
-	}
+    async Task<IEnumerable<Address>> IGeocoder.ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken)
+    {
+        return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
+    }
 
-	private IEnumerable<HereAddress> ParseResponse(Json.Response response)
-	{
-		foreach (var view in response.View)
-		{
-			foreach (var result in view.Result)
-			{
-				var location = result.Location;
-				yield return new HereAddress(
-					location.Address.Label,
-					new Location(location.DisplayPosition.Latitude, location.DisplayPosition.Longitude),
-					location.Address.Street,
-					location.Address.HouseNumber,
-					location.Address.City,
-					location.Address.State,
-					location.Address.PostalCode,
-					location.Address.Country,
-					(HereLocationType)Enum.Parse(typeof(HereLocationType), location.LocationType, true));
-			}
-		}
-	}
+    private bool AppendParameter(StringBuilder sb, string parameter, string format, bool first)
+    {
+        if (!string.IsNullOrEmpty(parameter))
+        {
+            if (!first)
+            {
+                sb.Append('&');
+            }
+            sb.Append(string.Format(format, UrlEncode(parameter)));
+            return false;
+        }
+        return first;
+    }
 
-	private HttpRequestMessage CreateRequest(string url)
-	{
-		return new HttpRequestMessage(HttpMethod.Get, url);
-	}
+    private IEnumerable<HereAddress> ParseResponse(Json.Response response)
+    {
+        foreach (var view in response.View)
+        {
+            foreach (var result in view.Result)
+            {
+                var location = result.Location;
+                yield return new HereAddress(
+                    location.Address.Label,
+                    new Location(location.DisplayPosition.Latitude, location.DisplayPosition.Longitude),
+                    location.Address.Street,
+                    location.Address.HouseNumber,
+                    location.Address.City,
+                    location.Address.State,
+                    location.Address.PostalCode,
+                    location.Address.Country,
+                    (HereLocationType)Enum.Parse(typeof(HereLocationType), location.LocationType, true));
+            }
+        }
+    }
 
-	private HttpClient BuildClient()
-	{
-		if (this.Proxy == null)
-			return new HttpClient();
+    private HttpRequestMessage CreateRequest(string url)
+    {
+        return new HttpRequestMessage(HttpMethod.Get, url);
+    }
 
-		var handler = new HttpClientHandler {Proxy = this.Proxy};
-		return new HttpClient(handler);
-	}
+    private HttpClient BuildClient()
+    {
+        if (this.Proxy == null)
+            return new HttpClient();
 
-	private async Task<Json.Response> GetResponse(string queryURL, CancellationToken cancellationToken)
-	{
-		using (var client = BuildClient())
-		{
-			var response = await client.SendAsync(CreateRequest(queryURL), cancellationToken).ConfigureAwait(false);
-			using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-			{
-				var jsonSerializer = new DataContractJsonSerializer(typeof(Json.ServerResponse));
-				var serverResponse = (Json.ServerResponse)jsonSerializer.ReadObject(stream);
+        var handler = new HttpClientHandler { Proxy = this.Proxy };
+        return new HttpClient(handler);
+    }
 
-				if (serverResponse.ErrorType != null)
-				{
-					throw new HereGeocodingException(serverResponse.Details, serverResponse.ErrorType, serverResponse.ErrorType);
-				}
+    private async Task<Json.Response> GetResponse(string queryURL, CancellationToken cancellationToken)
+    {
+        using (var client = BuildClient())
+        {
+            var response = await client.SendAsync(CreateRequest(queryURL), cancellationToken).ConfigureAwait(false);
+            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+            {
+                var jsonSerializer = new DataContractJsonSerializer(typeof(Json.ServerResponse));
+                var serverResponse = (Json.ServerResponse)jsonSerializer.ReadObject(stream);
 
-				return serverResponse.Response;
-			}
-		}
-	}
+                if (serverResponse.ErrorType != null)
+                {
+                    throw new HereGeocodingException(serverResponse.Details, serverResponse.ErrorType, serverResponse.ErrorType);
+                }
 
-	private string UrlEncode(string toEncode)
-	{
-		if (string.IsNullOrEmpty(toEncode))
-			return string.Empty;
+                return serverResponse.Response;
+            }
+        }
+    }
 
-		return WebUtility.UrlEncode(toEncode);
-	}
+    private string UrlEncode(string toEncode)
+    {
+        if (string.IsNullOrEmpty(toEncode))
+            return string.Empty;
+
+        return WebUtility.UrlEncode(toEncode);
+    }
 }

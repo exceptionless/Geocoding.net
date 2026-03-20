@@ -1,21 +1,21 @@
-﻿﻿namespace Geocoding.Google;
+﻿namespace Geocoding.Google;
 
- /// <summary>
- /// Represents the location type returned by the Google geocoding service.
- /// </summary>
- /// <remarks>
- /// https://developers.google.com/maps/documentation/geocoding/?csw=1#Results
- /// </remarks>
- public enum GoogleLocationType
- {
-	 /// <summary>The Unknown value.</summary>
-	 Unknown,
-	 /// <summary>The Rooftop value.</summary>
-	 Rooftop,
-	 /// <summary>The RangeInterpolated value.</summary>
-	 RangeInterpolated,
-	 /// <summary>The GeometricCenter value.</summary>
-	 GeometricCenter,
-	 /// <summary>The Approximate value.</summary>
-	 Approximate
- }
+/// <summary>
+/// Represents the location type returned by the Google geocoding service.
+/// </summary>
+/// <remarks>
+/// https://developers.google.com/maps/documentation/geocoding/?csw=1#Results
+/// </remarks>
+public enum GoogleLocationType
+{
+    /// <summary>The Unknown value.</summary>
+    Unknown,
+    /// <summary>The Rooftop value.</summary>
+    Rooftop,
+    /// <summary>The RangeInterpolated value.</summary>
+    RangeInterpolated,
+    /// <summary>The GeometricCenter value.</summary>
+    GeometricCenter,
+    /// <summary>The Approximate value.</summary>
+    Approximate
+}

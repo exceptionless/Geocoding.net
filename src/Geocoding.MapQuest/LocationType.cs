@@ -8,12 +8,12 @@ namespace Geocoding.MapQuest;
 /// </remarks>
 public enum LocationType
 {
-	/// <summary>
-	/// Stop: default
-	/// </summary>
-	s,
-	/// <summary>
-	/// Via
-	/// </summary>
-	v,
+    /// <summary>
+    /// Stop: default
+    /// </summary>
+    s,
+    /// <summary>
+    /// Via
+    /// </summary>
+    v,
 }

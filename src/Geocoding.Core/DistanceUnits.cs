@@ -5,12 +5,12 @@
 /// </summary>
 public enum DistanceUnits
 {
-	/// <summary>
-	/// Statute miles.
-	/// </summary>
-	Miles,
-	/// <summary>
-	/// Kilometers.
-	/// </summary>
-	Kilometers
+    /// <summary>
+    /// Statute miles.
+    /// </summary>
+    Miles,
+    /// <summary>
+    /// Kilometers.
+    /// </summary>
+    Kilometers
 }

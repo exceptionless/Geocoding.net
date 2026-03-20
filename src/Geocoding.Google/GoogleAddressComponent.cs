@@ -26,11 +26,11 @@ public class GoogleAddressComponent
     /// <param name="shortName">The short component name.</param>
     public GoogleAddressComponent(GoogleAddressType[] types, string longName, string shortName)
     {
-        if (types == null)
-            throw new ArgumentNullException("types");
+        if (types is null)
+            throw new ArgumentNullException(nameof(types));
 
         if (types.Length < 1)
-            throw new ArgumentException("Value cannot be empty.", "types");
+            throw new ArgumentException("Value cannot be empty.", nameof(types));
 
         Types = types;
         LongName = longName;

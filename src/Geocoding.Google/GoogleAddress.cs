@@ -95,8 +95,8 @@ public class GoogleAddress : Address
         Location coordinates, GoogleViewport viewport, Bounds bounds, bool isPartialMatch, GoogleLocationType locationType, string placeId)
         : base(formattedAddress, coordinates, "Google")
     {
-        if (components == null)
-            throw new ArgumentNullException("components");
+        if (components is null)
+            throw new ArgumentNullException(nameof(components));
 
         _type = type;
         _components = components;

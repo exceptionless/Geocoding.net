@@ -4,7 +4,7 @@
 /// Represents the address type returned by the Google geocoding service.
 /// </summary>
 /// <remarks>
-/// http://code.google.com/apis/maps/documentation/geocoding/#Types
+/// https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types
 /// </remarks>
 public enum GoogleAddressType
 {
@@ -26,6 +26,14 @@ public enum GoogleAddressType
     AdministrativeAreaLevel2,
     /// <summary>The AdministrativeAreaLevel3 value.</summary>
     AdministrativeAreaLevel3,
+    /// <summary>The AdministrativeAreaLevel4 value.</summary>
+    AdministrativeAreaLevel4,
+    /// <summary>The AdministrativeAreaLevel5 value.</summary>
+    AdministrativeAreaLevel5,
+    /// <summary>The AdministrativeAreaLevel6 value.</summary>
+    AdministrativeAreaLevel6,
+    /// <summary>The AdministrativeAreaLevel7 value.</summary>
+    AdministrativeAreaLevel7,
     /// <summary>The ColloquialArea value.</summary>
     ColloquialArea,
     /// <summary>The Locality value.</summary>
@@ -71,5 +79,19 @@ public enum GoogleAddressType
     /// <summary>The SubLocalityLevel5 value.</summary>
     SubLocalityLevel5,
     /// <summary>The PostalCodeSuffix value.</summary>
-    PostalCodeSuffix
+    PostalCodeSuffix,
+    /// <summary>The PostalCodePrefix value.</summary>
+    PostalCodePrefix,
+    /// <summary>The PlusCode value.</summary>
+    PlusCode,
+    /// <summary>The Landmark value.</summary>
+    Landmark,
+    /// <summary>The Parking value.</summary>
+    Parking,
+    /// <summary>The BusStation value.</summary>
+    BusStation,
+    /// <summary>The TrainStation value.</summary>
+    TrainStation,
+    /// <summary>The TransitStation value.</summary>
+    TransitStation
 }

@@ -5,6 +5,10 @@
 /// </summary>
 public struct GoogleComponentFilterType
 {
+    /// <summary>The route component filter.</summary>
+    public const string Route = "route";
+    /// <summary>The locality component filter.</summary>
+    public const string Locality = "locality";
     /// <summary>The administrative area component filter.</summary>
     public const string AdministrativeArea = "administrative_area";
     /// <summary>The postal code component filter.</summary>

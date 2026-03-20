@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace Geocoding.Google;
 
 /// <summary>
-/// Represents a Google Maps business key used to sign requests.
+/// Represents Google Maps signed request credentials.
 /// </summary>
 /// <remarks>
 /// https://developers.google.com/maps/documentation/business/webservices/auth#business-specific_parameters
@@ -38,7 +38,7 @@ public class BusinessKey
         }
         set
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (String.IsNullOrWhiteSpace(value))
             {
                 return;
             }
@@ -49,7 +49,7 @@ public class BusinessKey
             }
             else
             {
-                throw new ArgumentException("Must be an ASCII alphanumeric string; can include a period (.), underscore (_) and hyphen (-) character", "channel");
+                throw new ArgumentException("Must be an ASCII alphanumeric string; can include a period (.), underscore (_) and hyphen (-) character.", nameof(Channel));
             }
         }
     }
@@ -60,7 +60,7 @@ public class BusinessKey
     {
         get
         {
-            return !string.IsNullOrEmpty(Channel);
+            return !String.IsNullOrEmpty(Channel);
         }
     }
 
@@ -79,7 +79,7 @@ public class BusinessKey
 
     private string CheckParam(string value, string name)
     {
-        if (string.IsNullOrEmpty(value))
+        if (String.IsNullOrEmpty(value))
             throw new ArgumentNullException(name, "Value cannot be null or empty.");
 
         return value.Trim();
@@ -125,7 +125,7 @@ public class BusinessKey
     /// <returns><c>true</c> if the keys are equal; otherwise, <c>false</c>.</returns>
     public bool Equals(BusinessKey other)
     {
-        if (other == null) return false;
+        if (other is null) return false;
         return ClientId.Equals(other.ClientId) && SigningKey.Equals(other.SigningKey);
     }
 

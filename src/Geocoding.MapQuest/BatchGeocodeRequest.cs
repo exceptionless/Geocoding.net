@@ -38,7 +38,7 @@ public class BatchGeocodeRequest : BaseRequest
 
             _locations.Clear();
             (from v in value
-             where v != null
+             where v is not null
              select v).ForEach(v => _locations.Add(v));
 
             if (_locations.Count == 0)

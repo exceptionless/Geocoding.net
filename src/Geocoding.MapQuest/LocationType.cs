@@ -1,10 +1,10 @@
-namespace Geocoding.MapQuest;
+﻿namespace Geocoding.MapQuest;
 
 /// <summary>
 /// Represents the location type used by MapQuest routing results.
 /// </summary>
 /// <remarks>
-/// http://code.google.com/apis/maps/documentation/geocoding/#Types
+/// https://developer.mapquest.com/documentation/api/geocoding/
 /// </remarks>
 public enum LocationType
 {

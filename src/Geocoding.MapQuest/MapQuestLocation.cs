@@ -5,7 +5,7 @@ namespace Geocoding.MapQuest;
 
 /// <summary>
 /// MapQuest address object.
-/// See http://open.mapquestapi.com/geocoding/.
+/// See https://developer.mapquest.com/documentation/api/geocoding/.
 /// </summary>
 public class MapQuestLocation : ParsedAddress
 {
@@ -19,7 +19,7 @@ public class MapQuestLocation : ParsedAddress
     /// <param name="coordinates">The coordinates.</param>
     public MapQuestLocation(string formattedAddress, Location coordinates)
         : base(
-            string.IsNullOrWhiteSpace(formattedAddress) ? Unknown : formattedAddress,
+            String.IsNullOrWhiteSpace(formattedAddress) ? Unknown : formattedAddress,
             coordinates ?? new Location(0, 0),
             "MapQuest")
     {
@@ -83,21 +83,21 @@ public class MapQuestLocation : ParsedAddress
         else
         {
             var sb = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(Street))
+            if (!String.IsNullOrWhiteSpace(Street))
                 sb.AppendFormat("{0}, ", Street);
 
-            if (!string.IsNullOrWhiteSpace(City))
+            if (!String.IsNullOrWhiteSpace(City))
                 sb.AppendFormat("{0}, ", City);
 
-            if (!string.IsNullOrWhiteSpace(State))
+            if (!String.IsNullOrWhiteSpace(State))
                 sb.AppendFormat("{0} ", State);
-            else if (!string.IsNullOrWhiteSpace(County))
+            else if (!String.IsNullOrWhiteSpace(County))
                 sb.AppendFormat("{0} ", County);
 
-            if (!string.IsNullOrWhiteSpace(PostCode))
+            if (!String.IsNullOrWhiteSpace(PostCode))
                 sb.AppendFormat("{0} ", PostCode);
 
-            if (!string.IsNullOrWhiteSpace(Country))
+            if (!String.IsNullOrWhiteSpace(Country))
                 sb.AppendFormat("{0} ", Country);
 
             if (sb.Length > 1)
@@ -110,7 +110,7 @@ public class MapQuestLocation : ParsedAddress
 
                 return s;
             }
-            else if (Coordinates != null && Coordinates.ToString() != DEFAULT_LOC)
+            else if (Coordinates is not null && Coordinates.ToString() != DEFAULT_LOC)
                 return Coordinates.ToString();
             else
                 return Unknown;
@@ -125,14 +125,14 @@ public class MapQuestLocation : ParsedAddress
 
     /// <summary>
     /// Granularity code of quality or accuracy guarantee.
-    /// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
+    /// See https://developer.mapquest.com/documentation/api/geocoding/.
     /// </summary>
     [JsonProperty("geocodeQuality")]
     public virtual Quality Quality { get; set; }
 
     /// <summary>
     /// Text string comparable, sortable score.
-    /// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
+    /// See https://developer.mapquest.com/documentation/api/geocoding/.
     /// </summary>
     [JsonProperty("geocodeQualityCode")]
     public virtual string Confidence { get; set; }

@@ -52,8 +52,8 @@ public class LocationRequest
         get { return _location; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Location");
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
 
             _location = value;
         }

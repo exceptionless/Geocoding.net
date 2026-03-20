@@ -45,8 +45,8 @@ public class ReverseGeocodeRequest : BaseRequest
         get { return _loc; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Location");
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
 
             _loc = value;
         }

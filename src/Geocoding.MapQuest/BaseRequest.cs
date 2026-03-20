@@ -5,7 +5,7 @@ namespace Geocoding.MapQuest;
 
 /// <summary>
 /// Geo-code request object.
-/// See http://open.mapquestapi.com/geocoding/.
+/// See https://developer.mapquest.com/documentation/api/geocoding/.
 /// </summary>
 public abstract class BaseRequest
 {
@@ -21,7 +21,7 @@ public abstract class BaseRequest
     [JsonIgnore] private string _key;
     /// <summary>
     /// A required unique key to authorize use of the routing service.
-    /// See http://developer.mapquest.com/.
+    /// See https://developer.mapquest.com/documentation/api/geocoding/.
     /// </summary>
     [JsonIgnore]
     public virtual string Key
@@ -29,7 +29,7 @@ public abstract class BaseRequest
         get { return _key; }
         set
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (String.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("An application key is required for MapQuest");
 
             _key = value;
@@ -58,8 +58,8 @@ public abstract class BaseRequest
         get { return _op; }
         protected set
         {
-            if (value == null)
-                throw new ArgumentNullException("Options");
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
 
             _op = value;
         }
@@ -71,16 +71,16 @@ public abstract class BaseRequest
     public virtual bool UseOSM { get; set; }
 
     /// <summary>
-    /// We are using v1 of MapQuest OSM API
+    /// Uses the commercial MapQuest geocoding API.
     /// </summary>
     protected virtual string BaseRequestPath
     {
         get
         {
             if (UseOSM)
-                return @"http://open.mapquestapi.com/geocoding/v1/";
-            else
-                return @"http://www.mapquestapi.com/geocoding/v1/";
+                throw new NotSupportedException("MapQuest OpenStreetMap geocoding is no longer supported. Use the commercial MapQuest API instead.");
+
+            return @"https://www.mapquestapi.com/geocoding/v1/";
         }
     }
 
@@ -123,7 +123,7 @@ public abstract class BaseRequest
     public virtual string RequestVerb
     {
         get { return _verb; }
-        protected set { _verb = string.IsNullOrWhiteSpace(value) ? "POST" : value.Trim().ToUpper(); }
+        protected set { _verb = String.IsNullOrWhiteSpace(value) ? "POST" : value.Trim().ToUpper(); }
     }
 
     /// <summary>

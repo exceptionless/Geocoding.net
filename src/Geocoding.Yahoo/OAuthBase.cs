@@ -78,11 +78,11 @@ public class OAuthBase
         {
             if (x.Name == y.Name)
             {
-                return string.Compare(x.Value, y.Value);
+                return String.Compare(x.Value, y.Value);
             }
             else
             {
-                return string.Compare(x.Name, y.Name);
+                return String.Compare(x.Name, y.Name);
             }
         }
 
@@ -169,14 +169,14 @@ public class OAuthBase
     /// <returns>a Base64 string of the hash value</returns>
     private string ComputeHash(HashAlgorithm hashAlgorithm, string data)
     {
-        if (hashAlgorithm == null)
+        if (hashAlgorithm is null)
         {
-            throw new ArgumentNullException("hashAlgorithm");
+            throw new ArgumentNullException(nameof(hashAlgorithm));
         }
 
-        if (string.IsNullOrEmpty(data))
+        if (String.IsNullOrEmpty(data))
         {
-            throw new ArgumentNullException("data");
+            throw new ArgumentNullException(nameof(data));
         }
 
         byte[] dataBuffer = Encoding.ASCII.GetBytes(data);
@@ -199,12 +199,12 @@ public class OAuthBase
 
         List<QueryParameter> result = new List<QueryParameter>();
 
-        if (!string.IsNullOrEmpty(parameters))
+        if (!String.IsNullOrEmpty(parameters))
         {
             string[] p = parameters.Split('&');
             foreach (string s in p)
             {
-                if (!string.IsNullOrEmpty(s) && !s.StartsWith(OAuthParameterPrefix))
+                if (!String.IsNullOrEmpty(s) && !s.StartsWith(OAuthParameterPrefix))
                 {
                     if (s.IndexOf('=') > -1)
                     {
@@ -213,7 +213,7 @@ public class OAuthBase
                     }
                     else
                     {
-                        result.Add(new QueryParameter(s, string.Empty));
+                        result.Add(new QueryParameter(s, String.Empty));
                     }
                 }
             }
@@ -286,29 +286,29 @@ public class OAuthBase
     /// <returns>The signature base</returns>
     public string GenerateSignatureBase(Uri url, string consumerKey, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, string signatureType, out string normalizedUrl, out string normalizedRequestParameters)
     {
-        if (token == null)
+        if (token is null)
         {
-            token = string.Empty;
+            token = String.Empty;
         }
 
-        if (tokenSecret == null)
+        if (tokenSecret is null)
         {
-            tokenSecret = string.Empty;
+            tokenSecret = String.Empty;
         }
 
-        if (string.IsNullOrEmpty(consumerKey))
+        if (String.IsNullOrEmpty(consumerKey))
         {
-            throw new ArgumentNullException("consumerKey");
+            throw new ArgumentNullException(nameof(consumerKey));
         }
 
-        if (string.IsNullOrEmpty(httpMethod))
+        if (String.IsNullOrEmpty(httpMethod))
         {
-            throw new ArgumentNullException("httpMethod");
+            throw new ArgumentNullException(nameof(httpMethod));
         }
 
-        if (string.IsNullOrEmpty(signatureType))
+        if (String.IsNullOrEmpty(signatureType))
         {
-            throw new ArgumentNullException("signatureType");
+            throw new ArgumentNullException(nameof(signatureType));
         }
 
         normalizedUrl = null;
@@ -321,7 +321,7 @@ public class OAuthBase
         parameters.Add(new QueryParameter(OAuthSignatureMethodKey, signatureType));
         parameters.Add(new QueryParameter(OAuthConsumerKeyKey, consumerKey));
 
-        if (!string.IsNullOrEmpty(token))
+        if (!String.IsNullOrEmpty(token))
         {
             parameters.Add(new QueryParameter(OAuthTokenKey, token));
         }
@@ -403,7 +403,7 @@ public class OAuthBase
 
                 HMACSHA1 hmacsha1 = new HMACSHA1();
                 hmacsha1.Key = Encoding.ASCII.GetBytes(
-                    $"{UrlEncode(consumerSecret)}&{(string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
+                    $"{UrlEncode(consumerSecret)}&{(String.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
 
                 return GenerateSignatureUsingHash(signatureBase, hmacsha1);
             case SignatureTypes.RSASHA1:

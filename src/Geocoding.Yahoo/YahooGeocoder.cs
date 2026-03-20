@@ -55,11 +55,11 @@ public class YahooGeocoder : IGeocoder
     /// <param name="consumerSecret">The Yahoo consumer secret.</param>
     public YahooGeocoder(string consumerKey, string consumerSecret)
     {
-        if (string.IsNullOrEmpty(consumerKey))
-            throw new ArgumentNullException("consumerKey");
+        if (String.IsNullOrEmpty(consumerKey))
+            throw new ArgumentNullException(nameof(consumerKey));
 
-        if (string.IsNullOrEmpty(consumerSecret))
-            throw new ArgumentNullException("consumerSecret");
+        if (String.IsNullOrEmpty(consumerSecret))
+            throw new ArgumentNullException(nameof(consumerSecret));
 
         _consumerKey = consumerKey;
         _consumerSecret = consumerSecret;
@@ -68,10 +68,10 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (string.IsNullOrEmpty(address))
-            throw new ArgumentNullException("address");
+        if (String.IsNullOrEmpty(address))
+            throw new ArgumentNullException(nameof(address));
 
-        string url = string.Format(ServiceUrl, WebUtility.UrlEncode(address));
+        string url = String.Format(ServiceUrl, WebUtility.UrlEncode(address));
 
         HttpWebRequest request = BuildWebRequest(url);
         return ProcessRequest(request, cancellationToken);
@@ -80,7 +80,7 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
     {
-        string url = string.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
+        string url = String.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
 
         HttpWebRequest request = BuildWebRequest(url);
         return ProcessRequest(request, cancellationToken);
@@ -89,8 +89,8 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
-            throw new ArgumentNullException("location");
+        if (location is null)
+            throw new ArgumentNullException(nameof(location));
 
         return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
     }
@@ -98,7 +98,7 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
     {
-        string url = string.Format(ServiceUrlReverse, string.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
+        string url = String.Format(ServiceUrlReverse, String.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
 
         HttpWebRequest request = BuildWebRequest(url);
         return ProcessRequest(request, cancellationToken);
@@ -152,7 +152,7 @@ public class YahooGeocoder : IGeocoder
         url = GenerateOAuthSignature(new Uri(url));
         var req = WebRequest.Create(url) as HttpWebRequest;
         req.Method = "GET";
-        if (Proxy != null)
+        if (Proxy is not null)
         {
             req.Proxy = Proxy;
         }
@@ -171,8 +171,8 @@ public class YahooGeocoder : IGeocoder
             uri,
             _consumerKey,
             _consumerSecret,
-            string.Empty,
-            string.Empty,
+            String.Empty,
+            String.Empty,
             "GET",
             timeStamp,
             nonce,
@@ -264,8 +264,8 @@ public class YahooGeocoder : IGeocoder
         lines[2] = (string)nav.Evaluate("string(line3)");
         lines[3] = (string)nav.Evaluate("string(line4)");
 
-        lines = lines.Select(s => (s ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-        return string.Join(", ", lines);
+        lines = lines.Select(s => (s ?? "").Trim()).Where(s => !String.IsNullOrEmpty(s)).ToArray();
+        return String.Join(", ", lines);
     }
 
     private YahooError EvaluateError(int errorCode)

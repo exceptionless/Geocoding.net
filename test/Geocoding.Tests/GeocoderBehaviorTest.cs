@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -9,15 +9,15 @@ namespace Geocoding.Tests
 {
 	public class GeocoderBehaviorTest : GeocoderTest
 	{
-		FakeGeocoder geocoder;
+		private FakeGeocoder _fakeGeocoder;
 
 		public GeocoderBehaviorTest()
 			: base(new SettingsFixture()) { }
 
 		protected override IGeocoder CreateGeocoder()
 		{
-			geocoder = new FakeGeocoder();
-			return geocoder;
+			_fakeGeocoder = new FakeGeocoder();
+			return _fakeGeocoder;
 		}
 
 		[Theory]
@@ -25,7 +25,7 @@ namespace Geocoding.Tests
 		public override async Task CanGeocodeAddressUnderDifferentCultures(string cultureName)
 		{
 			await base.CanGeocodeAddressUnderDifferentCultures(cultureName);
-			Assert.Equal(cultureName, geocoder.LastCultureName);
+			Assert.Equal(cultureName, _fakeGeocoder.LastCultureName);
 		}
 
 		[Theory]
@@ -33,12 +33,12 @@ namespace Geocoding.Tests
 		public override async Task CanReverseGeocodeAddressUnderDifferentCultures(string cultureName)
 		{
 			await base.CanReverseGeocodeAddressUnderDifferentCultures(cultureName);
-			Assert.Equal(cultureName, geocoder.LastCultureName);
+			Assert.Equal(cultureName, _fakeGeocoder.LastCultureName);
 		}
 
 		sealed class FakeGeocoder : IGeocoder
 		{
-			public string LastCultureName { get; private set; }
+			public String LastCultureName { get; private set; }
 
 			public Task<IEnumerable<Address>> GeocodeAsync(string address, CancellationToken cancellationToken = default)
 			{
@@ -67,7 +67,7 @@ namespace Geocoding.Tests
 				return Task.FromResult<IEnumerable<Address>>(new[] { CreateWhiteHouseAddress() });
 			}
 
-			static IEnumerable<Address> CreateAddresses(string address)
+			private static IEnumerable<Address> CreateAddresses(string address)
 			{
 				if (address.Contains("1600 pennsylvania", System.StringComparison.OrdinalIgnoreCase))
 					return new[] { CreateWhiteHouseAddress() };

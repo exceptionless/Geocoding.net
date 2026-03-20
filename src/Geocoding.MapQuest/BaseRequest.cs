@@ -1,15 +1,19 @@
-﻿using System;
+﻿﻿using System;
 using System.Text;
 using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest
 {
 	/// <summary>
-	/// Geo-code request object
-	/// <see cref="http://open.mapquestapi.com/geocoding/"/>
+	/// Geo-code request object.
+	/// See http://open.mapquestapi.com/geocoding/.
 	/// </summary>
 	public abstract class BaseRequest
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BaseRequest"/> class.
+		/// </summary>
+		/// <param name="key">The MapQuest application key.</param>
 		protected BaseRequest(string key) //output only, no need for default ctor
 		{
 			Key = key;
@@ -18,8 +22,8 @@ namespace Geocoding.MapQuest
 		[JsonIgnore]
 		string key;
 		/// <summary>
-		/// A REQUIRED unique key to authorize use of the Routing Service.
-		/// <see cref="http://developer.mapquest.com/"/>
+		/// A required unique key to authorize use of the routing service.
+		/// See http://developer.mapquest.com/.
 		/// </summary>
 		[JsonIgnore]
 		public virtual string Key
@@ -108,6 +112,9 @@ namespace Geocoding.MapQuest
 			}
 		}
 
+		/// <summary>
+		/// Gets the request action path segment.
+		/// </summary>
 		[JsonIgnore]
 		public abstract string RequestAction { get; }
 
@@ -135,6 +142,7 @@ namespace Geocoding.MapQuest
 			}
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return this.RequestBody;

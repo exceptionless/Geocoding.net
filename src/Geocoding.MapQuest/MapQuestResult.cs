@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest
@@ -8,9 +8,15 @@ namespace Geocoding.MapQuest
 	/// </summary>
 	public class MapQuestResult
 	{
+		/// <summary>
+		/// Gets or sets the locations returned for the query.
+		/// </summary>
 		[JsonProperty("locations")]
 		public IList<MapQuestLocation> Locations { get; set; }
 
+		/// <summary>
+		/// Gets or sets the location originally provided in the request.
+		/// </summary>
 		[JsonProperty("providedLocation")]
 		public MapQuestLocation ProvidedLocation { get; set; }
 	}

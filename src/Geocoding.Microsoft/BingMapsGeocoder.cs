@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Geocoding.Microsoft
 {
+	/// <summary>
+	/// Provides geocoding and reverse geocoding through the Bing Maps API.
+	/// </summary>
 	/// <remarks>
 	/// http://msdn.microsoft.com/en-us/library/ff701715.aspx
 	/// </remarks>
@@ -28,14 +31,39 @@ namespace Geocoding.Microsoft
 
 		readonly string bingKey;
 
+		/// <summary>
+		/// Gets or sets the proxy used for Bing Maps requests.
+		/// </summary>
 		public IWebProxy Proxy { get; set; }
+		/// <summary>
+		/// Gets or sets the culture used for results.
+		/// </summary>
 		public string Culture { get; set; }
+		/// <summary>
+		/// Gets or sets the user location bias.
+		/// </summary>
 		public Location UserLocation { get; set; }
+		/// <summary>
+		/// Gets or sets the user map view bias.
+		/// </summary>
 		public Bounds UserMapView { get; set; }
+		/// <summary>
+		/// Gets or sets the user IP address sent to Bing Maps.
+		/// </summary>
 		public IPAddress UserIP { get; set; }
+		/// <summary>
+		/// Gets or sets a value indicating whether neighborhoods should be included.
+		/// </summary>
 		public bool IncludeNeighborhood { get; set; }
+		/// <summary>
+		/// Gets or sets the maximum number of results to request.
+		/// </summary>
 		public int? MaxResults { get; set; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BingMapsGeocoder"/> class.
+		/// </summary>
+		/// <param name="bingKey">The Bing Maps API key.</param>
 		public BingMapsGeocoder(string bingKey)
 		{
 			if (string.IsNullOrWhiteSpace(bingKey))
@@ -120,6 +148,7 @@ namespace Geocoding.Microsoft
 			return builder.ToString();
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<BingAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try
@@ -134,6 +163,7 @@ namespace Geocoding.Microsoft
 			}
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<BingAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try
@@ -148,14 +178,16 @@ namespace Geocoding.Microsoft
 			}
 		}
 
-		public async Task<IEnumerable<BingAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<BingAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (location == null)
 				throw new ArgumentNullException("location");
 
-			return await ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken).ConfigureAwait(false);
+			return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<BingAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try

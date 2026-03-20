@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using Geocoding.Google;
 using Xunit;
 
@@ -119,6 +119,19 @@ namespace Geocoding.Tests
 			var geocoder = new GoogleGeocoder("apikey");
 
 			Assert.DoesNotContain("channel=", geocoder.ServiceUrl);
+		}
+
+		[Fact]
+		public void ServiceUrl_ApiKeyIsNotSet_DoesNotIncludeKeyParameter()
+		{
+			// Arrange
+			var geocoder = new GoogleGeocoder();
+
+			// Act
+			var serviceUrl = geocoder.ServiceUrl;
+
+			// Assert
+			Assert.DoesNotContain("&key=", serviceUrl);
 		}
 	}
 }

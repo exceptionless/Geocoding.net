@@ -12,6 +12,12 @@ namespace Geocoding
 		Location coordinates;
 		string provider = string.Empty;
 
+		/// <summary>
+		/// Initializes a new address instance.
+		/// </summary>
+		/// <param name="formattedAddress">The provider formatted address string.</param>
+		/// <param name="coordinates">The geocoded coordinates.</param>
+		/// <param name="provider">The provider name that produced this address.</param>
 		public Address(string formattedAddress, Location coordinates, string provider)
 		{
 			FormattedAddress = formattedAddress;
@@ -19,6 +25,9 @@ namespace Geocoding
 			Provider = provider;
 		}
 
+		/// <summary>
+		/// Gets or sets the full formatted address.
+		/// </summary>
 		public virtual string FormattedAddress
 		{
 			get { return formattedAddress; }
@@ -31,6 +40,9 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the latitude and longitude for this address.
+		/// </summary>
 		public virtual Location Coordinates
 		{
 			get { return coordinates; }
@@ -43,6 +55,9 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Gets the provider name for this address.
+		/// </summary>
 		public virtual string Provider
 		{
 			get { return provider; }
@@ -55,16 +70,31 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Calculates the distance from this address to another address in miles.
+		/// </summary>
+		/// <param name="address">The destination address.</param>
+		/// <returns>The distance between the two addresses.</returns>
 		public virtual Distance DistanceBetween(Address address)
 		{
 			return this.Coordinates.DistanceBetween(address.Coordinates);
 		}
 
+		/// <summary>
+		/// Calculates the distance from this address to another address.
+		/// </summary>
+		/// <param name="address">The destination address.</param>
+		/// <param name="units">The unit to return the distance in.</param>
+		/// <returns>The distance between the two addresses.</returns>
 		public virtual Distance DistanceBetween(Address address, DistanceUnits units)
 		{
 			return this.Coordinates.DistanceBetween(address.Coordinates, units);
 		}
 
+		/// <summary>
+		/// Returns the formatted address.
+		/// </summary>
+		/// <returns>The formatted address.</returns>
 		public override string ToString()
 		{
 			return FormattedAddress;

@@ -1,5 +1,8 @@
-﻿namespace Geocoding.MapQuest
+﻿﻿namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents MapQuest geocode quality levels.
+	/// </summary>
 	public enum Quality : int
 	{
 		/// <summary>
@@ -51,6 +54,9 @@
 		/// </summary>
 		COUNTRY = 10,
 
+		/// <summary>
+		/// Unknown quality.
+		/// </summary>
 		UNKNOWN = 11
 	}
 }

@@ -1,4 +1,4 @@
-using Geocoding.Google;
+﻿using Geocoding.Google;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,25 +10,18 @@ namespace Geocoding.Tests
 	[Collection("Settings")]
 	public class GoogleGeocoderTest : GeocoderTest
 	{
-		GoogleGeocoder geocoder;
+		private GoogleGeocoder _googleGeocoder;
 
 		public GoogleGeocoderTest(SettingsFixture settings)
 			: base(settings) { }
 
 		protected override IGeocoder CreateGeocoder()
 		{
-			string apiKey = settings.GoogleApiKey;
+			String apiKey = _settings.GoogleApiKey;
+			SettingsFixture.SkipIfMissing(apiKey, nameof(SettingsFixture.GoogleApiKey));
+			_googleGeocoder = new GoogleGeocoder(apiKey);
 
-			if (String.IsNullOrEmpty(apiKey))
-			{
-				geocoder = new GoogleGeocoder();
-			}
-			else
-			{
-				geocoder = new GoogleGeocoder(apiKey);
-			}
-
-			return geocoder;
+			return _googleGeocoder;
 		}
 
 		[Theory]
@@ -40,7 +33,7 @@ namespace Geocoding.Tests
 		[InlineData("muswellbrook 2 New South Wales Australia", GoogleAddressType.Unknown)]
 		public async Task CanParseAddressTypes(string address, GoogleAddressType type)
 		{
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 			Assert.Equal(type, addresses[0].Type);
 		}
 
@@ -53,7 +46,7 @@ namespace Geocoding.Tests
 		[InlineData("muswellbrook 2 New South Wales Australia", GoogleLocationType.Approximate)]
 		public async Task CanParseLocationTypes(string address, GoogleLocationType type)
 		{
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 			Assert.Equal(type, addresses[0].LocationType);
 		}
 
@@ -64,8 +57,8 @@ namespace Geocoding.Tests
 		[InlineData("Montreal", "de", "Montreal, Québec, Kanada")]
 		public async Task ApplyLanguage(string address, string language, string result)
 		{
-			geocoder.Language = language;
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			_googleGeocoder.Language = language;
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 			Assert.Equal(result, addresses[0].FormattedAddress);
 		}
 
@@ -74,9 +67,10 @@ namespace Geocoding.Tests
 		[InlineData("Toledo", "es", "Toledo, Spain", "Toledo, Toledo, Spain")]
 		public async Task ApplyRegionBias(string address, string regionBias, string result1, string result2)
 		{
-			geocoder.RegionBias = regionBias;
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
-			Assert.True(result1 == addresses[0].FormattedAddress || result2 == addresses[0].FormattedAddress);
+			_googleGeocoder.RegionBias = regionBias;
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+			String[] expectedAddresses = String.IsNullOrEmpty(result2) ? new[] { result1 } : new[] { result1, result2 };
+			Assert.Contains(addresses[0].FormattedAddress, expectedAddresses);
 		}
 
 		[Theory]
@@ -84,8 +78,8 @@ namespace Geocoding.Tests
 		[InlineData("Winnetka", 34.172684, -118.604794, 34.236144, -118.500938, "Winnetka, Los Angeles, CA, USA")]
 		public async Task ApplyBoundsBias(string address, double biasLatitude1, double biasLongitude1, double biasLatitude2, double biasLongitude2, string result)
 		{
-			geocoder.BoundsBias = new Bounds(biasLatitude1, biasLongitude1, biasLatitude2, biasLongitude2);
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			_googleGeocoder.BoundsBias = new Bounds(biasLatitude1, biasLongitude1, biasLatitude2, biasLongitude2);
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 			Assert.Equal(result, addresses[0].FormattedAddress);
 		}
 
@@ -96,14 +90,14 @@ namespace Geocoding.Tests
 		[InlineData("York")]
 		public async Task CanApplyGBCountryComponentFilters(string address)
 		{
-			geocoder.ComponentFilters = new List<GoogleComponentFilter>();
+			_googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
 
-			geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.Country, "GB"));
+			_googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.Country, "GB"));
 
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "US")));
-			Assert.True(addresses.Any(x => x.Components.Any(o => o.ShortName == "GB")));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "US"));
+			Assert.Contains(addresses, x => HasShortName(x, "GB"));
 		}
 
 		[Theory]
@@ -113,14 +107,14 @@ namespace Geocoding.Tests
 		[InlineData("York")]
 		public async Task CanApplyUSCountryComponentFilters(string address)
 		{
-			geocoder.ComponentFilters = new List<GoogleComponentFilter>();
+			_googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
 
-			geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.Country, "US"));
+			_googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.Country, "US"));
 
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
-			Assert.True(addresses.Any(x => x.Components.Any(o => o.ShortName == "US")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "GB")));
+			Assert.Contains(addresses, x => HasShortName(x, "US"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "GB"));
 		}
 
 		[Theory]
@@ -128,33 +122,38 @@ namespace Geocoding.Tests
 		[InlineData("Franklin")]
 		public async Task CanApplyAdministrativeAreaComponentFilters(string address)
 		{
-			geocoder.ComponentFilters = new List<GoogleComponentFilter>();
+			_googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
 
-			geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.AdministrativeArea, "KS"));
+			_googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.AdministrativeArea, "KS"));
 
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
 			// Assert we only got addresses in Kansas
-			Assert.True(addresses.Any(x => x.Components.Any(o => o.ShortName == "KS")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "MA")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "LA")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "NJ")));
+			Assert.Contains(addresses, x => HasShortName(x, "KS"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "MA"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "LA"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "NJ"));
 		}
 
 		[Theory]
 		[InlineData("Rothwell")]
 		public async Task CanApplyPostalCodeComponentFilters(string address)
 		{
-			geocoder.ComponentFilters = new List<GoogleComponentFilter>();
+			_googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
 
-			geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "NN14"));
+			_googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "NN14"));
 
-			GoogleAddress[] addresses = (await geocoder.GeocodeAsync(address)).ToArray();
+			var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
 			// Assert we only got Rothwell, Northamptonshire
-			Assert.True(addresses.Any(x => x.Components.Any(o => o.ShortName == "Northamptonshire")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "West Yorkshire")));
-			Assert.False(addresses.Any(x => x.Components.Any(o => o.ShortName == "Moreton Bay")));
+			Assert.Contains(addresses, x => HasShortName(x, "Northamptonshire"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "West Yorkshire"));
+			Assert.DoesNotContain(addresses, x => HasShortName(x, "Moreton Bay"));
+		}
+
+		private static bool HasShortName(GoogleAddress address, string shortName)
+		{
+			return address.Components.Any(component => String.Equals(component.ShortName, shortName, StringComparison.Ordinal));
 		}
 	}
 }

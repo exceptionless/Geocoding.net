@@ -1,5 +1,8 @@
-﻿namespace Geocoding.MapQuest
+﻿﻿namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents the side of street reported by MapQuest.
+	/// </summary>
 	public enum SideOfStreet
 	{
 		/// <summary>

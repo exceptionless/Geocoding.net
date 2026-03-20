@@ -1,4 +1,4 @@
-﻿using Geocoding.Here;
+﻿﻿using Geocoding.Here;
 using Xunit;
 
 namespace Geocoding.Tests
@@ -6,11 +6,14 @@ namespace Geocoding.Tests
 	[Collection("Settings")]
 	public class HereAsyncGeocoderTest : AsyncGeocoderTest
 	{
-		HereGeocoder geoCoder;
+		public HereAsyncGeocoderTest(SettingsFixture settings)
+			: base(settings) { }
 
 		protected override IGeocoder CreateAsyncGeocoder()
 		{
-			return new HereGeocoder(settings.HereAppId, settings.HereAppCode);
+			SettingsFixture.SkipIfMissing(_settings.HereAppId, nameof(SettingsFixture.HereAppId));
+			SettingsFixture.SkipIfMissing(_settings.HereAppCode, nameof(SettingsFixture.HereAppCode));
+			return new HereGeocoder(_settings.HereAppId, _settings.HereAppCode);
 		}
 	}
 }

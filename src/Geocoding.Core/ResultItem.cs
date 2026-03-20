@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Geocoding
 {
+	/// <summary>
+	/// Represents a single batch request item and its response values.
+	/// </summary>
 	public class ResultItem
 	{
 		Address input;
@@ -37,6 +40,11 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Initializes a new result item.
+		/// </summary>
+		/// <param name="request">The request address.</param>
+		/// <param name="response">The response addresses.</param>
 		public ResultItem(Address request, IEnumerable<Address> response)
 		{
 			Request = request;

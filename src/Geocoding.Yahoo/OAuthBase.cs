@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Cryptography;
@@ -7,6 +7,9 @@ using System.Text;
 //http://oauth.googlecode.com/svn/code/csharp/OAuthBase.cs
 namespace Geocoding.Yahoo
 {
+	/// <summary>
+	/// Provides helper methods for generating OAuth 1.0 signatures.
+	/// </summary>
 	public class OAuthBase
 	{
 
@@ -15,8 +18,11 @@ namespace Geocoding.Yahoo
 		/// </summary>
 		public enum SignatureTypes
 		{
+			/// <summary>The HMACSHA1 value.</summary>
 			HMACSHA1,
+			/// <summary>The PLAINTEXT value.</summary>
 			PLAINTEXT,
+			/// <summary>The RSASHA1 value.</summary>
 			RSASHA1
 		}
 
@@ -28,17 +34,28 @@ namespace Geocoding.Yahoo
 			private string name = null;
 			private string value = null;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="QueryParameter"/> class.
+			/// </summary>
+			/// <param name="name">The parameter name.</param>
+			/// <param name="value">The parameter value.</param>
 			public QueryParameter(string name, string value)
 			{
 				this.name = name;
 				this.value = value;
 			}
 
+			/// <summary>
+			/// Gets the parameter name.
+			/// </summary>
 			public string Name
 			{
 				get { return name; }
 			}
 
+			/// <summary>
+			/// Gets the parameter value.
+			/// </summary>
 			public string Value
 			{
 				get { return value; }
@@ -53,6 +70,12 @@ namespace Geocoding.Yahoo
 
 			#region IComparer<QueryParameter> Members
 
+			/// <summary>
+			/// Compares two query parameters for sorting.
+			/// </summary>
+			/// <param name="x">The first parameter.</param>
+			/// <param name="y">The second parameter.</param>
+			/// <returns>A signed integer indicating relative sort order.</returns>
 			public int Compare(QueryParameter x, QueryParameter y)
 			{
 				if (x.Name == y.Name)
@@ -68,28 +91,76 @@ namespace Geocoding.Yahoo
 			#endregion
 		}
 
+		/// <summary>
+		/// The OAuth protocol version.
+		/// </summary>
 		protected const string OAuthVersion = "1.0";
+		/// <summary>
+		/// The OAuth parameter prefix.
+		/// </summary>
 		protected const string OAuthParameterPrefix = "oauth_";
 
 		//
 		// List of know and used oauth parameters' names
-		//        
+		//
+		/// <summary>
+		/// The OAuth consumer key parameter name.
+		/// </summary>
 		protected const string OAuthConsumerKeyKey = "oauth_consumer_key";
+		/// <summary>
+		/// The OAuth callback parameter name.
+		/// </summary>
 		protected const string OAuthCallbackKey = "oauth_callback";
+		/// <summary>
+		/// The OAuth version parameter name.
+		/// </summary>
 		protected const string OAuthVersionKey = "oauth_version";
+		/// <summary>
+		/// The OAuth signature method parameter name.
+		/// </summary>
 		protected const string OAuthSignatureMethodKey = "oauth_signature_method";
+		/// <summary>
+		/// The OAuth signature parameter name.
+		/// </summary>
 		protected const string OAuthSignatureKey = "oauth_signature";
+		/// <summary>
+		/// The OAuth timestamp parameter name.
+		/// </summary>
 		protected const string OAuthTimestampKey = "oauth_timestamp";
+		/// <summary>
+		/// The OAuth nonce parameter name.
+		/// </summary>
 		protected const string OAuthNonceKey = "oauth_nonce";
+		/// <summary>
+		/// The OAuth token parameter name.
+		/// </summary>
 		protected const string OAuthTokenKey = "oauth_token";
+		/// <summary>
+		/// The OAuth token secret parameter name.
+		/// </summary>
 		protected const string OAuthTokenSecretKey = "oauth_token_secret";
 
+		/// <summary>
+		/// The HMAC-SHA1 signature type name.
+		/// </summary>
 		protected const string HMACSHA1SignatureType = "HMAC-SHA1";
+		/// <summary>
+		/// The plain text signature type name.
+		/// </summary>
 		protected const string PlainTextSignatureType = "PLAINTEXT";
+		/// <summary>
+		/// The RSA-SHA1 signature type name.
+		/// </summary>
 		protected const string RSASHA1SignatureType = "RSA-SHA1";
 
+		/// <summary>
+		/// The random source used to generate nonces.
+		/// </summary>
 		protected Random random = new Random();
 
+		/// <summary>
+		/// The set of unreserved URL characters.
+		/// </summary>
 		protected string unreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~";
 
 		/// <summary>
@@ -205,11 +276,15 @@ namespace Geocoding.Yahoo
 		/// Generate the signature base that is used to produce the signature
 		/// </summary>
 		/// <param name="url">The full url that needs to be signed including its non OAuth url parameters</param>
-		/// <param name="consumerKey">The consumer key</param>        
+		/// <param name="consumerKey">The consumer key</param>
 		/// <param name="token">The token, if available. If not available pass null or an empty string</param>
 		/// <param name="tokenSecret">The token secret, if available. If not available pass null or an empty string</param>
 		/// <param name="httpMethod">The http method used. Must be a valid HTTP method verb (POST,GET,PUT, etc)</param>
-		/// <param name="signatureType">The signature type. To use the default values use <see cref="OAuthBase.SignatureTypes">OAuthBase.SignatureTypes</see>.</param>
+		/// <param name="timeStamp">The OAuth timestamp.</param>
+		/// <param name="nonce">The OAuth nonce.</param>
+		/// <param name="signatureType">The signature type name.</param>
+		/// <param name="normalizedUrl">The normalized URL produced for the request.</param>
+		/// <param name="normalizedRequestParameters">The normalized request parameters produced for the request.</param>
 		/// <returns>The signature base</returns>
 		public string GenerateSignatureBase(Uri url, string consumerKey, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, string signatureType, out string normalizedUrl, out string normalizedRequestParameters)
 		{
@@ -284,13 +359,17 @@ namespace Geocoding.Yahoo
 
 		/// <summary>
 		/// Generates a signature using the HMAC-SHA1 algorithm
-		/// </summary>		
+		/// </summary>
 		/// <param name="url">The full url that needs to be signed including its non OAuth url parameters</param>
 		/// <param name="consumerKey">The consumer key</param>
 		/// <param name="consumerSecret">The consumer seceret</param>
 		/// <param name="token">The token, if available. If not available pass null or an empty string</param>
 		/// <param name="tokenSecret">The token secret, if available. If not available pass null or an empty string</param>
 		/// <param name="httpMethod">The http method used. Must be a valid HTTP method verb (POST,GET,PUT, etc)</param>
+		/// <param name="timeStamp">The OAuth timestamp.</param>
+		/// <param name="nonce">The OAuth nonce.</param>
+		/// <param name="normalizedUrl">The normalized URL produced for the request.</param>
+		/// <param name="normalizedRequestParameters">The normalized request parameters produced for the request.</param>
 		/// <returns>A base64 string of the hash value</returns>
 		public string GenerateSignature(Uri url, string consumerKey, string consumerSecret, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, out string normalizedUrl, out string normalizedRequestParameters)
 		{
@@ -298,15 +377,19 @@ namespace Geocoding.Yahoo
 		}
 
 		/// <summary>
-		/// Generates a signature using the specified signatureType 
-		/// </summary>		
+		/// Generates a signature using the specified signatureType
+		/// </summary>
 		/// <param name="url">The full url that needs to be signed including its non OAuth url parameters</param>
 		/// <param name="consumerKey">The consumer key</param>
 		/// <param name="consumerSecret">The consumer seceret</param>
 		/// <param name="token">The token, if available. If not available pass null or an empty string</param>
 		/// <param name="tokenSecret">The token secret, if available. If not available pass null or an empty string</param>
 		/// <param name="httpMethod">The http method used. Must be a valid HTTP method verb (POST,GET,PUT, etc)</param>
+		/// <param name="timeStamp">The OAuth timestamp.</param>
+		/// <param name="nonce">The OAuth nonce.</param>
 		/// <param name="signatureType">The type of signature to use</param>
+		/// <param name="normalizedUrl">The normalized URL produced for the request.</param>
+		/// <param name="normalizedRequestParameters">The normalized request parameters produced for the request.</param>
 		/// <returns>A base64 string of the hash value</returns>
 		public string GenerateSignature(Uri url, string consumerKey, string consumerSecret, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, SignatureTypes signatureType, out string normalizedUrl, out string normalizedRequestParameters)
 		{
@@ -332,9 +415,9 @@ namespace Geocoding.Yahoo
 		}
 
 		/// <summary>
-		/// Generate the timestamp for the signature        
+		/// Generate the timestamp for the signature
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The current Unix timestamp.</returns>
 		public virtual string GenerateTimeStamp()
 		{
 			// Default implementation of UNIX time of the current UTC time
@@ -345,7 +428,7 @@ namespace Geocoding.Yahoo
 		/// <summary>
 		/// Generate a nonce
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>A random nonce value.</returns>
 		public virtual string GenerateNonce()
 		{
 			// Just a simple implementation of a random number between 123400 and 9999999

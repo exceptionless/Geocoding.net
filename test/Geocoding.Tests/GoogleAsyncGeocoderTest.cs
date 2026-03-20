@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Geocoding.Google;
@@ -9,22 +9,18 @@ namespace Geocoding.Tests
 	[Collection("Settings")]
 	public class GoogleAsyncGeocoderTest : AsyncGeocoderTest
 	{
-		GoogleGeocoder geoCoder;
+		private GoogleGeocoder _googleGeocoder;
+
+		public GoogleAsyncGeocoderTest(SettingsFixture settings)
+			: base(settings) { }
 
 		protected override IGeocoder CreateAsyncGeocoder()
 		{
-			string apiKey = settings.GoogleApiKey;
+			String apiKey = _settings.GoogleApiKey;
+			SettingsFixture.SkipIfMissing(apiKey, nameof(SettingsFixture.GoogleApiKey));
+			_googleGeocoder = new GoogleGeocoder(apiKey);
 
-			if (String.IsNullOrEmpty(apiKey))
-			{
-				geoCoder = new GoogleGeocoder();
-			}
-			else
-			{
-				geoCoder = new GoogleGeocoder(apiKey);
-			}
-
-			return geoCoder;
+			return _googleGeocoder;
 		}
 
 		[Theory]
@@ -35,8 +31,8 @@ namespace Geocoding.Tests
 		[InlineData("1600 pennsylvania ave washington dc", GoogleAddressType.Establishment)]
 		public async Task CanParseAddressTypes(string address, GoogleAddressType type)
 		{
-		    var result = await geoCoder.GeocodeAsync(address);
-			GoogleAddress[] addresses = result.ToArray();
+			var result = await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
+			var addresses = result.ToArray();
 			Assert.Equal(type, addresses[0].Type);
 		}
 	}

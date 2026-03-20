@@ -1,19 +1,23 @@
-﻿using System.Linq;
+﻿﻿using System.Linq;
 using System.Threading.Tasks;
 using Geocoding.Microsoft;
 using Xunit;
 
 namespace Geocoding.Tests
 {
+	[Collection("Settings")]
 	public class BingMapsAsyncTest : AsyncGeocoderTest
-    {
-		BingMapsGeocoder geoCoder;
-        
+	{
+		private BingMapsGeocoder _bingMapsGeocoder;
 
-        protected override IGeocoder CreateAsyncGeocoder()
+		public BingMapsAsyncTest(SettingsFixture settings)
+			: base(settings) { }
+
+		protected override IGeocoder CreateAsyncGeocoder()
 		{
-			geoCoder = new BingMapsGeocoder(settings.BingMapsKey);
-			return geoCoder;
+			SettingsFixture.SkipIfMissing(_settings.BingMapsKey, nameof(SettingsFixture.BingMapsKey));
+			_bingMapsGeocoder = new BingMapsGeocoder(_settings.BingMapsKey);
+			return _bingMapsGeocoder;
 		}
 
 		[Theory]
@@ -24,8 +28,8 @@ namespace Geocoding.Tests
 		[InlineData("1600 pennsylvania ave washington dc", EntityType.Address)]
 		public async Task CanParseAddressTypes(string address, EntityType type)
 		{
-		    var result = await geoCoder.GeocodeAsync(address);
-			BingAddress[] addresses = result.ToArray();
+			var result = await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
+			var addresses = result.ToArray();
 			Assert.Equal(type, addresses[0].Type);
 		}
 	}

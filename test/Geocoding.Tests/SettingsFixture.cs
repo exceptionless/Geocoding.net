@@ -1,53 +1,60 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿﻿using System;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Geocoding.Tests
 {
 	public class SettingsFixture
 	{
-		readonly IConfigurationRoot config;
+		private readonly IConfigurationRoot _configuration;
 
 		public SettingsFixture()
 		{
-			config = new ConfigurationBuilder()
+			_configuration = new ConfigurationBuilder()
 				.AddJsonFile("settings.json")
 				.AddJsonFile("settings-override.json", optional: true)
 				.Build();
 		}
 
-		public string YahooConsumerKey
+		public String YahooConsumerKey
 		{
-			get { return config.GetValue<string>("yahooConsumerKey"); }
+			get { return _configuration.GetValue<String>("yahooConsumerKey"); }
 		}
 
-		public string YahooConsumerSecret
+		public String YahooConsumerSecret
 		{
-			get { return config.GetValue<string>("yahooConsumerSecret"); }
+			get { return _configuration.GetValue<String>("yahooConsumerSecret"); }
 		}
 
-		public string BingMapsKey
+		public String BingMapsKey
 		{
-			get { return config.GetValue<string>("bingMapsKey"); }
+			get { return _configuration.GetValue<String>("bingMapsKey"); }
 		}
 
-		public string GoogleApiKey
+		public String GoogleApiKey
 		{
-			get { return config.GetValue<string>("googleApiKey"); }
+			get { return _configuration.GetValue<String>("googleApiKey"); }
 		}
 
-		public string MapQuestKey
+		public String MapQuestKey
 		{
-			get { return config.GetValue<string>("mapQuestKey"); }
+			get { return _configuration.GetValue<String>("mapQuestKey"); }
 		}
 
-		public string HereAppId
+		public String HereAppId
 		{
-			get { return config.GetValue<string>("hereAppId"); }
+			get { return _configuration.GetValue<String>("hereAppId"); }
 		}
 
-		public string HereAppCode
+		public String HereAppCode
 		{
-			get { return config.GetValue<string>("hereAppCode"); }
+			get { return _configuration.GetValue<String>("hereAppCode"); }
+		}
+
+		public static void SkipIfMissing(String value, String settingName)
+		{
+			if (String.IsNullOrWhiteSpace(value))
+				Assert.Skip($"Integration test requires '{settingName}' in test/Geocoding.Tests/settings-override.json.");
 		}
 	}
 

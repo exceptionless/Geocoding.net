@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -6,14 +6,19 @@ using Newtonsoft.Json;
 namespace Geocoding.MapQuest
 {
 	/// <summary>
-	/// MapQuest address obj.
-	/// <see cref="http://open.mapquestapi.com/geocoding/"/>
+	/// MapQuest address object.
+	/// See http://open.mapquestapi.com/geocoding/.
 	/// </summary>
 	public class MapQuestLocation : ParsedAddress
 	{
 		const string UNKNOWN = "unknown";
 		static readonly string DEFAULT_LOC = new Location(0, 0).ToString();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MapQuestLocation"/> class.
+		/// </summary>
+		/// <param name="formattedAddress">The formatted address.</param>
+		/// <param name="coordinates">The coordinates.</param>
 		public MapQuestLocation(string formattedAddress, Location coordinates)
 			: base(
 				string.IsNullOrWhiteSpace(formattedAddress) ? UNKNOWN : formattedAddress,
@@ -23,6 +28,7 @@ namespace Geocoding.MapQuest
 			DisplayCoordinates = coordinates;
 		}
 
+		/// <inheritdoc />
 		[JsonProperty("location")]
 		public override string FormattedAddress
 		{
@@ -33,6 +39,7 @@ namespace Geocoding.MapQuest
 			set { base.FormattedAddress = value; }
 		}
 
+		/// <inheritdoc />
 		[JsonProperty("latLng")]
 		public override Location Coordinates
 		{
@@ -40,27 +47,37 @@ namespace Geocoding.MapQuest
 			set { base.Coordinates = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the display coordinates.
+		/// </summary>
 		[JsonProperty("displayLatLng")]
 		public virtual Location DisplayCoordinates { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("street")]
 		public override string Street { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("adminArea5")]
 		public override string City { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("adminArea4")]
 		public override string County { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("adminArea3")]
 		public override string State { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("adminArea1")]
 		public override string Country { get; set; }
 
+		/// <inheritdoc />
 		[JsonProperty("postalCode")]
 		public override string PostCode { get; set; }
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			if (base.FormattedAddress != UNKNOWN)
@@ -109,15 +126,15 @@ namespace Geocoding.MapQuest
 		public virtual LocationType Type { get; set; }
 
 		/// <summary>
-		/// Granularity code of quality/accuracy guarantee
-		/// <see cref="http://open.mapquestapi.com/geocoding/geocodequality.html#granularity"/>
+		/// Granularity code of quality or accuracy guarantee.
+		/// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
 		/// </summary>
 		[JsonProperty("geocodeQuality")]
 		public virtual Quality Quality { get; set; }
 
 		/// <summary>
-		/// Text string comparable, sort able score
-		/// <see cref="http://open.mapquestapi.com/geocoding/geocodequality.html#granularity"/>
+		/// Text string comparable, sortable score.
+		/// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
 		/// </summary>
 		[JsonProperty("geocodeQualityCode")]
 		public virtual string Confidence { get; set; }
@@ -140,9 +157,15 @@ namespace Geocoding.MapQuest
 		[JsonProperty("mapUrl")]
 		public virtual Uri MapUrl { get; set; }
 
+		/// <summary>
+		/// Gets or sets the country label returned by MapQuest.
+		/// </summary>
 		[JsonProperty("adminArea1Type")]
 		public virtual string CountryLabel { get; set; }
 
+		/// <summary>
+		/// Gets or sets the state label returned by MapQuest.
+		/// </summary>
 		[JsonProperty("adminArea3Type")]
 		public virtual string StateLabel { get; set; }
 	}

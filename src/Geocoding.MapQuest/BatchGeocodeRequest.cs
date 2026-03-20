@@ -5,8 +5,16 @@ using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents a batch geocoding request for MapQuest.
+	/// </summary>
 	public class BatchGeocodeRequest : BaseRequest
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BatchGeocodeRequest"/> class.
+		/// </summary>
+		/// <param name="key">The MapQuest application key.</param>
+		/// <param name="addresses">The addresses to geocode.</param>
 		public BatchGeocodeRequest(string key, ICollection<string> addresses)
 			: base(key)
 		{
@@ -42,6 +50,7 @@ namespace Geocoding.MapQuest
 			}
 		}
 
+		/// <inheritdoc />
 		public override string RequestAction
 		{
 			get { return "batch"; }

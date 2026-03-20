@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -9,53 +10,56 @@ namespace Geocoding.Tests
 {
 	public abstract class BatchGeocoderTest
 	{
-		readonly IBatchGeocoder batchGeocoder;
+			private readonly IBatchGeocoder _batchGeocoder;
+			protected readonly SettingsFixture _settings;
 
-		public BatchGeocoderTest() 
+			public BatchGeocoderTest(SettingsFixture settings)
 		{
 			//Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-us");
 
-			batchGeocoder = CreateBatchGeocoder();
+				_settings = settings;
+
+				_batchGeocoder = CreateBatchGeocoder();
 		}
 
 		protected abstract IBatchGeocoder CreateBatchGeocoder();
 
 		[Theory]
-		[MemberData("BatchGeoCodeData")]
-		public virtual async  Task CanGeoCodeAddress(string[] addresses)
+		[MemberData(nameof(BatchGeoCodeData))]
+		public virtual async Task CanGeoCodeAddress(String[] addresses)
 		{
 			Assert.NotEmpty(addresses);
 
-			IEnumerable<ResultItem> results = await batchGeocoder.GeocodeAsync(addresses);
+			var results = await _batchGeocoder.GeocodeAsync(addresses, TestContext.Current.CancellationToken);
 			Assert.NotEmpty(results);
 			Assert.Equal(addresses.Length, results.Count());
 
-			var ahash = new HashSet<string>(addresses);
-			Assert.Equal(ahash.Count, results.Count());
+			var addressSet = new HashSet<String>(addresses);
+				Assert.Equal(addressSet.Count, results.Count());
 
-			foreach (ResultItem r in results)
+				foreach (ResultItem resultItem in results)
 			{
-				Assert.NotNull(r);
-				Assert.NotNull(r.Request);
-				Assert.NotNull(r.Response);
+					Assert.NotNull(resultItem);
+					Assert.NotNull(resultItem.Request);
+					Assert.NotNull(resultItem.Response);
 
-				Assert.Contains(r.Request.FormattedAddress, ahash);
+					Assert.Contains(resultItem.Request.FormattedAddress, addressSet);
 
-				Address[] respa = r.Response.ToArray();
-				Assert.NotEmpty(respa);
+					var responseAddresses = resultItem.Response.ToArray();
+					Assert.NotEmpty(responseAddresses);
 
-				ahash.Remove(r.Request.FormattedAddress);
+					addressSet.Remove(resultItem.Request.FormattedAddress);
 			}
-			Assert.Empty(ahash);
+				Assert.Empty(addressSet);
 		}
 
 		public static IEnumerable<object[]> BatchGeoCodeData
 		{
 			get
 			{
-				yield return new object[] 
+				yield return new object[]
 				{
-					new string[] 
+					new String[]
 					{
 						"1600 pennsylvania ave nw, washington dc",
 						"1460 4th Street Ste 304, Santa Monica CA 90401",

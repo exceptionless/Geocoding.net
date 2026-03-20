@@ -2,11 +2,14 @@
 
 namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents optional MapQuest request settings.
+	/// </summary>
 	public class RequestOptions
 	{
 		///// <summary>
-		///// A delimiter is used only when outFormat=csv. The delimiter is the single character used to separate the fields of a character delimited file. 
-		///// The delimiter defaults to a comma(,). 
+		///// A delimiter is used only when outFormat=csv. The delimiter is the single character used to separate the fields of a character delimited file.
+		///// The delimiter defaults to a comma(,).
 		///// The valid choices are ,|:;
 		///// </summary>
 		//[JsonProperty("delimiter")]
@@ -16,7 +19,7 @@ namespace Geocoding.MapQuest
 		int _maxResults = -1;
 		/// <summary>
 		/// The number of results to limit the response to in the case of an ambiguous address.
-		/// Defaults: -1 (indicates no limit) 
+		/// Defaults: -1 (indicates no limit)
 		/// </summary>
 		[JsonProperty("maxResults")]
 		public virtual int MaxResults

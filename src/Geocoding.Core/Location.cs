@@ -1,13 +1,19 @@
-using System;
+﻿using System;
 using Newtonsoft.Json;
 
 namespace Geocoding
 {
+	/// <summary>
+	/// Represents a geographic coordinate.
+	/// </summary>
 	public class Location
 	{
 		double latitude;
 		double longitude;
 
+		/// <summary>
+		/// Gets or sets the latitude in decimal degrees.
+		/// </summary>
 		[JsonProperty("lat")]
 		public virtual double Latitude
 		{
@@ -24,6 +30,9 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the longitude in decimal degrees.
+		/// </summary>
 		[JsonProperty("lng")]
 		public virtual double Longitude
 		{
@@ -40,26 +49,50 @@ namespace Geocoding
 			}
 		}
 
+		/// <summary>
+		/// Initializes a default location at 0,0.
+		/// </summary>
 		protected Location()
 			: this(0, 0)
 		{
 		}
+		/// <summary>
+		/// Initializes a location with latitude and longitude.
+		/// </summary>
+		/// <param name="latitude">Latitude in decimal degrees.</param>
+		/// <param name="longitude">Longitude in decimal degrees.</param>
 		public Location(double latitude, double longitude)
 		{
 			Latitude = latitude;
 			Longitude = longitude;
 		}
 
+		/// <summary>
+		/// Converts degrees to radians.
+		/// </summary>
+		/// <param name="val">The value in degrees.</param>
+		/// <returns>The value in radians.</returns>
 		protected virtual double ToRadian(double val)
 		{
 			return (Math.PI / 180.0) * val;
 		}
 
+		/// <summary>
+		/// Calculates distance to another location in miles.
+		/// </summary>
+		/// <param name="location">The destination location.</param>
+		/// <returns>The distance in miles.</returns>
 		public virtual Distance DistanceBetween(Location location)
 		{
 			return DistanceBetween(location, DistanceUnits.Miles);
 		}
 
+		/// <summary>
+		/// Calculates distance to another location.
+		/// </summary>
+		/// <param name="location">The destination location.</param>
+		/// <param name="units">The distance units.</param>
+		/// <returns>The calculated distance.</returns>
 		public virtual Distance DistanceBetween(Location location, DistanceUnits units)
 		{
 			double earthRadius = (units == DistanceUnits.Miles) ? Distance.EarthRadiusInMiles : Distance.EarthRadiusInKilometers;
@@ -78,11 +111,21 @@ namespace Geocoding
 			return new Distance(distance, units);
 		}
 
+		/// <summary>
+		/// Determines whether the specified object is equal to this location.
+		/// </summary>
+		/// <param name="obj">The object to compare.</param>
+		/// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
 		public override bool Equals(object obj)
 		{
 			return Equals(obj as Location);
 		}
 
+		/// <summary>
+		/// Determines whether another location is equal to this location.
+		/// </summary>
+		/// <param name="coor">The location to compare.</param>
+		/// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
 		public bool Equals(Location coor)
 		{
 			if (coor == null)
@@ -91,11 +134,19 @@ namespace Geocoding
 			return (this.Latitude == coor.Latitude && this.Longitude == coor.Longitude);
 		}
 
+		/// <summary>
+		/// Returns a hash code for this location.
+		/// </summary>
+		/// <returns>A hash code for this location.</returns>
 		public override int GetHashCode()
 		{
 			return Latitude.GetHashCode() ^ Latitude.GetHashCode();
 		}
 
+		/// <summary>
+		/// Returns a string representation of the location.
+		/// </summary>
+		/// <returns>A string representation of the location.</returns>
 		public override string ToString()
 		{
 			return string.Format("{0}, {1}", latitude, longitude);

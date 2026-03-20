@@ -1,4 +1,4 @@
-﻿using Geocoding.Yahoo;
+﻿﻿using Geocoding.Yahoo;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,9 +12,12 @@ namespace Geocoding.Tests
 
 		protected override IGeocoder CreateGeocoder()
 		{
+			SettingsFixture.SkipIfMissing(_settings.YahooConsumerKey, nameof(SettingsFixture.YahooConsumerKey));
+			SettingsFixture.SkipIfMissing(_settings.YahooConsumerSecret, nameof(SettingsFixture.YahooConsumerSecret));
+
 			return new YahooGeocoder(
-				settings.YahooConsumerKey,
-				settings.YahooConsumerSecret
+				_settings.YahooConsumerKey,
+				_settings.YahooConsumerSecret
 			);
 		}
 

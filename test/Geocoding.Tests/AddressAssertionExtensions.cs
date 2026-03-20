@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using Xunit;
 
 namespace Geocoding.Tests
@@ -7,9 +7,9 @@ namespace Geocoding.Tests
 	{
 		public static void AssertWhiteHouse(this Address address)
 		{
-			string adr = address.FormattedAddress.ToLower();
+			String adr = address.FormattedAddress.ToLowerInvariant();
 			Assert.True(
-				adr.Contains("The White House") ||
+				adr.Contains("the white house") ||
 				adr.Contains("1600 pennsylvania ave nw") ||
 				adr.Contains("1600 pennsylvania avenue northwest") ||
 				adr.Contains("1600 pennsylvania avenue nw") ||
@@ -20,7 +20,7 @@ namespace Geocoding.Tests
 
 		public static void AssertWhiteHouseArea(this Address address)
 		{
-			string adr = address.FormattedAddress.ToLower();
+			String adr = address.FormattedAddress.ToLowerInvariant();
 			Assert.True(
 				adr.Contains("washington") &&
 				(adr.Contains("dc") || adr.Contains("district of columbia"))
@@ -36,11 +36,11 @@ namespace Geocoding.Tests
 
 		public static void AssertCanadianPrimeMinister(this Address address)
 		{
-			string adr = address.FormattedAddress.ToLower();
-			Assert.True(adr.Contains("24 sussex"));
-			Assert.True(adr.Contains(" ottawa"));
-			Assert.True(adr.Contains(" on"));
-			Assert.True(adr.Contains("k1m"));
+			String adr = address.FormattedAddress.ToLowerInvariant();
+			Assert.Contains("24 sussex", adr);
+			Assert.Contains(" ottawa", adr);
+			Assert.Contains(" on", adr);
+			Assert.Contains("k1m", adr);
 		}
 	}
 }

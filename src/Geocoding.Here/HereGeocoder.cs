@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Geocoding.Here
 {
+	/// <summary>
+	/// Provides geocoding and reverse geocoding through the HERE geocoding API.
+	/// </summary>
 	/// <remarks>
 	/// https://developer.here.com/documentation/geocoder/topics/request-constructing.html
 	/// </remarks>
@@ -29,11 +32,28 @@ namespace Geocoding.Here
 		readonly string appId;
 		readonly string appCode;
 
+		/// <summary>
+		/// Gets or sets the proxy used for HERE requests.
+		/// </summary>
 		public IWebProxy Proxy { get; set; }
+		/// <summary>
+		/// Gets or sets the user location bias for requests.
+		/// </summary>
 		public Location UserLocation { get; set; }
+		/// <summary>
+		/// Gets or sets the map view bias for requests.
+		/// </summary>
 		public Bounds UserMapView { get; set; }
+		/// <summary>
+		/// Gets or sets the maximum number of results to request.
+		/// </summary>
 		public int? MaxResults { get; set; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HereGeocoder"/> class.
+		/// </summary>
+		/// <param name="appId">The HERE application identifier.</param>
+		/// <param name="appCode">The HERE application code.</param>
 		public HereGeocoder(string appId, string appCode)
 		{
 			if (string.IsNullOrWhiteSpace(appId))
@@ -113,6 +133,7 @@ namespace Geocoding.Here
 			return builder.ToString();
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<HereAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try
@@ -127,6 +148,7 @@ namespace Geocoding.Here
 			}
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<HereAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try
@@ -141,14 +163,16 @@ namespace Geocoding.Here
 			}
 		}
 
-		public async Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (location == null)
 				throw new ArgumentNullException(nameof(location));
 
-			return await ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken).ConfigureAwait(false);
+			return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
 		}
 
+		/// <inheritdoc />
 		public async Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			try

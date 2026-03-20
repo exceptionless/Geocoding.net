@@ -3,6 +3,9 @@ using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents MapQuest response metadata.
+	/// </summary>
 	public class ResponseInfo
 	{
 		/// <summary>

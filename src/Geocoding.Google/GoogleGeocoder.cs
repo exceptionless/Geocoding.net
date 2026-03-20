@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -12,6 +12,9 @@ using System.Xml.XPath;
 
 namespace Geocoding.Google
 {
+	/// <summary>
+	/// Provides geocoding and reverse geocoding through the Google Maps geocoding API.
+	/// </summary>
 	/// <remarks>
 	/// http://code.google.com/apis/maps/documentation/geocoding/
 	/// </remarks>
@@ -21,18 +24,32 @@ namespace Geocoding.Google
 		BusinessKey businessKey;
 		const string keyMessage = "Only one of BusinessKey or ApiKey should be set on the GoogleGeocoder.";
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GoogleGeocoder"/> class.
+		/// </summary>
 		public GoogleGeocoder() { }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GoogleGeocoder"/> class.
+		/// </summary>
+		/// <param name="businessKey">The Google business key used to sign requests.</param>
 		public GoogleGeocoder(BusinessKey businessKey)
 		{
 			BusinessKey = businessKey;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GoogleGeocoder"/> class.
+		/// </summary>
+		/// <param name="apiKey">The Google Maps API key.</param>
 		public GoogleGeocoder(string apiKey)
 		{
 			ApiKey = apiKey;
 		}
 
+		/// <summary>
+		/// Gets or sets the Google Maps API key.
+		/// </summary>
 		public string ApiKey
 		{
 			get { return apiKey; }
@@ -47,6 +64,9 @@ namespace Geocoding.Google
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the Google business key used to sign requests.
+		/// </summary>
 		public BusinessKey BusinessKey
 		{
 			get { return businessKey; }
@@ -61,12 +81,30 @@ namespace Geocoding.Google
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the proxy used for Google requests.
+		/// </summary>
 		public IWebProxy Proxy { get; set; }
+		/// <summary>
+		/// Gets or sets the language used for results.
+		/// </summary>
 		public string Language { get; set; }
+		/// <summary>
+		/// Gets or sets the regional bias used for requests.
+		/// </summary>
 		public string RegionBias { get; set; }
+		/// <summary>
+		/// Gets or sets the bounds bias used for requests.
+		/// </summary>
 		public Bounds BoundsBias { get; set; }
+		/// <summary>
+		/// Gets or sets the Google component filters used for requests.
+		/// </summary>
 		public IList<GoogleComponentFilter> ComponentFilters { get; set; }
 
+		/// <summary>
+		/// Gets the base Google service URL including configured request options.
+		/// </summary>
 		public string ServiceUrl
 		{
 			get
@@ -125,27 +163,30 @@ namespace Geocoding.Google
 			}
 		}
 
-		public async Task<IEnumerable<GoogleAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<GoogleAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (string.IsNullOrEmpty(address))
 				throw new ArgumentNullException("address");
 
 			var request = BuildWebRequest("address", WebUtility.UrlEncode(address));
-			return await ProcessRequest(request, cancellationToken).ConfigureAwait(false);
+			return ProcessRequest(request, cancellationToken);
 		}
 
-		public async Task<IEnumerable<GoogleAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<GoogleAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (location == null)
 				throw new ArgumentNullException("location");
 
-			return await ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken).ConfigureAwait(false);
+			return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
 		}
 
-		public async Task<IEnumerable<GoogleAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<GoogleAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			var request = BuildWebRequest("latlng", BuildGeolocation(latitude, longitude));
-			return await ProcessRequest(request, cancellationToken).ConfigureAwait(false);
+			return ProcessRequest(request, cancellationToken);
 		}
 
 		private string BuildAddress(string street, string city, string state, string postalCode, string country)

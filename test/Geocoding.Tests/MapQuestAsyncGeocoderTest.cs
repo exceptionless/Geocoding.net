@@ -1,4 +1,4 @@
-﻿using Geocoding.MapQuest;
+﻿﻿using Geocoding.MapQuest;
 using Xunit;
 
 namespace Geocoding.Tests
@@ -6,9 +6,13 @@ namespace Geocoding.Tests
 	[Collection("Settings")]
 	public class MapQuestAsyncGeocoderTest : AsyncGeocoderTest
 	{
+		public MapQuestAsyncGeocoderTest(SettingsFixture settings)
+			: base(settings) { }
+
 		protected override IGeocoder CreateAsyncGeocoder()
 		{
-			return new MapQuestGeocoder(settings.MapQuestKey)
+			SettingsFixture.SkipIfMissing(_settings.MapQuestKey, nameof(SettingsFixture.MapQuestKey));
+			return new MapQuestGeocoder(_settings.MapQuestKey)
 			{
 				UseOSM = false
 			};

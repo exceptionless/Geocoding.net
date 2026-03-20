@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,29 +10,55 @@ using System.Xml.XPath;
 
 namespace Geocoding.Yahoo
 {
+	/// <summary>
+	/// Provides geocoding and reverse geocoding through the Yahoo geocoding API.
+	/// </summary>
 	/// <remarks>
 	/// http://developer.yahoo.com/geo/placefinder/
 	/// </remarks>
 	public class YahooGeocoder : IGeocoder
 	{
+		/// <summary>
+		/// The single-line Yahoo geocoding service URL format.
+		/// </summary>
 		public const string ServiceUrl = "http://yboss.yahooapis.com/geo/placefinder?q={0}";
+		/// <summary>
+		/// The multi-part Yahoo geocoding service URL format.
+		/// </summary>
 		public const string ServiceUrlNormal = "http://yboss.yahooapis.com/geo/placefinder?street={0}&city={1}&state={2}&postal={3}&country={4}";
+		/// <summary>
+		/// The Yahoo reverse geocoding service URL format.
+		/// </summary>
 		public const string ServiceUrlReverse = "http://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
 
 		readonly string consumerKey, consumerSecret;
 
+		/// <summary>
+		/// Gets the Yahoo consumer key.
+		/// </summary>
 		public string ConsumerKey
 		{
 			get { return consumerKey; }
 		}
 
+		/// <summary>
+		/// Gets the Yahoo consumer secret.
+		/// </summary>
 		public string ConsumerSecret
 		{
 			get { return consumerSecret; }
 		}
 
+		/// <summary>
+		/// Gets or sets the proxy used for Yahoo requests.
+		/// </summary>
 		public IWebProxy Proxy { get; set; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="YahooGeocoder"/> class.
+		/// </summary>
+		/// <param name="consumerKey">The Yahoo consumer key.</param>
+		/// <param name="consumerSecret">The Yahoo consumer secret.</param>
 		public YahooGeocoder(string consumerKey, string consumerSecret)
 		{
 			if (string.IsNullOrEmpty(consumerKey))
@@ -45,7 +71,8 @@ namespace Geocoding.Yahoo
 			this.consumerSecret = consumerSecret;
 		}
 
-		public async Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (string.IsNullOrEmpty(address))
 				throw new ArgumentNullException("address");
@@ -53,31 +80,34 @@ namespace Geocoding.Yahoo
 			string url = string.Format(ServiceUrl, WebUtility.UrlEncode(address));
 
 			HttpWebRequest request = BuildWebRequest(url);
-			return await ProcessRequest(request, cancellationToken).ConfigureAwait(false);
+			return ProcessRequest(request, cancellationToken);
 		}
 
-		public async Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			string url = string.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
 
 			HttpWebRequest request = BuildWebRequest(url);
-			return await ProcessRequest(request, cancellationToken).ConfigureAwait(false);
+			return ProcessRequest(request, cancellationToken);
 		}
 
-		public async Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			if (location == null)
 				throw new ArgumentNullException("location");
 
-			return await ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken).ConfigureAwait(false);
+			return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
 		}
 
-		public async Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
+		/// <inheritdoc />
+		public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
 		{
 			string url = string.Format(ServiceUrlReverse, string.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
 
 			HttpWebRequest request = BuildWebRequest(url);
-			return await ProcessRequest(request, cancellationToken).ConfigureAwait(false);
+			return ProcessRequest(request, cancellationToken);
 		}
 
 		private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpWebRequest request, CancellationToken cancellationToken)
@@ -252,6 +282,7 @@ namespace Geocoding.Yahoo
 			return (YahooError)errorCode;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return string.Format("Yahoo Geocoder: {0}, {1}", consumerKey, consumerSecret);

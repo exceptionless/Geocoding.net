@@ -1,15 +1,26 @@
-﻿using System;
+﻿﻿using System;
 using Newtonsoft.Json;
 
 namespace Geocoding.MapQuest
 {
+	/// <summary>
+	/// Represents a location payload for MapQuest geocoding and reverse geocoding requests.
+	/// </summary>
 	public class LocationRequest
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LocationRequest"/> class.
+		/// </summary>
+		/// <param name="street">The street address to geocode.</param>
 		public LocationRequest(string street)
 		{
 			Street = street;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LocationRequest"/> class.
+		/// </summary>
+		/// <param name="location">The coordinates to reverse geocode.</param>
 		public LocationRequest(Location location)
 		{
 			Location = location;
@@ -51,6 +62,7 @@ namespace Geocoding.MapQuest
 			}
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return string.Format("street: {0}", Street);

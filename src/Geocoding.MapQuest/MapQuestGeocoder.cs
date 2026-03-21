@@ -147,7 +147,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                 if (o is null)
                     continue;
 
-                foreach (MapQuestLocation l in o.Locations!)
+                foreach (MapQuestLocation l in o.Locations ?? Array.Empty<MapQuestLocation>())
                 {
                     if (!String.IsNullOrWhiteSpace(l.FormattedAddress) || o.ProvidedLocation is null)
                         continue;

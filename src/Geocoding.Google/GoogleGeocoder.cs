@@ -204,14 +204,8 @@ public class GoogleGeocoder : IGeocoder
                 return await ProcessWebResponse(await client.SendAsync(request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
             }
         }
-        catch (GoogleGeocodingException)
+        catch (Exception ex) when (ex is not GoogleGeocodingException)
         {
-            //let these pass through
-            throw;
-        }
-        catch (Exception ex)
-        {
-            //wrap in google exception
             throw new GoogleGeocodingException(ex);
         }
     }

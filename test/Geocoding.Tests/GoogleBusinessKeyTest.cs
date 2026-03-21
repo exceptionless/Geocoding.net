@@ -164,4 +164,20 @@ public class GoogleBusinessKeyTest
         // Assert
         Assert.DoesNotContain("&key=", serviceUrl);
     }
+
+    [Fact]
+    public void ServiceUrl_WithPostalCodeComponentFilter_ContainsPostalCodeFilter()
+    {
+        // Arrange
+        var geocoder = new GoogleGeocoder("apikey")
+        {
+            ComponentFilters = new List<GoogleComponentFilter>
+            {
+                new(GoogleComponentFilterType.PostalCode, "NN14")
+            }
+        };
+
+        // Assert
+        Assert.Contains("components=postal_code:NN14", geocoder.ServiceUrl);
+    }
 }

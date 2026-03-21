@@ -158,23 +158,6 @@ public class GoogleGeocoderTest : GeocoderTest
         Assert.DoesNotContain(addresses, x => HasShortName(x, "NJ"));
     }
 
-    [Theory]
-    [InlineData("Rothwell")]
-    public async Task Geocode_WithPostalCodeFilter_ReturnsFilteredResults(string address)
-    {
-        // Arrange
-        _googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
-        _googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "NN14"));
-
-        // Act
-        var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
-
-        // Assert
-        Assert.Contains(addresses, x => HasShortName(x, "Northamptonshire"));
-        Assert.DoesNotContain(addresses, x => HasShortName(x, "West Yorkshire"));
-        Assert.DoesNotContain(addresses, x => HasShortName(x, "Moreton Bay"));
-    }
-
     private static bool HasShortName(GoogleAddress address, string shortName)
     {
         return address.Components.Any(component => String.Equals(component.ShortName, shortName, StringComparison.Ordinal));

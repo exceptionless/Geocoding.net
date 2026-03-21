@@ -13,8 +13,7 @@ public class YahooGeocoderTest : GeocoderTest
 
     protected override IGeocoder CreateGeocoder()
     {
-        SettingsFixture.SkipIfMissing(_settings.YahooConsumerKey, nameof(SettingsFixture.YahooConsumerKey));
-        SettingsFixture.SkipIfMissing(_settings.YahooConsumerSecret, nameof(SettingsFixture.YahooConsumerSecret));
-        return new YahooGeocoder(_settings.YahooConsumerKey, _settings.YahooConsumerSecret);
+        Assert.Skip("Yahoo PlaceFinder/BOSS remains deprecated and unverified in this branch; see docs/plan.md and upstream issue #27.");
+        return default!;
     }
 }

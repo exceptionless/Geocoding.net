@@ -10,6 +10,7 @@ namespace Geocoding.Yahoo;
 /// <remarks>
 /// http://developer.yahoo.com/geo/placefinder/
 /// </remarks>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class YahooGeocoder : IGeocoder
 {
     /// <summary>
@@ -46,7 +47,7 @@ public class YahooGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Yahoo requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="YahooGeocoder"/> class.
@@ -150,7 +151,7 @@ public class YahooGeocoder : IGeocoder
     private HttpWebRequest BuildWebRequest(string url)
     {
         url = GenerateOAuthSignature(new Uri(url));
-        var req = WebRequest.Create(url) as HttpWebRequest;
+        var req = (WebRequest.Create(url) as HttpWebRequest)!;
         req.Method = "GET";
         if (Proxy is not null)
         {
@@ -210,7 +211,7 @@ public class YahooGeocoder : IGeocoder
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             int quality = Convert.ToInt32(nav.Evaluate("number(quality)"));
             string formattedAddress = ParseFormattedAddress(nav);

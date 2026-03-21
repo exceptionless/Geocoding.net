@@ -5,6 +5,7 @@ namespace Geocoding.Yahoo;
 /// <summary>
 /// Represents an error returned by the Yahoo geocoding provider.
 /// </summary>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class YahooGeocodingException : GeocodingException
 {
     private const string DefaultMessage = "There was an error processing the geocoding request. See ErrorCode or InnerException for more information.";

@@ -4,6 +4,8 @@
     <Description>Deprecated Yahoo compatibility package for Geocoding.net. Yahoo PlaceFinder/BOSS geocoding is retained only for legacy source compatibility and is planned for removal.</Description>
     <AssemblyTitle>Geocoding.net Yahoo</AssemblyTitle>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <PackageDeprecationMessage>Yahoo PlaceFinder/BOSS geocoding has been discontinued. This package is retained for source compatibility only and will be removed in a future major version. Migrate to Geocoding.Google, Geocoding.Microsoft, or Geocoding.Here.</PackageDeprecationMessage>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

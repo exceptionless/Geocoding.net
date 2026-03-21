@@ -1,6 +1,7 @@
 ﻿namespace Geocoding.Yahoo;
 
 /// <remarks>http://developer.yahoo.com/geo/placefinder/guide/responses.html#error-codes</remarks>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public enum YahooError
 {
     /// <summary>The NoError value.</summary>

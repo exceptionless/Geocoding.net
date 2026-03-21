@@ -8,6 +8,7 @@ namespace Geocoding.Yahoo;
 /// <summary>
 /// Provides helper methods for generating OAuth 1.0 signatures.
 /// </summary>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class OAuthBase
 {
 
@@ -29,8 +30,8 @@ public class OAuthBase
     /// </summary>
     protected class QueryParameter
     {
-        private string _name = null;
-        private string _value = null;
+        private string _name = null!;
+        private string _value = null!;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryParameter"/> class.
@@ -255,7 +256,7 @@ public class OAuthBase
     protected string NormalizeRequestParameters(IList<QueryParameter> parameters)
     {
         StringBuilder sb = new StringBuilder();
-        QueryParameter p = null;
+        QueryParameter? p = null;
         for (int i = 0; i < parameters.Count; i++)
         {
             p = parameters[i];
@@ -311,8 +312,8 @@ public class OAuthBase
             throw new ArgumentNullException(nameof(signatureType));
         }
 
-        normalizedUrl = null;
-        normalizedRequestParameters = null;
+        normalizedUrl = null!;
+        normalizedRequestParameters = null!;
 
         List<QueryParameter> parameters = GetQueryParameters(url.Query);
         parameters.Add(new QueryParameter(OAuthVersionKey, OAuthVersion));
@@ -391,13 +392,13 @@ public class OAuthBase
     /// <returns>A base64 string of the hash value</returns>
     public string GenerateSignature(Uri url, string consumerKey, string consumerSecret, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, SignatureTypes signatureType, out string normalizedUrl, out string normalizedRequestParameters)
     {
-        normalizedUrl = null;
-        normalizedRequestParameters = null;
+        normalizedUrl = null!;
+        normalizedRequestParameters = null!;
 
         switch (signatureType)
         {
             case SignatureTypes.PLAINTEXT:
-                return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}");
+                return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}")!;
             case SignatureTypes.HMACSHA1:
                 string signatureBase = GenerateSignatureBase(url, consumerKey, token, tokenSecret, httpMethod, timeStamp, nonce, HMACSHA1SignatureType, out normalizedUrl, out normalizedRequestParameters);
 

@@ -5,7 +5,7 @@
 /// </summary>
 public class BingAddress : Address
 {
-    private readonly string _addressLine, _adminDistrict, _adminDistrict2, _countryRegion, _locality, _neighborhood, _postalCode;
+    private readonly string? _addressLine, _adminDistrict, _adminDistrict2, _countryRegion, _locality, _neighborhood, _postalCode;
     private readonly EntityType _type;
     private readonly ConfidenceLevel _confidence;
 
@@ -95,8 +95,8 @@ public class BingAddress : Address
     /// <param name="postalCode">The postal code.</param>
     /// <param name="type">The entity type returned by Bing Maps.</param>
     /// <param name="confidence">The confidence level returned by Bing Maps.</param>
-    public BingAddress(string formattedAddress, Location coordinates, string addressLine, string adminDistrict, string adminDistrict2,
-        string countryRegion, string locality, string neighborhood, string postalCode, EntityType type, ConfidenceLevel confidence)
+    public BingAddress(string formattedAddress, Location coordinates, string? addressLine, string? adminDistrict, string? adminDistrict2,
+        string? countryRegion, string? locality, string? neighborhood, string? postalCode, EntityType type, ConfidenceLevel confidence)
         : this(formattedAddress, coordinates, addressLine, adminDistrict, adminDistrict2, countryRegion, locality, neighborhood, postalCode, type, confidence, "Bing")
     {
     }
@@ -116,8 +116,8 @@ public class BingAddress : Address
     /// <param name="type">The provider-specific entity type.</param>
     /// <param name="confidence">The provider confidence level.</param>
     /// <param name="provider">The provider name.</param>
-    protected BingAddress(string formattedAddress, Location coordinates, string addressLine, string adminDistrict, string adminDistrict2,
-        string countryRegion, string locality, string neighborhood, string postalCode, EntityType type, ConfidenceLevel confidence, string provider)
+    protected BingAddress(string formattedAddress, Location coordinates, string? addressLine, string? adminDistrict, string? adminDistrict2,
+        string? countryRegion, string? locality, string? neighborhood, string? postalCode, EntityType type, ConfidenceLevel confidence, string provider)
         : base(formattedAddress, coordinates, provider)
     {
         _addressLine = addressLine;

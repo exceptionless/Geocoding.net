@@ -1,7 +1,8 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Geocoding.Microsoft;
 
@@ -19,27 +20,27 @@ public class AzureMapsGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Azure Maps requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
 
     /// <summary>
     /// Gets or sets the culture used for results.
     /// </summary>
-    public string Culture { get; set; }
+    public string? Culture { get; set; }
 
     /// <summary>
     /// Gets or sets the user location bias.
     /// </summary>
-    public Location UserLocation { get; set; }
+    public Location? UserLocation { get; set; }
 
     /// <summary>
     /// Gets or sets the user map view bias.
     /// </summary>
-    public Bounds UserMapView { get; set; }
+    public Bounds? UserMapView { get; set; }
 
     /// <summary>
     /// Gets or sets the user IP address associated with the request.
     /// </summary>
-    public IPAddress UserIP { get; set; }
+    public IPAddress? UserIP { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether neighborhoods should be included when the provider returns them.
@@ -74,11 +75,7 @@ public class AzureMapsGeocoder : IGeocoder
             var response = await GetResponseAsync(BuildSearchUri(address), cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (AzureMapsGeocodingException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not AzureMapsGeocodingException)
         {
             throw new AzureMapsGeocodingException(ex);
         }
@@ -114,11 +111,7 @@ public class AzureMapsGeocoder : IGeocoder
             var response = await GetResponseAsync(BuildReverseUri(latitude, longitude), cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (AzureMapsGeocodingException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not AzureMapsGeocodingException)
         {
             throw new AzureMapsGeocodingException(ex);
         }
@@ -167,10 +160,10 @@ public class AzureMapsGeocoder : IGeocoder
             new("subscription-key", _apiKey)
         };
 
-        if (!String.IsNullOrWhiteSpace(Culture))
+        if (Culture is { Length: > 0 })
             parameters.Add(new KeyValuePair<string, string>("language", Culture));
 
-        if (MaxResults.GetValueOrDefault() > 0)
+        if (MaxResults is > 0)
             parameters.Add(new KeyValuePair<string, string>("limit", Math.Min(MaxResults.Value, AzureMaxResults).ToString(CultureInfo.InvariantCulture)));
 
         return parameters;
@@ -211,7 +204,7 @@ public class AzureMapsGeocoder : IGeocoder
             if (!response.IsSuccessStatusCode)
                 throw new AzureMapsGeocodingException($"Azure Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}");
 
-            var payload = JsonConvert.DeserializeObject<AzureSearchResponse>(json);
+            var payload = JsonSerializer.Deserialize<AzureSearchResponse>(json, Extensions.JsonOptions);
             return payload ?? new AzureSearchResponse();
         }
     }
@@ -260,11 +253,11 @@ public class AzureMapsGeocoder : IGeocoder
         {
             foreach (var reverseResult in response.Addresses)
             {
-                if (reverseResult?.Address is null || String.IsNullOrWhiteSpace(reverseResult.Position))
+                if (reverseResult?.Address is null || reverseResult.Position is null || String.IsNullOrWhiteSpace(reverseResult.Position))
                     continue;
 
                 var address = reverseResult.Address;
-                if (!TryParsePosition(reverseResult.Position, out var lat, out var lon))
+                if (!TryParsePosition(reverseResult.Position!, out var lat, out var lon))
                     continue;
 
                 var locality = FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision);
@@ -298,7 +291,7 @@ public class AzureMapsGeocoder : IGeocoder
             && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
     }
 
-    private static string BuildStreetLine(string streetNumber, string streetName)
+    private static string BuildStreetLine(string? streetNumber, string? streetName)
     {
         var parts = new[] { streetNumber, streetName }
             .Where(part => !String.IsNullOrWhiteSpace(part))
@@ -307,7 +300,7 @@ public class AzureMapsGeocoder : IGeocoder
         return parts.Length == 0 ? String.Empty : String.Join(" ", parts);
     }
 
-    private static string FirstNonEmpty(params string[] values)
+    private static string FirstNonEmpty(params string?[] values)
     {
         return values.FirstOrDefault(value => !String.IsNullOrWhiteSpace(value)) ?? String.Empty;
     }
@@ -381,100 +374,100 @@ public class AzureMapsGeocoder : IGeocoder
 
     private sealed class AzureSearchResponse
     {
-        [JsonProperty("results")]
+        [JsonPropertyName("results")]
         public AzureSearchResult[] Results { get; set; } = Array.Empty<AzureSearchResult>();
 
-        [JsonProperty("addresses")]
+        [JsonPropertyName("addresses")]
         public AzureReverseResult[] Addresses { get; set; } = Array.Empty<AzureReverseResult>();
     }
 
     private sealed class AzureReverseResult
     {
-        [JsonProperty("address")]
-        public AzureAddressPayload Address { get; set; }
+        [JsonPropertyName("address")]
+        public AzureAddressPayload? Address { get; set; }
 
-        [JsonProperty("position")]
-        public string Position { get; set; }
+        [JsonPropertyName("position")]
+        public string? Position { get; set; }
     }
 
     private sealed class AzureSearchResult
     {
-        [JsonProperty("type")]
-        public string Type { get; set; }
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
 
-        [JsonProperty("entityType")]
-        public string EntityType { get; set; }
+        [JsonPropertyName("entityType")]
+        public string? EntityType { get; set; }
 
-        [JsonProperty("matchType")]
-        public string MatchType { get; set; }
+        [JsonPropertyName("matchType")]
+        public string? MatchType { get; set; }
 
-        [JsonProperty("address")]
-        public AzureAddressPayload Address { get; set; }
+        [JsonPropertyName("address")]
+        public AzureAddressPayload? Address { get; set; }
 
-        [JsonProperty("position")]
-        public AzurePosition Position { get; set; }
+        [JsonPropertyName("position")]
+        public AzurePosition? Position { get; set; }
 
-        [JsonProperty("poi")]
-        public AzurePointOfInterest Poi { get; set; }
+        [JsonPropertyName("poi")]
+        public AzurePointOfInterest? Poi { get; set; }
     }
 
     private sealed class AzureAddressPayload
     {
-        [JsonProperty("freeformAddress")]
-        public string FreeformAddress { get; set; }
+        [JsonPropertyName("freeformAddress")]
+        public string? FreeformAddress { get; set; }
 
-        [JsonProperty("streetNumber")]
-        public string StreetNumber { get; set; }
+        [JsonPropertyName("streetNumber")]
+        public string? StreetNumber { get; set; }
 
-        [JsonProperty("streetName")]
-        public string StreetName { get; set; }
+        [JsonPropertyName("streetName")]
+        public string? StreetName { get; set; }
 
-        [JsonProperty("streetNameAndNumber")]
-        public string StreetNameAndNumber { get; set; }
+        [JsonPropertyName("streetNameAndNumber")]
+        public string? StreetNameAndNumber { get; set; }
 
-        [JsonProperty("municipality")]
-        public string Municipality { get; set; }
+        [JsonPropertyName("municipality")]
+        public string? Municipality { get; set; }
 
-        [JsonProperty("municipalitySubdivision")]
-        public string MunicipalitySubdivision { get; set; }
+        [JsonPropertyName("municipalitySubdivision")]
+        public string? MunicipalitySubdivision { get; set; }
 
-        [JsonProperty("neighbourhood")]
-        public string Neighbourhood { get; set; }
+        [JsonPropertyName("neighbourhood")]
+        public string? Neighbourhood { get; set; }
 
-        [JsonProperty("localName")]
-        public string LocalName { get; set; }
+        [JsonPropertyName("localName")]
+        public string? LocalName { get; set; }
 
-        [JsonProperty("countrySubdivision")]
-        public string CountrySubdivision { get; set; }
+        [JsonPropertyName("countrySubdivision")]
+        public string? CountrySubdivision { get; set; }
 
-        [JsonProperty("countrySubdivisionName")]
-        public string CountrySubdivisionName { get; set; }
+        [JsonPropertyName("countrySubdivisionName")]
+        public string? CountrySubdivisionName { get; set; }
 
-        [JsonProperty("countrySecondarySubdivision")]
-        public string CountrySecondarySubdivision { get; set; }
+        [JsonPropertyName("countrySecondarySubdivision")]
+        public string? CountrySecondarySubdivision { get; set; }
 
-        [JsonProperty("countryTertiarySubdivision")]
-        public string CountryTertiarySubdivision { get; set; }
+        [JsonPropertyName("countryTertiarySubdivision")]
+        public string? CountryTertiarySubdivision { get; set; }
 
-        [JsonProperty("postalCode")]
-        public string PostalCode { get; set; }
+        [JsonPropertyName("postalCode")]
+        public string? PostalCode { get; set; }
 
-        [JsonProperty("country")]
-        public string Country { get; set; }
+        [JsonPropertyName("country")]
+        public string? Country { get; set; }
     }
 
     private sealed class AzurePosition
     {
-        [JsonProperty("lat")]
+        [JsonPropertyName("lat")]
         public double Lat { get; set; }
 
-        [JsonProperty("lon")]
+        [JsonPropertyName("lon")]
         public double Lon { get; set; }
     }
 
     private sealed class AzurePointOfInterest
     {
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
     }
 }

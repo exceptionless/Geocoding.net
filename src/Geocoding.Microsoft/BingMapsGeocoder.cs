@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace Geocoding.Microsoft;
 
@@ -29,23 +29,23 @@ public class BingMapsGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Bing Maps requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the culture used for results.
     /// </summary>
-    public string Culture { get; set; }
+    public string? Culture { get; set; }
     /// <summary>
     /// Gets or sets the user location bias.
     /// </summary>
-    public Location UserLocation { get; set; }
+    public Location? UserLocation { get; set; }
     /// <summary>
     /// Gets or sets the user map view bias.
     /// </summary>
-    public Bounds UserMapView { get; set; }
+    public Bounds? UserMapView { get; set; }
     /// <summary>
     /// Gets or sets the user IP address sent to Bing Maps.
     /// </summary>
-    public IPAddress UserIP { get; set; }
+    public IPAddress? UserIP { get; set; }
     /// <summary>
     /// Gets or sets a value indicating whether neighborhoods should be included.
     /// </summary>
@@ -100,7 +100,7 @@ public class BingMapsGeocoder : IGeocoder
 
     private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
     {
-        if (!String.IsNullOrEmpty(Culture))
+        if (Culture is { Length: > 0 })
             yield return new KeyValuePair<string, string>("c", Culture);
 
         if (UserLocation is not null)
@@ -152,7 +152,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -167,7 +167,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -191,7 +191,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -237,11 +237,14 @@ public class BingMapsGeocoder : IGeocoder
 
         foreach (Json.Location location in response.ResourceSets[0].Resources)
         {
+            if (location.Point is null || location.Address is null)
+                continue;
+
             if (!Enum.TryParse(location.EntityType, out EntityType entityType))
                 entityType = EntityType.Unknown;
 
             list.Add(new BingAddress(
-                location.Address.FormattedAddress,
+                location.Address.FormattedAddress!,
                 new Location(location.Point.Coordinates[0], location.Point.Coordinates[1]),
                 location.Address.AddressLine,
                 location.Address.AdminDistrict,
@@ -280,15 +283,15 @@ public class BingMapsGeocoder : IGeocoder
             var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
-                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(Json.Response));
-                return jsonSerializer.ReadObject(stream) as Json.Response;
+                return await JsonSerializer.DeserializeAsync<Json.Response>(stream, Extensions.JsonOptions, cancellationToken).ConfigureAwait(false)
+                    ?? new Json.Response();
             }
         }
     }
 
-    private ConfidenceLevel EvaluateConfidence(string confidence)
+    private ConfidenceLevel EvaluateConfidence(string? confidence)
     {
-        switch (confidence.ToLower())
+        switch (confidence?.ToLower())
         {
             case "low":
                 return ConfidenceLevel.Low;

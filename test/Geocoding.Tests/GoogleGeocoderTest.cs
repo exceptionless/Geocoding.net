@@ -158,6 +158,20 @@ public class GoogleGeocoderTest : GeocoderTest
         Assert.DoesNotContain(addresses, x => HasShortName(x, "NJ"));
     }
 
+    [Fact]
+    public async Task Geocode_WithPostalCodeFilter_ReturnsResultInExpectedPostalCode()
+    {
+        // Arrange
+        _googleGeocoder.ComponentFilters = new List<GoogleComponentFilter>();
+        _googleGeocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "94043"));
+
+        // Act
+        var addresses = (await _googleGeocoder.GeocodeAsync("1600 Amphitheatre Parkway, Mountain View, CA", TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
+        Assert.Contains(addresses, x => HasShortName(x, "94043"));
+    }
+
     private static bool HasShortName(GoogleAddress address, string shortName)
     {
         return address.Components.Any(component => String.Equals(component.ShortName, shortName, StringComparison.Ordinal));

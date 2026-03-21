@@ -9,8 +9,10 @@ public static class AddressAssertionExtensions
         String adr = address.FormattedAddress.ToLowerInvariant();
         Assert.True(
             adr.Contains("the white house") ||
-            adr.Contains("1600 pennsylvania"),
-            $"Expected White House address but got: {address.FormattedAddress}"
+            adr.Contains("1600 pennsylvania ave nw") ||
+            adr.Contains("1600 pennsylvania avenue northwest") ||
+            adr.Contains("1600 pennsylvania avenue nw") ||
+            adr.Contains("1600 pennsylvania ave northwest")
         );
         AssertWhiteHouseArea(address);
     }
@@ -20,13 +22,15 @@ public static class AddressAssertionExtensions
         String adr = address.FormattedAddress.ToLowerInvariant();
         Assert.True(
             adr.Contains("washington") &&
-            (adr.Contains("dc") || adr.Contains("district of columbia")),
-            $"Expected Washington DC but got: {address.FormattedAddress}"
+            (adr.Contains("dc") || adr.Contains("district of columbia"))
         );
 
         //just hoping that each geocoder implementation gets it somewhere near the vicinity
-        Assert.InRange(address.Coordinates.Latitude, 38.85, 38.95);
-        Assert.InRange(address.Coordinates.Longitude, -77.10, -76.95);
+        double lat = Math.Round(address.Coordinates.Latitude, 2);
+        Assert.Equal(38.90, lat);
+
+        double lng = Math.Round(address.Coordinates.Longitude, 2);
+        Assert.Equal(-77.04, lng);
     }
 
     public static void AssertCanadianPrimeMinister(this Address address)

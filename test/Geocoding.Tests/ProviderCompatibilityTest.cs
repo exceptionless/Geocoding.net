@@ -11,12 +11,14 @@ public class ProviderCompatibilityTest
     [Fact]
     public void AzureMapsGeocoder_EmptyApiKey_ThrowsArgumentException()
     {
+        // Act & Assert
         Assert.Throws<ArgumentException>(() => new AzureMapsGeocoder(String.Empty));
     }
 
     [Fact]
     public void HereGeocoder_LegacyAppIdAppCode_ThrowsNotSupportedException()
     {
+        // Act & Assert
         var exception = Assert.Throws<NotSupportedException>(() => new HereGeocoder("legacy-app-id", "legacy-app-code"));
         Assert.Contains("API key", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
@@ -35,6 +37,7 @@ public class ProviderCompatibilityTest
     [Fact]
     public void BingMapsGeocoder_EmptyApiKey_ThrowsArgumentException()
     {
+        // Act & Assert
         Assert.Throws<ArgumentException>(() => new BingMapsGeocoder(String.Empty));
     }
 
@@ -52,7 +55,7 @@ public class ProviderCompatibilityTest
 
         // Act
         var method = typeof(AzureMapsGeocoder).GetMethod("BuildSearchUri", BindingFlags.Instance | BindingFlags.NonPublic);
-        var uri = (Uri)method.Invoke(geocoder, new object[] { "1600 Pennsylvania Ave NW, Washington, DC" });
+        var uri = (Uri)method!.Invoke(geocoder, new object[] { "1600 Pennsylvania Ave NW, Washington, DC" })!;
         var value = uri.ToString();
 
         // Assert
@@ -89,23 +92,23 @@ public class ProviderCompatibilityTest
     private static AzureMapsAddress[] InvokeAzureParseResponse(AzureMapsGeocoder geocoder, object response)
     {
         var method = typeof(AzureMapsGeocoder).GetMethod("ParseResponse", BindingFlags.Instance | BindingFlags.NonPublic);
-        return ((IEnumerable<AzureMapsAddress>)method.Invoke(geocoder, new[] { response })).ToArray();
+        return ((IEnumerable<AzureMapsAddress>)method!.Invoke(geocoder, new[] { response })!).ToArray();
     }
 
-    private static object CreateAzureSearchResponse(string resultType, string matchType, string entityType, string municipalitySubdivision)
+    private static object CreateAzureSearchResponse(string resultType, string matchType, string? entityType, string municipalitySubdivision)
     {
         var geocoderType = typeof(AzureMapsGeocoder);
-        var responseType = geocoderType.GetNestedType("AzureSearchResponse", BindingFlags.NonPublic);
-        var resultPayloadType = geocoderType.GetNestedType("AzureSearchResult", BindingFlags.NonPublic);
-        var addressType = geocoderType.GetNestedType("AzureAddressPayload", BindingFlags.NonPublic);
-        var positionType = geocoderType.GetNestedType("AzurePosition", BindingFlags.NonPublic);
-        var poiType = geocoderType.GetNestedType("AzurePointOfInterest", BindingFlags.NonPublic);
+        var responseType = geocoderType.GetNestedType("AzureSearchResponse", BindingFlags.NonPublic)!;
+        var resultPayloadType = geocoderType.GetNestedType("AzureSearchResult", BindingFlags.NonPublic)!;
+        var addressType = geocoderType.GetNestedType("AzureAddressPayload", BindingFlags.NonPublic)!;
+        var positionType = geocoderType.GetNestedType("AzurePosition", BindingFlags.NonPublic)!;
+        var poiType = geocoderType.GetNestedType("AzurePointOfInterest", BindingFlags.NonPublic)!;
 
-        var response = Activator.CreateInstance(responseType, true);
-        var result = Activator.CreateInstance(resultPayloadType, true);
-        var address = Activator.CreateInstance(addressType, true);
-        var position = Activator.CreateInstance(positionType, true);
-        var poi = Activator.CreateInstance(poiType, true);
+        var response = Activator.CreateInstance(responseType, true)!;
+        var result = Activator.CreateInstance(resultPayloadType, true)!;
+        var address = Activator.CreateInstance(addressType, true)!;
+        var position = Activator.CreateInstance(positionType, true)!;
+        var poi = Activator.CreateInstance(poiType, true)!;
 
         SetProperty(result, "Type", resultType);
         SetProperty(result, "MatchType", matchType);
@@ -136,9 +139,9 @@ public class ProviderCompatibilityTest
         return response;
     }
 
-    private static void SetProperty(object instance, string propertyName, object value)
+    private static void SetProperty(object instance, string propertyName, object? value)
     {
-        instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        instance.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
             .SetValue(instance, value);
     }
 }

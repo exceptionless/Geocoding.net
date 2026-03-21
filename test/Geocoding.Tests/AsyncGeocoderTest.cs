@@ -21,14 +21,20 @@ public abstract class AsyncGeocoderTest
     [Fact]
     public async Task Geocode_ValidAddress_ReturnsExpectedResult()
     {
+        // Act
         var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave washington dc", TestContext.Current.CancellationToken);
+
+        // Assert
         addresses.First().AssertWhiteHouse();
     }
 
     [Fact]
     public async Task Geocode_NormalizedAddress_ReturnsExpectedResult()
     {
-        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave", "washington", "dc", null, null, TestContext.Current.CancellationToken);
+        // Act
+        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave", "washington", "dc", null!, null!, TestContext.Current.CancellationToken);
+
+        // Assert
         addresses.First().AssertWhiteHouse();
     }
 
@@ -37,9 +43,13 @@ public abstract class AsyncGeocoderTest
     [InlineData("cs-CZ")]
     public async Task Geocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
+        // Arrange
         CultureInfo.CurrentCulture = new CultureInfo(cultureName);
 
+        // Act
         var addresses = await _asyncGeocoder.GeocodeAsync("24 sussex drive ottawa, ontario", TestContext.Current.CancellationToken);
+
+        // Assert
         addresses.First().AssertCanadianPrimeMinister();
     }
 
@@ -48,37 +58,53 @@ public abstract class AsyncGeocoderTest
     [InlineData("cs-CZ")]
     public async Task ReverseGeocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
+        // Arrange
         CultureInfo.CurrentCulture = new CultureInfo(cultureName);
 
+        // Act
         var addresses = await _asyncGeocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken);
+
+        // Assert
         addresses.First().AssertWhiteHouseArea();
     }
 
     [Fact]
     public async Task Geocode_InvalidAddress_ReturnsEmpty()
     {
+        // Act
         var addresses = await _asyncGeocoder.GeocodeAsync("sdlkf;jasl;kjfldksjfasldf", TestContext.Current.CancellationToken);
+
+        // Assert
         Assert.Empty(addresses);
     }
 
     [Fact]
     public async Task Geocode_SpecialCharacters_ReturnsResults()
     {
+        // Act
         var addresses = await _asyncGeocoder.GeocodeAsync("Fried St & 2nd St, Gretna, LA 70053", TestContext.Current.CancellationToken);
+
+        // Assert
         Assert.NotEmpty(addresses);
     }
 
     [Fact]
     public async Task Geocode_UnicodeCharacters_ReturnsResults()
     {
+        // Act
         var addresses = await _asyncGeocoder.GeocodeAsync("Étretat, France", TestContext.Current.CancellationToken);
+
+        // Assert
         Assert.NotEmpty(addresses);
     }
 
     [Fact]
     public async Task ReverseGeocode_WhiteHouseCoordinates_ReturnsExpectedResult()
     {
+        // Act
         var addresses = await _asyncGeocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken);
+
+        // Assert
         addresses.First().AssertWhiteHouse();
     }
 }

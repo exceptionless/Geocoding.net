@@ -18,7 +18,10 @@ public class DistanceTest
     [Fact]
     public void Constructor_LongDecimalValue_RoundsToEightPlaces()
     {
+        // Act
         Distance distance = new Distance(0.123456789101112131415, DistanceUnits.Miles);
+
+        // Assert
         Assert.Equal(0.12345679, distance.Value);
     }
 

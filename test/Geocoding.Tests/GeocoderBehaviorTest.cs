@@ -5,7 +5,7 @@ namespace Geocoding.Tests;
 
 public class GeocoderBehaviorTest : GeocoderTest
 {
-    private FakeGeocoder _fakeGeocoder;
+    private FakeGeocoder _fakeGeocoder = null!;
 
     public GeocoderBehaviorTest()
         : base(new SettingsFixture()) { }
@@ -34,7 +34,7 @@ public class GeocoderBehaviorTest : GeocoderTest
 
     private sealed class FakeGeocoder : IGeocoder
     {
-        public String LastCultureName { get; private set; }
+        public String LastCultureName { get; private set; } = null!;
 
         public Task<IEnumerable<Address>> GeocodeAsync(string address, CancellationToken cancellationToken = default)
         {

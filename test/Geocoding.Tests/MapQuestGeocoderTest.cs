@@ -6,7 +6,7 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class MapQuestGeocoderTest : GeocoderTest
 {
-    private MapQuestGeocoder _mapQuestGeocoder;
+    private MapQuestGeocoder _mapQuestGeocoder = null!;
 
     public MapQuestGeocoderTest(SettingsFixture settings)
         : base(settings) { }
@@ -21,11 +21,14 @@ public class MapQuestGeocoderTest : GeocoderTest
         return _mapQuestGeocoder;
     }
 
+    // Regression test: Addresses with Quality=NEIGHBORHOOD are not returned
     [Fact]
     public virtual async Task Geocode_NeighborhoodAddress_ReturnsResults()
     {
-        // Regression test: Addresses with Quality=NEIGHBORHOOD are not returned
+        // Act
         var addresses = (await _mapQuestGeocoder.GeocodeAsync("North Sydney, New South Wales, Australia", TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.NotEmpty(addresses);
     }
 

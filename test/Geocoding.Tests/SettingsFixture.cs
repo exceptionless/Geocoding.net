@@ -12,6 +12,7 @@ public class SettingsFixture
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("settings.json")
             .AddJsonFile("settings-override.json", optional: true)
+            .AddEnvironmentVariables("GEOCODING_")
             .Build();
     }
 
@@ -52,14 +53,14 @@ public class SettingsFixture
 
     private String GetValue(string key)
     {
-        String value = _configuration.GetValue<String>(key);
+        String? value = _configuration.GetValue<String>(key);
         return String.IsNullOrWhiteSpace(value) ? String.Empty : value;
     }
 
     public static void SkipIfMissing(String value, String settingName)
     {
         if (String.IsNullOrWhiteSpace(value))
-            Assert.Skip($"Integration test requires '{settingName}' in test/Geocoding.Tests/settings-override.json.");
+            Assert.Skip($"Integration test requires '{settingName}' — set via test/Geocoding.Tests/settings-override.json or GEOCODING_{{key}} environment variable.");
     }
 }
 

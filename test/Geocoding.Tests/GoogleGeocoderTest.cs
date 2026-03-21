@@ -6,7 +6,7 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class GoogleGeocoderTest : GeocoderTest
 {
-    private GoogleGeocoder _googleGeocoder;
+    private GoogleGeocoder _googleGeocoder = null!;
 
     public GoogleGeocoderTest(SettingsFixture settings)
         : base(settings) { }
@@ -29,7 +29,10 @@ public class GoogleGeocoderTest : GeocoderTest
     [InlineData("muswellbrook 2 New South Wales Australia", GoogleAddressType.Unknown)]
     public async Task Geocode_AddressInput_ReturnsCorrectAddressType(string address, GoogleAddressType type)
     {
+        // Act
         var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Equal(type, addresses[0].Type);
     }
 
@@ -42,7 +45,10 @@ public class GoogleGeocoderTest : GeocoderTest
     [InlineData("muswellbrook 2 New South Wales Australia", GoogleLocationType.Approximate)]
     public async Task Geocode_AddressInput_ReturnsCorrectLocationType(string address, GoogleLocationType type)
     {
+        // Act
         var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Equal(type, addresses[0].LocationType);
     }
 
@@ -53,18 +59,28 @@ public class GoogleGeocoderTest : GeocoderTest
     [InlineData("Montreal", "de", "Montreal, Québec, Kanada")]
     public async Task Geocode_WithLanguage_ReturnsLocalizedAddress(string address, string language, string result)
     {
+        // Arrange
         _googleGeocoder.Language = language;
+
+        // Act
         var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Equal(result, addresses[0].FormattedAddress);
     }
 
     [Theory]
     [InlineData("Toledo", "us", "Toledo, OH, USA", null)]
     [InlineData("Toledo", "es", "Toledo, Spain", "Toledo, Toledo, Spain")]
-    public async Task Geocode_WithRegionBias_ReturnsBiasedResult(string address, string regionBias, string result1, string result2)
+    public async Task Geocode_WithRegionBias_ReturnsBiasedResult(string address, string regionBias, string result1, string? result2)
     {
+        // Arrange
         _googleGeocoder.RegionBias = regionBias;
+
+        // Act
         var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         String[] expectedAddresses = String.IsNullOrEmpty(result2) ? new[] { result1 } : new[] { result1, result2 };
         Assert.Contains(addresses[0].FormattedAddress, expectedAddresses);
     }
@@ -74,8 +90,13 @@ public class GoogleGeocoderTest : GeocoderTest
     [InlineData("Winnetka", 34.172684, -118.604794, 34.236144, -118.500938, "Winnetka, Los Angeles, CA, USA")]
     public async Task Geocode_WithBoundsBias_ReturnsBiasedResult(string address, double biasLatitude1, double biasLongitude1, double biasLatitude2, double biasLongitude2, string result)
     {
+        // Arrange
         _googleGeocoder.BoundsBias = new Bounds(biasLatitude1, biasLongitude1, biasLatitude2, biasLongitude2);
+
+        // Act
         var addresses = (await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Equal(result, addresses[0].FormattedAddress);
     }
 

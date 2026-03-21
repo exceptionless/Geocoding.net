@@ -22,9 +22,13 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
     [InlineData("United States", EntityType.CountryRegion)]
     public async Task Geocode_AddressInput_ReturnsCorrectEntityType(string address, EntityType type)
     {
+        // Arrange
         var geocoder = (AzureMapsGeocoder)CreateAsyncGeocoder();
+
+        // Act
         var results = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
+        // Assert
         Assert.Equal(type, results[0].Type);
     }
 }

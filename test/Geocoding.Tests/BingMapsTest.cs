@@ -6,7 +6,7 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class BingMapsTest : GeocoderTest
 {
-    private BingMapsGeocoder _bingMapsGeocoder;
+    private BingMapsGeocoder _bingMapsGeocoder = null!;
 
     public BingMapsTest(SettingsFixture settings)
         : base(settings) { }
@@ -24,8 +24,13 @@ public class BingMapsTest : GeocoderTest
     [InlineData("Montreal", "fr", "Montréal, QC")]
     public async Task Geocode_WithCulture_ReturnsLocalizedAddress(string address, string culture, string result)
     {
+        // Arrange
         _bingMapsGeocoder.Culture = culture;
+
+        // Act
         var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Equal(result, addresses[0].FormattedAddress);
     }
 
@@ -35,8 +40,13 @@ public class BingMapsTest : GeocoderTest
     [InlineData("Montreal", 46.428329467773438, -90.241783142089844, "United States")]
     public async Task Geocode_WithUserLocation_ReturnsBiasedResult(string address, double userLatitude, double userLongitude, string country)
     {
+        // Arrange
         _bingMapsGeocoder.UserLocation = new Location(userLatitude, userLongitude);
+
+        // Act
         var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Contains(addresses, x => String.Equals(x.CountryRegion, country, StringComparison.Ordinal));
     }
 
@@ -46,9 +56,14 @@ public class BingMapsTest : GeocoderTest
     [InlineData("Montreal", 46, -90, 47, -91, "United States")]
     public async Task Geocode_WithUserMapView_ReturnsBiasedResult(string address, double userLatitude1, double userLongitude1, double userLatitude2, double userLongitude2, string country)
     {
+        // Arrange
         _bingMapsGeocoder.UserMapView = new Bounds(userLatitude1, userLongitude1, userLatitude2, userLongitude2);
         _bingMapsGeocoder.MaxResults = 20;
+
+        // Act
         var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.Contains(addresses, x => String.Equals(x.CountryRegion, country, StringComparison.Ordinal));
     }
 
@@ -56,8 +71,13 @@ public class BingMapsTest : GeocoderTest
     [InlineData("24 sussex drive ottawa, ontario")]
     public async Task Geocode_WithIncludeNeighborhood_ReturnsNeighborhood(string address)
     {
+        // Arrange
         _bingMapsGeocoder.IncludeNeighborhood = true;
+
+        // Act
         var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.NotNull(addresses[0].Neighborhood);
     }
 
@@ -65,7 +85,10 @@ public class BingMapsTest : GeocoderTest
     //https://github.com/chadly/Geocoding.net/issues/8
     public async Task ReverseGeocode_WhiteHouseCoordinates_ReturnsResults()
     {
+        // Act
         var addresses = (await _bingMapsGeocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
+
+        // Assert
         Assert.NotEmpty(addresses);
     }
 }

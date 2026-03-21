@@ -8,18 +8,20 @@ public class GoogleBusinessKeyTest
     [Fact]
     public void Constructor_NullClientId_ThrowsArgumentNullException()
     {
+        // Act & Assert
         Assert.Throws<ArgumentNullException>(delegate
         {
-            new BusinessKey(null, "signing-key");
+            new BusinessKey(null!, "signing-key");
         });
     }
 
     [Fact]
     public void Constructor_NullSigningKey_ThrowsArgumentNullException()
     {
+        // Act & Assert
         Assert.Throws<ArgumentNullException>(delegate
         {
-            new BusinessKey("client-id", null);
+            new BusinessKey("client-id", null!);
         });
     }
 
@@ -90,15 +92,19 @@ public class GoogleBusinessKeyTest
     [InlineData("CUSTOMER ")]
     public void Constructor_ChannelWithWhitespace_TrimsAndLowercases(string channel)
     {
+        // Act
         var key = new BusinessKey("client-id", "signature", channel);
+
+        // Assert
         Assert.Equal(channel.Trim().ToLower(), key.Channel);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("channel_1-2.")]
-    public void Constructor_ValidChannelCharacters_DoesNotThrow(string channel)
+    public void Constructor_ValidChannelCharacters_DoesNotThrow(string? channel)
     {
+        // Act & Assert
         new BusinessKey("client-id", "signature", channel);
     }
 
@@ -107,6 +113,7 @@ public class GoogleBusinessKeyTest
     [InlineData("channel&1")]
     public void Constructor_SpecialCharactersInChannel_ThrowsArgumentException(string channel)
     {
+        // Act & Assert
         Assert.Throws<ArgumentException>(delegate
         {
             new BusinessKey("client-id", "signature", channel);
@@ -128,16 +135,20 @@ public class GoogleBusinessKeyTest
     [Fact]
     public void ServiceUrl_WithApiKey_DoesNotContainChannel()
     {
+        // Arrange
         var geocoder = new GoogleGeocoder("apikey");
 
+        // Assert
         Assert.DoesNotContain("channel=", geocoder.ServiceUrl);
     }
 
     [Fact]
     public void ServiceUrl_Default_DoesNotIncludeSensor()
     {
+        // Arrange
         var geocoder = new GoogleGeocoder();
 
+        // Assert
         Assert.DoesNotContain("sensor=", geocoder.ServiceUrl);
     }
 

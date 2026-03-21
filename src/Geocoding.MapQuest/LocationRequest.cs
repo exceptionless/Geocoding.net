@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -25,12 +25,13 @@ public class LocationRequest
         Location = location;
     }
 
-    [JsonIgnore] private string _street;
+    [JsonIgnore] private string? _street;
     /// <summary>
     /// Full street address or intersection for geocoding
     /// </summary>
-    [JsonProperty("street", NullValueHandling = NullValueHandling.Ignore)]
-    public virtual string Street
+    [JsonPropertyName("street")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public virtual string? Street
     {
         get { return _street; }
         set
@@ -42,12 +43,13 @@ public class LocationRequest
         }
     }
 
-    [JsonIgnore] private Location _location;
+    [JsonIgnore] private Location? _location;
     /// <summary>
     /// Latitude and longitude for reverse geocoding
     /// </summary>
-    [JsonProperty("latLng", NullValueHandling = NullValueHandling.Ignore)]
-    public virtual Location Location
+    [JsonPropertyName("latLng")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public virtual Location? Location
     {
         get { return _location; }
         set

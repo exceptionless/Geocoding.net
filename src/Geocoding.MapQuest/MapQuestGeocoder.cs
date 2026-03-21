@@ -32,7 +32,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <summary>
     /// Gets or sets the proxy used for MapQuest requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MapQuestGeocoder"/> class.
@@ -147,7 +147,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                 if (o is null)
                     continue;
 
-                foreach (MapQuestLocation l in o.Locations)
+                foreach (MapQuestLocation l in o.Locations!)
                 {
                     if (!String.IsNullOrWhiteSpace(l.FormattedAddress) || o.ProvidedLocation is null)
                         continue;
@@ -159,7 +159,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                 }
             }
         }
-        return r;
+        return r!;
     }
 
     private async Task<HttpWebRequest> Send(BaseRequest f, CancellationToken cancellationToken)
@@ -176,14 +176,14 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             case "HEAD":
             {
                 var u = $"{f.RequestUri}json={WebUtility.UrlEncode(f.RequestBody)}&";
-                request = WebRequest.Create(u) as HttpWebRequest;
+                request = (HttpWebRequest)WebRequest.Create(u);
             }
             break;
             case "POST":
             case "PUT":
             default:
             {
-                request = WebRequest.Create(f.RequestUri) as HttpWebRequest;
+                request = (HttpWebRequest)WebRequest.Create(f.RequestUri);
                 hasBody = !String.IsNullOrWhiteSpace(f.RequestBody);
             }
             break;
@@ -218,19 +218,19 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         try
         {
             string json;
-            using (HttpWebResponse response = await request.GetResponseAsync().ConfigureAwait(false) as HttpWebResponse)
+            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if ((int)response.StatusCode >= 300) //error
                     throw new Exception((int)response.StatusCode + " " + response.StatusDescription);
 
-                using (var sr = new StreamReader(response.GetResponseStream()))
+                using (var sr = new StreamReader(response.GetResponseStream()!))
                     json = await sr.ReadToEndAsync().ConfigureAwait(false);
             }
             if (String.IsNullOrWhiteSpace(json))
                 throw new Exception("Remote system response with blank: " + requestInfo);
 
-            MapQuestResponse o = json.FromJSON<MapQuestResponse>();
+            MapQuestResponse? o = json.FromJSON<MapQuestResponse>();
             if (o is null)
                 throw new Exception("Unable to deserialize remote response: " + requestInfo + " => " + json);
 
@@ -238,13 +238,13 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         }
         catch (WebException wex) //convert to simple exception & close the response stream
         {
-            using (HttpWebResponse response = wex.Response as HttpWebResponse)
+            using (HttpWebResponse response = (HttpWebResponse)wex.Response!)
             {
                 var sb = new StringBuilder(requestInfo);
                 sb.Append(" | ");
                 sb.Append(response.StatusDescription);
                 sb.Append(" | ");
-                using (var sr = new StreamReader(response.GetResponseStream()))
+                using (var sr = new StreamReader(response.GetResponseStream()!))
                 {
                     sb.Append(await sr.ReadToEndAsync().ConfigureAwait(false));
                 }
@@ -277,9 +277,9 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         {
             return (from r in res.Results
                     where r is not null && !r.Locations.IsNullOrEmpty()
-                    let resp = HandleSingleResponse(r.Locations)
+                    let resp = HandleSingleResponse(r.Locations!)
                     where resp is not null
-                    select new ResultItem(r.ProvidedLocation, resp)).ToArray();
+                    select new ResultItem(r.ProvidedLocation!, resp)).ToArray();
         }
         else
             return new ResultItem[0];

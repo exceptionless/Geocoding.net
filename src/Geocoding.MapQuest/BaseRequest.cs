@@ -1,5 +1,5 @@
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -18,7 +18,7 @@ public abstract class BaseRequest
         Key = key;
     }
 
-    [JsonIgnore] private string _key;
+    [JsonIgnore] private string _key = null!;
     /// <summary>
     /// A required unique key to authorize use of the routing service.
     /// See https://developer.mapquest.com/documentation/api/geocoding/.
@@ -52,7 +52,7 @@ public abstract class BaseRequest
     /// <summary>
     /// Optional settings
     /// </summary>
-    [JsonProperty("options")]
+    [JsonPropertyName("options")]
     public virtual RequestOptions Options
     {
         get { return _op; }

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -27,7 +27,7 @@ public class BatchGeocodeRequest : BaseRequest
     /// Note input will be hashed for uniqueness.
     /// Order is not guaranteed.
     /// </summary>
-    [JsonProperty("locations")]
+    [JsonPropertyName("locations")]
     public ICollection<LocationRequest> Locations
     {
         get { return _locations; }

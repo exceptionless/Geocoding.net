@@ -256,9 +256,10 @@ public class GoogleGeocoder : IGeocoder
         XPathNavigator nav = xmlDoc.CreateNavigator();
 
         GoogleStatus status = EvaluateStatus((string)nav.Evaluate("string(/GeocodeResponse/status)"));
+        string providerMessage = (string)nav.Evaluate("string(/GeocodeResponse/error_message)");
 
         if (status != GoogleStatus.Ok && status != GoogleStatus.ZeroResults)
-            throw new GoogleGeocodingException(status);
+            throw new GoogleGeocodingException(status, String.IsNullOrWhiteSpace(providerMessage) ? null : providerMessage);
 
         if (status == GoogleStatus.Ok)
             return ParseAddresses(nav.Select("/GeocodeResponse/result")).ToArray();

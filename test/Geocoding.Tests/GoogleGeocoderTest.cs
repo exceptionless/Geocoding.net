@@ -15,6 +15,7 @@ public class GoogleGeocoderTest : GeocoderTest
     {
         String apiKey = _settings.GoogleApiKey;
         SettingsFixture.SkipIfMissing(apiKey, nameof(SettingsFixture.GoogleApiKey));
+        GoogleTestGuard.EnsureAvailable(apiKey);
         _googleGeocoder = new GoogleGeocoder(apiKey);
 
         return _googleGeocoder;

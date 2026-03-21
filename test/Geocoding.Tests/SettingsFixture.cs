@@ -18,27 +18,27 @@ public class SettingsFixture
 
     public String GoogleApiKey
     {
-        get { return GetValue("googleApiKey"); }
+        get { return GetValue("Providers:Google:ApiKey", "googleApiKey"); }
     }
 
     public String AzureMapsKey
     {
-        get { return GetValue("azureMapsKey"); }
+        get { return GetValue("Providers:Azure:ApiKey", "azureMapsKey"); }
     }
 
     public String BingMapsKey
     {
-        get { return GetValue("bingMapsKey"); }
+        get { return GetValue("Providers:Bing:ApiKey", "bingMapsKey"); }
     }
 
     public String HereApiKey
     {
-        get { return GetValue("hereApiKey"); }
+        get { return GetValue("Providers:Here:ApiKey", "hereApiKey"); }
     }
 
     public String MapQuestKey
     {
-        get { return GetValue("mapQuestKey"); }
+        get { return GetValue("Providers:MapQuest:ApiKey", "mapQuestKey"); }
     }
 
     public String YahooConsumerKey
@@ -51,16 +51,22 @@ public class SettingsFixture
         get { return GetValue("yahooConsumerSecret"); }
     }
 
-    private String GetValue(string key)
+    private String GetValue(params string[] keys)
     {
-        String? value = _configuration.GetValue<String>(key);
-        return String.IsNullOrWhiteSpace(value) ? String.Empty : value;
+        foreach (string key in keys)
+        {
+            String? value = _configuration[key];
+            if (!String.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return String.Empty;
     }
 
     public static void SkipIfMissing(String value, String settingName)
     {
         if (String.IsNullOrWhiteSpace(value))
-            Assert.Skip($"Integration test requires '{settingName}' — set via test/Geocoding.Tests/settings-override.json or GEOCODING_{{key}} environment variable.");
+            Assert.Skip($"Integration test requires '{settingName}' — set it in test/Geocoding.Tests/settings-override.json using the Providers section or via a GEOCODING_ environment variable.");
     }
 }
 

@@ -1,9 +1,21 @@
 ﻿{
-  "googleApiKey": "",
-  "azureMapsKey": "",
-  "bingMapsKey": "",
-  "hereApiKey": "",
-  "mapQuestKey": "",
+  "Providers": {
+    "Google": {
+      "ApiKey": ""
+    },
+    "Azure": {
+      "ApiKey": ""
+    },
+    "Bing": {
+      "ApiKey": ""
+    },
+    "Here": {
+      "ApiKey": ""
+    },
+    "MapQuest": {
+      "ApiKey": ""
+    }
+  },
   "yahooConsumerKey": "",
   "yahooConsumerSecret": ""
 }

@@ -2,7 +2,8 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Geocoding.Here;
 
@@ -22,15 +23,15 @@ public class HereGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for HERE requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the user location bias for requests.
     /// </summary>
-    public Location UserLocation { get; set; }
+    public Location? UserLocation { get; set; }
     /// <summary>
     /// Gets or sets the map view bias for requests.
     /// </summary>
-    public Bounds UserMapView { get; set; }
+    public Bounds? UserMapView { get; set; }
     /// <summary>
     /// Gets or sets the maximum number of results to request.
     /// </summary>
@@ -153,7 +154,7 @@ public class HereGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -168,7 +169,7 @@ public class HereGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -192,7 +193,7 @@ public class HereGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -245,7 +246,7 @@ public class HereGeocoder : IGeocoder
             var address = item.Address ?? new HereAddressPayload();
             var coordinates = item.Access?.FirstOrDefault() ?? item.Position;
             yield return new HereAddress(
-                address.Label ?? item.Title,
+                address.Label ?? item.Title ?? "",
                 new Location(coordinates.Lat, coordinates.Lng),
                 address.Street,
                 address.HouseNumber,
@@ -281,11 +282,11 @@ public class HereGeocoder : IGeocoder
             if (!response.IsSuccessStatusCode)
                 throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
 
-            return JsonConvert.DeserializeObject<HereResponse>(json) ?? new HereResponse();
+            return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
         }
     }
 
-    private static HereLocationType MapLocationType(string resultType)
+    private static HereLocationType MapLocationType(string? resultType)
     {
         switch (resultType?.Trim().ToLowerInvariant())
         {
@@ -319,67 +320,67 @@ public class HereGeocoder : IGeocoder
 
     private sealed class HereResponse
     {
-        [JsonProperty("items")]
+        [JsonPropertyName("items")]
         public HereItem[] Items { get; set; } = Array.Empty<HereItem>();
     }
 
     private sealed class HereItem
     {
-        [JsonProperty("title")]
-        public string Title { get; set; }
+        [JsonPropertyName("title")]
+        public string? Title { get; set; }
 
-        [JsonProperty("resultType")]
-        public string ResultType { get; set; }
+        [JsonPropertyName("resultType")]
+        public string? ResultType { get; set; }
 
-        [JsonProperty("address")]
-        public HereAddressPayload Address { get; set; }
+        [JsonPropertyName("address")]
+        public HereAddressPayload? Address { get; set; }
 
-        [JsonProperty("position")]
-        public HerePosition Position { get; set; }
+        [JsonPropertyName("position")]
+        public HerePosition? Position { get; set; }
 
-        [JsonProperty("access")]
-        public HerePosition[] Access { get; set; }
+        [JsonPropertyName("access")]
+        public HerePosition[]? Access { get; set; }
     }
 
     private sealed class HereAddressPayload
     {
-        [JsonProperty("label")]
-        public string Label { get; set; }
+        [JsonPropertyName("label")]
+        public string? Label { get; set; }
 
-        [JsonProperty("houseNumber")]
-        public string HouseNumber { get; set; }
+        [JsonPropertyName("houseNumber")]
+        public string? HouseNumber { get; set; }
 
-        [JsonProperty("street")]
-        public string Street { get; set; }
+        [JsonPropertyName("street")]
+        public string? Street { get; set; }
 
-        [JsonProperty("city")]
-        public string City { get; set; }
+        [JsonPropertyName("city")]
+        public string? City { get; set; }
 
-        [JsonProperty("county")]
-        public string County { get; set; }
+        [JsonPropertyName("county")]
+        public string? County { get; set; }
 
-        [JsonProperty("state")]
-        public string State { get; set; }
+        [JsonPropertyName("state")]
+        public string? State { get; set; }
 
-        [JsonProperty("stateCode")]
-        public string StateCode { get; set; }
+        [JsonPropertyName("stateCode")]
+        public string? StateCode { get; set; }
 
-        [JsonProperty("postalCode")]
-        public string PostalCode { get; set; }
+        [JsonPropertyName("postalCode")]
+        public string? PostalCode { get; set; }
 
-        [JsonProperty("countryCode")]
-        public string CountryCode { get; set; }
+        [JsonPropertyName("countryCode")]
+        public string? CountryCode { get; set; }
 
-        [JsonProperty("countryName")]
-        public string CountryName { get; set; }
+        [JsonPropertyName("countryName")]
+        public string? CountryName { get; set; }
     }
 
     private sealed class HerePosition
     {
-        [JsonProperty("lat")]
+        [JsonPropertyName("lat")]
         public double Lat { get; set; }
 
-        [JsonProperty("lng")]
+        [JsonPropertyName("lng")]
         public double Lng { get; set; }
     }
 }

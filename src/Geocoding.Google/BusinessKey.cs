@@ -26,11 +26,11 @@ public class BusinessKey
     /// https://developers.google.com/maps/documentation/directions/get-api-key
     /// https://developers.google.com/maps/premium/reports/usage-reports#channels
     /// </summary>
-    private string _channel;
+    private string? _channel;
     /// <summary>
     /// Gets or sets the usage reporting channel.
     /// </summary>
-    public string Channel
+    public string? Channel
     {
         get
         {
@@ -42,7 +42,7 @@ public class BusinessKey
             {
                 return;
             }
-            string formattedChannel = value.Trim().ToLower();
+            string formattedChannel = value!.Trim().ToLower();
             if (Regex.IsMatch(formattedChannel, @"^[a-z_0-9.-]+$"))
             {
                 _channel = formattedChannel;
@@ -70,7 +70,7 @@ public class BusinessKey
     /// <param name="clientId">The Google Maps client identifier.</param>
     /// <param name="signingKey">The private signing key.</param>
     /// <param name="channel">The optional usage channel.</param>
-    public BusinessKey(string clientId, string signingKey, string channel = null)
+    public BusinessKey(string clientId, string signingKey, string? channel = null)
     {
         ClientId = CheckParam(clientId, "clientId");
         SigningKey = CheckParam(signingKey, "signingKey");
@@ -113,7 +113,7 @@ public class BusinessKey
     }
 
     /// <inheritdoc />
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as BusinessKey);
     }
@@ -123,7 +123,7 @@ public class BusinessKey
     /// </summary>
     /// <param name="other">The other business key to compare.</param>
     /// <returns><c>true</c> if the keys are equal; otherwise, <c>false</c>.</returns>
-    public bool Equals(BusinessKey other)
+    public bool Equals(BusinessKey? other)
     {
         if (other is null) return false;
         return ClientId.Equals(other.ClientId) && SigningKey.Equals(other.SigningKey);

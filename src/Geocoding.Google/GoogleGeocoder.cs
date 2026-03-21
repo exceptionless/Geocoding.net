@@ -14,8 +14,8 @@ namespace Geocoding.Google;
 /// </remarks>
 public class GoogleGeocoder : IGeocoder
 {
-    private string _apiKey;
-    private BusinessKey _businessKey;
+    private string? _apiKey;
+    private BusinessKey? _businessKey;
     private const string KeyMessage = "Only one of BusinessKey or ApiKey should be set on the GoogleGeocoder.";
 
     /// <summary>
@@ -46,7 +46,7 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the Google Maps API key.
     /// </summary>
-    public string ApiKey
+    public string? ApiKey
     {
         get { return _apiKey; }
         set
@@ -63,7 +63,7 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the Google business key used to sign requests.
     /// </summary>
-    public BusinessKey BusinessKey
+    public BusinessKey? BusinessKey
     {
         get { return _businessKey; }
         set
@@ -80,23 +80,23 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Google requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the language used for results.
     /// </summary>
-    public string Language { get; set; }
+    public string? Language { get; set; }
     /// <summary>
     /// Gets or sets the regional bias used for requests.
     /// </summary>
-    public string RegionBias { get; set; }
+    public string? RegionBias { get; set; }
     /// <summary>
     /// Gets or sets the bounds bias used for requests.
     /// </summary>
-    public Bounds BoundsBias { get; set; }
+    public Bounds? BoundsBias { get; set; }
     /// <summary>
     /// Gets or sets the Google component filters used for requests.
     /// </summary>
-    public IList<GoogleComponentFilter> ComponentFilters { get; set; }
+    public IList<GoogleComponentFilter>? ComponentFilters { get; set; }
 
     /// <summary>
     /// Gets the base Google service URL including configured request options.
@@ -285,7 +285,7 @@ public class GoogleGeocoder : IGeocoder
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             GoogleAddressType type = EvaluateType((string)nav.Evaluate("string(type)"));
             string placeId = (string)nav.Evaluate("string(place_id)");
@@ -309,7 +309,7 @@ public class GoogleGeocoder : IGeocoder
 
             GoogleLocationType locationType = EvaluateLocationType((string)nav.Evaluate("string(geometry/location_type)"));
 
-            Bounds bounds = null;
+            Bounds? bounds = null;
             if (nav.SelectSingleNode("geometry/bounds") is not null)
             {
                 double neBoundsLatitude = (double)nav.Evaluate("number(geometry/bounds/northeast/lat)");
@@ -334,7 +334,7 @@ public class GoogleGeocoder : IGeocoder
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             string longName = (string)nav.Evaluate("string(long_name)");
             string shortName = (string)nav.Evaluate("string(short_name)");
@@ -348,7 +348,7 @@ public class GoogleGeocoder : IGeocoder
     private IEnumerable<GoogleAddressType> ParseComponentTypes(XPathNodeIterator nodes)
     {
         while (nodes.MoveNext())
-            yield return EvaluateType(nodes.Current.InnerXml);
+            yield return EvaluateType(nodes.Current!.InnerXml);
     }
 
     /// <remarks>

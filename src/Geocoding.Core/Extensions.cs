@@ -1,6 +1,7 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Geocoding.Serialization;
 
 namespace Geocoding;
 
@@ -15,7 +16,7 @@ public static class Extensions
     /// <typeparam name="T">The collection item type.</typeparam>
     /// <param name="col">The collection to test.</param>
     /// <returns><c>true</c> when the collection is null or empty.</returns>
-    public static bool IsNullOrEmpty<T>(this ICollection<T> col)
+    public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this ICollection<T>? col)
     {
         return col is null || col.Count == 0;
     }
@@ -40,28 +41,25 @@ public static class Extensions
         }
     }
 
-    //Universal ISO DT Converter
-    private static readonly JsonConverter[] JSON_CONVERTERS = new JsonConverter[]
-    {
-        new IsoDateTimeConverter { DateTimeStyles = System.Globalization.DateTimeStyles.AssumeUniversal },
-        new TolerantStringEnumConverter(),
-    };
+    private static readonly JsonSerializerOptions _jsonOptions = CreateJsonOptions();
 
-    private sealed class TolerantStringEnumConverter : StringEnumConverter
+    private static JsonSerializerOptions CreateJsonOptions()
     {
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        var options = new JsonSerializerOptions
         {
-            try
-            {
-                return base.ReadJson(reader, objectType, existingValue, serializer);
-            }
-            catch (JsonSerializationException)
-            {
-                var enumType = Nullable.GetUnderlyingType(objectType) ?? objectType;
-                return Enum.ToObject(enumType, 0);
-            }
-        }
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            Converters = { new TolerantStringEnumConverterFactory() },
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+        options.MakeReadOnly(populateMissingResolver: true);
+        return options;
     }
+
+    /// <summary>
+    /// Shared serialization options used across geocoding providers.
+    /// </summary>
+    public static JsonSerializerOptions JsonOptions => _jsonOptions;
 
     /// <summary>
     /// Serializes an object to JSON.
@@ -70,10 +68,10 @@ public static class Extensions
     /// <returns>The JSON payload, or an empty string when the input is null.</returns>
     public static string ToJSON(this object o)
     {
-        string result = null;
-        if (o is not null)
-            result = JsonConvert.SerializeObject(o, Formatting.Indented, JSON_CONVERTERS);
-        return result ?? String.Empty;
+        if (o is null)
+            return String.Empty;
+
+        return JsonSerializer.Serialize(o, o.GetType(), _jsonOptions);
     }
 
     /// <summary>
@@ -82,11 +80,11 @@ public static class Extensions
     /// <typeparam name="T">The destination type.</typeparam>
     /// <param name="json">The JSON payload.</param>
     /// <returns>A deserialized instance, or default value for blank input.</returns>
-    public static T FromJSON<T>(this string json)
+    public static T? FromJSON<T>(this string json)
     {
-        T o = default(T);
-        if (!String.IsNullOrWhiteSpace(json))
-            o = JsonConvert.DeserializeObject<T>(json, JSON_CONVERTERS);
-        return o;
+        if (String.IsNullOrWhiteSpace(json))
+            return default;
+
+        return JsonSerializer.Deserialize<T>(json, _jsonOptions);
     }
 }

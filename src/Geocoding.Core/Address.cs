@@ -7,8 +7,13 @@
 public abstract class Address
 {
     private string _formattedAddress = String.Empty;
-    private Location _coordinates;
+    private Location _coordinates = null!;
     private string _provider = String.Empty;
+
+    /// <summary>
+    /// Initializes a new address instance for deserialization.
+    /// </summary>
+    protected Address() { }
 
     /// <summary>
     /// Initializes a new address instance.

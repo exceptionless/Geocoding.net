@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding;
 
@@ -13,7 +13,7 @@ public class Location
     /// <summary>
     /// Gets or sets the latitude in decimal degrees.
     /// </summary>
-    [JsonProperty("lat")]
+    [JsonPropertyName("lat")]
     public virtual double Latitude
     {
         get { return _latitude; }
@@ -32,7 +32,7 @@ public class Location
     /// <summary>
     /// Gets or sets the longitude in decimal degrees.
     /// </summary>
-    [JsonProperty("lng")]
+    [JsonPropertyName("lng")]
     public virtual double Longitude
     {
         get { return _longitude; }
@@ -115,7 +115,7 @@ public class Location
     /// </summary>
     /// <param name="obj">The object to compare.</param>
     /// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as Location);
     }
@@ -125,7 +125,7 @@ public class Location
     /// </summary>
     /// <param name="coor">The location to compare.</param>
     /// <returns><c>true</c> when equal; otherwise <c>false</c>.</returns>
-    public bool Equals(Location coor)
+    public bool Equals(Location? coor)
     {
         if (coor is null)
             return false;

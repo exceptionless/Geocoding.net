@@ -5,7 +5,7 @@
 /// </summary>
 public class ResultItem
 {
-    private Address _input;
+    private Address _input = null!;
     /// <summary>
     /// Original input for this response
     /// </summary>
@@ -21,7 +21,7 @@ public class ResultItem
         }
     }
 
-    private IEnumerable<Address> _output;
+    private IEnumerable<Address> _output = null!;
     /// <summary>
     /// Output for the given input
     /// </summary>

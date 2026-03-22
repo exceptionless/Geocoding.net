@@ -139,7 +139,10 @@ public class Location
     /// <returns>A hash code for this location.</returns>
     public override int GetHashCode()
     {
-        return Latitude.GetHashCode() ^ Latitude.GetHashCode();
+        unchecked
+        {
+            return (Latitude.GetHashCode() * 397) ^ Longitude.GetHashCode();
+        }
     }
 
     /// <summary>

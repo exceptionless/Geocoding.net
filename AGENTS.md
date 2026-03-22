@@ -68,6 +68,7 @@ samples/
 - Use modern C# features where the target frameworks support them
 - Follow SOLID, DRY principles; remove unused code and parameters
 - Clear, descriptive naming; prefer explicit over clever
+- For existing public value-like types, prefer additive equality fixes over record conversions unless an API shape change is explicitly intended
 - Handle cancellation tokens properly: pass through call chains
 - Always dispose resources: use `using` statements
 

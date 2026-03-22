@@ -32,6 +32,17 @@ public class LocationTest
     }
 
     [Fact]
+    public void GetHashCode_IncludesLongitudeHash()
+    {
+        // Arrange
+        Location loc = new Location(85.6789, 92.4517);
+        int expectedHashCode = unchecked((loc.Latitude.GetHashCode() * 397) ^ loc.Longitude.GetHashCode());
+
+        // Assert
+        Assert.Equal(expectedHashCode, loc.GetHashCode());
+    }
+
+    [Fact]
     public void DistanceBetween_TwoLocations_ReturnsSameDistanceBothDirections()
     {
         // Arrange

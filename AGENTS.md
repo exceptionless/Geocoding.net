@@ -145,7 +145,7 @@ dotnet test --project test/Geocoding.Tests/Geocoding.Tests.csproj --filter-class
 dotnet test --project test/Geocoding.Tests/Geocoding.Tests.csproj --diagnostic --diagnostic-verbosity Trace
 ```
 
-Note: Most geocoder tests require valid API keys configured in `test/Geocoding.Tests/settings.json`.
+Note: Most geocoder tests require valid API keys configured in `test/Geocoding.Tests/settings-override.json` or via `GEOCODING_` environment variables; keep the tracked `test/Geocoding.Tests/settings.json` placeholders empty.
 
 ## Continuous Improvement
 
@@ -155,6 +155,7 @@ If you encounter recurring questions or patterns during planning, document them:
 
 - Project-specific knowledge → `AGENTS.md` or relevant skill file
 - Reusable domain patterns → Create/update appropriate skill in `.agents/skills/`
+- Agent and skill customizations must stay repo-specific: only reference skills that exist in `.agents/skills/` and commands or paths that exist in this workspace
 
 ## Skills
 
@@ -162,6 +163,7 @@ Load from `.agents/skills/<name>/SKILL.md` when working in that domain:
 
 | Domain        | Skills                                                                              |
 | ------------- | ----------------------------------------------------------------------------------- |
+| Project       | geocoding-library                                                                   |
 | .NET          | analyzing-dotnet-performance, migrate-nullable-references, msbuild-modernization    |
 | Diagnostics   | dotnet-trace-collect, dump-collect, eval-performance                                |
 | Testing       | run-tests                                                                           |
@@ -181,7 +183,7 @@ Available in `.claude/agents/`. Use `@agent-name` to invoke:
 
 ```text
 engineer → TDD → implement → verify (loop until clean)
-         → @reviewer (loop until 0 blockers) → commit → push → PR
+         → @reviewer (loop until 0 findings) → commit → push → PR
          → @copilot review → CI checks → resolve feedback → merge
 
 triage → impact assessment → deep research → RCA → reproduce
@@ -193,6 +195,6 @@ pr-reviewer → security pre-screen (before build!) → dependency audit
 
 ## Constraints
 
-- Never commit secrets — use environment variables or `settings.json` (gitignored)
+- Never commit secrets — use environment variables or `test/Geocoding.Tests/settings-override.json` for local test overrides
 - Prefer additive documentation updates — don't replace strategic docs wholesale, extend them
 - Maintain backward compatibility — existing consumers must not break

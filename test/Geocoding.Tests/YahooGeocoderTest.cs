@@ -1,4 +1,5 @@
-﻿using Geocoding.Yahoo;
+﻿#pragma warning disable CS0618
+using Geocoding.Yahoo;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -17,3 +18,4 @@ public class YahooGeocoderTest : GeocoderTest
         return default!;
     }
 }
+#pragma warning restore CS0618

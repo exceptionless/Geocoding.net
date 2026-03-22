@@ -22,7 +22,7 @@ public abstract class AsyncGeocoderTest
     public async Task Geocode_ValidAddress_ReturnsExpectedResult()
     {
         // Act
-        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave washington dc", TestContext.Current.CancellationToken);
+        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken);
 
         // Assert
         addresses.First().AssertWhiteHouse();
@@ -32,7 +32,7 @@ public abstract class AsyncGeocoderTest
     public async Task Geocode_NormalizedAddress_ReturnsExpectedResult()
     {
         // Act
-        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave", "washington", "dc", null!, null!, TestContext.Current.CancellationToken);
+        var addresses = await _asyncGeocoder.GeocodeAsync("1600 pennsylvania ave nw", "washington", "dc", null!, null!, TestContext.Current.CancellationToken);
 
         // Assert
         addresses.First().AssertWhiteHouse();

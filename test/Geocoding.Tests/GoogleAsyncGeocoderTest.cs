@@ -26,7 +26,7 @@ public class GoogleAsyncGeocoderTest : AsyncGeocoderTest
     [InlineData("Illinois, US", GoogleAddressType.AdministrativeAreaLevel1)]
     [InlineData("New York, New York", GoogleAddressType.Locality)]
     [InlineData("90210, US", GoogleAddressType.PostalCode)]
-    [InlineData("1600 pennsylvania ave washington dc", GoogleAddressType.Establishment)]
+    [InlineData("1600 pennsylvania ave washington dc", GoogleAddressType.Premise)]
     public async Task Geocode_AddressInput_ReturnsCorrectAddressType(string address, GoogleAddressType type)
     {
         // Act

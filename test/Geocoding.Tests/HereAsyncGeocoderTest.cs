@@ -15,6 +15,18 @@ public class HereAsyncGeocoderTest : AsyncGeocoderTest
         return new HereGeocoder(_settings.HereApiKey);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public Task Geocode_BlankAddress_ThrowsArgumentException(string address)
+    {
+        // Arrange
+        var geocoder = new HereGeocoder("here-api-key");
+
+        // Act & Assert
+        return Assert.ThrowsAsync<ArgumentException>(() => geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken));
+    }
+
     [Fact]
     public void Constructor_LegacyAppIdAppCode_ThrowsNotSupportedException()
     {

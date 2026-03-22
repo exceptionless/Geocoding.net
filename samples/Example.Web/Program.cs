@@ -117,7 +117,7 @@ static string[] GetConfiguredProviders(ProviderOptions options)
 
     configuredProviders.Add("google");
 
-    if (!String.IsNullOrWhiteSpace(GetHereApiKey(options)))
+    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
         configuredProviders.Add("here");
 
     if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
@@ -169,14 +169,14 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
                 return false;
             }
 
-            if (String.IsNullOrWhiteSpace(GetHereApiKey(options)))
+            if (String.IsNullOrWhiteSpace(options.Here.ApiKey))
             {
                 geocoder = default!;
                 error = "Configure Providers:Here:ApiKey before using the HERE provider.";
                 return false;
             }
 
-            geocoder = new HereGeocoder(GetHereApiKey(options));
+            geocoder = new HereGeocoder(options.Here.ApiKey);
             error = null;
             return true;
 
@@ -207,11 +207,6 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             error = $"Unknown provider '{provider}'. Use one of: azure, bing, google, here, mapquest.";
             return false;
     }
-}
-
-static string GetHereApiKey(ProviderOptions options)
-{
-    return options.Here.ApiKey;
 }
 
 static AddressResponse MapAddress(Address address) =>

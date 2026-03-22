@@ -1,4 +1,5 @@
 ﻿using Geocoding.Microsoft;
+using MicrosoftJson = Geocoding.Microsoft.Json;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -100,5 +101,61 @@ public class BingMapsTest : GeocoderTest
     {
         // Act & Assert
         Assert.Throws<ArgumentException>(() => new BingMapsGeocoder(String.Empty));
+    }
+
+    [Fact]
+    public void ParseResponse_EmptyResourceSets_ReturnsEmpty()
+    {
+        // Arrange
+        var geocoder = new TestableBingMapsGeocoder();
+        var response = new MicrosoftJson.Response { ResourceSets = Array.Empty<MicrosoftJson.ResourceSet>() };
+
+        // Act
+        var addresses = geocoder.Parse(response).ToArray();
+
+        // Assert
+        Assert.Empty(addresses);
+    }
+
+    [Fact]
+    public void ParseResponse_LocationWithShortCoordinates_SkipsEntry()
+    {
+        // Arrange
+        var geocoder = new TestableBingMapsGeocoder();
+        var response = new MicrosoftJson.Response
+        {
+            ResourceSets =
+            [
+                new MicrosoftJson.ResourceSet
+                {
+                    Resources =
+                    [
+                        new MicrosoftJson.Location
+                        {
+                            Point = new MicrosoftJson.Point { Coordinates = [38.8976777] },
+                            Address = new MicrosoftJson.Address { FormattedAddress = "White House" },
+                            EntityType = nameof(EntityType.Address),
+                            Confidence = "High"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Act
+        var addresses = geocoder.Parse(response).ToArray();
+
+        // Assert
+        Assert.Empty(addresses);
+    }
+
+    private sealed class TestableBingMapsGeocoder : BingMapsGeocoder
+    {
+        public TestableBingMapsGeocoder() : base("bing-key") { }
+
+        public IEnumerable<BingAddress> Parse(MicrosoftJson.Response response)
+        {
+            return ParseResponse(response);
+        }
     }
 }

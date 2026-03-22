@@ -148,6 +148,9 @@ public class HereGeocoder : IGeocoder
     /// <inheritdoc />
     public async Task<IEnumerable<HereAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
+        if (String.IsNullOrWhiteSpace(address))
+            throw new ArgumentException("address can not be null or empty.", nameof(address));
+
         try
         {
             var url = GetQueryUrl(address);
@@ -219,20 +222,6 @@ public class HereGeocoder : IGeocoder
         return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
     }
 
-    private bool AppendParameter(StringBuilder sb, string parameter, string format, bool first)
-    {
-        if (!String.IsNullOrEmpty(parameter))
-        {
-            if (!first)
-            {
-                sb.Append('&');
-            }
-            sb.Append(String.Format(format, UrlEncode(parameter)));
-            return false;
-        }
-        return first;
-    }
-
     private IEnumerable<HereAddress> ParseResponse(HereResponse response)
     {
         if (response.Items is null)
@@ -274,16 +263,14 @@ public class HereGeocoder : IGeocoder
 
     private async Task<HereResponse> GetResponse(Uri queryUrl, CancellationToken cancellationToken)
     {
-        using (var client = BuildClient())
-        using (var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false))
-        {
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        using var client = BuildClient();
+        using var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
-                throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+        if (!response.IsSuccessStatusCode)
+            throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
 
-            return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
-        }
+        return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
     }
 
     private static HereLocationType MapLocationType(string? resultType)

@@ -50,9 +50,8 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     {
         if (res is not null && !res.Results.IsNullOrEmpty())
         {
-            return HandleSingleResponse(from r in res.Results
-                                        where r is not null && !r.Locations.IsNullOrEmpty()
-                                        from l in r.Locations
+            return HandleSingleResponse(from r in res.Results.OfType<MapQuestResult>()
+                                        from l in r.Locations?.OfType<MapQuestLocation>() ?? Enumerable.Empty<MapQuestLocation>()
                                         select l);
         }
         else
@@ -65,8 +64,8 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             return new Address[0];
         else
         {
-            return from l in locs
-                   where l is not null && l.Quality < Quality.COUNTRY
+            return from l in locs.OfType<MapQuestLocation>()
+                   where l.Quality < Quality.COUNTRY
                    let q = (int)l.Quality
                    let c = String.IsNullOrWhiteSpace(l.Confidence) ? "ZZZZZZ" : l.Confidence
                    orderby q ascending, c ascending
@@ -275,10 +274,10 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     {
         if (res is not null && !res.Results.IsNullOrEmpty())
         {
-            return (from r in res.Results
-                    where r is not null && !r.Locations.IsNullOrEmpty()
-                    let resp = HandleSingleResponse(r.Locations!)
-                    where resp is not null
+            return (from r in res.Results.OfType<MapQuestResult>()
+                    let locations = r.Locations?.OfType<MapQuestLocation>().ToArray() ?? Array.Empty<MapQuestLocation>()
+                    where locations.Length > 0
+                    let resp = HandleSingleResponse(locations)
                     select new ResultItem(r.ProvidedLocation!, resp)).ToArray();
         }
         else

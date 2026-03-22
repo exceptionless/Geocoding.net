@@ -231,31 +231,45 @@ public class BingMapsGeocoder : IGeocoder
         return first;
     }
 
-    private IEnumerable<BingAddress> ParseResponse(Json.Response response)
+    /// <summary>
+    /// Parses a Bing Maps response into address results.
+    /// </summary>
+    /// <param name="response">The Bing Maps response payload.</param>
+    /// <returns>The parsed address results.</returns>
+    protected virtual IEnumerable<BingAddress> ParseResponse(Json.Response response)
     {
         var list = new List<BingAddress>();
 
-        foreach (Json.Location location in response.ResourceSets[0].Resources)
+        if (response.ResourceSets.IsNullOrEmpty())
+            return list;
+
+        foreach (var resourceSet in response.ResourceSets)
         {
-            if (location.Point is null || location.Address is null)
+            if (resourceSet is null || resourceSet.Locations.IsNullOrEmpty())
                 continue;
 
-            if (!Enum.TryParse(location.EntityType, out EntityType entityType))
-                entityType = EntityType.Unknown;
+            foreach (var location in resourceSet.Locations)
+            {
+                if (location.Point is null || location.Address is null || location.Point.Coordinates.Length < 2)
+                    continue;
 
-            list.Add(new BingAddress(
-                location.Address.FormattedAddress!,
-                new Location(location.Point.Coordinates[0], location.Point.Coordinates[1]),
-                location.Address.AddressLine,
-                location.Address.AdminDistrict,
-                location.Address.AdminDistrict2,
-                location.Address.CountryRegion,
-                location.Address.Locality,
-                location.Address.Neighborhood,
-                location.Address.PostalCode,
-                entityType,
-                EvaluateConfidence(location.Confidence)
-            ));
+                if (!Enum.TryParse(location.EntityType, out EntityType entityType))
+                    entityType = EntityType.Unknown;
+
+                list.Add(new BingAddress(
+                    location.Address.FormattedAddress!,
+                    new Location(location.Point.Coordinates[0], location.Point.Coordinates[1]),
+                    location.Address.AddressLine,
+                    location.Address.AdminDistrict,
+                    location.Address.AdminDistrict2,
+                    location.Address.CountryRegion,
+                    location.Address.Locality,
+                    location.Address.Neighborhood,
+                    location.Address.PostalCode,
+                    entityType,
+                    EvaluateConfidence(location.Confidence)
+                ));
+            }
         }
 
         return list;
@@ -280,7 +294,14 @@ public class BingMapsGeocoder : IGeocoder
     {
         using (var client = BuildClient())
         {
-            var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
+            using var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new Exception($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {body}");
+            }
+
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 return await JsonSerializer.DeserializeAsync<Json.Response>(stream, Extensions.JsonOptions, cancellationToken).ConfigureAwait(false)

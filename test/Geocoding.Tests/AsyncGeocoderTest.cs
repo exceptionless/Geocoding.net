@@ -10,7 +10,7 @@ public abstract class AsyncGeocoderTest
 
     protected AsyncGeocoderTest(SettingsFixture settings)
     {
-        CultureInfo.CurrentCulture = new CultureInfo("en-us");
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-us");
 
         _settings = settings;
     }
@@ -53,7 +53,7 @@ public abstract class AsyncGeocoderTest
     public async Task Geocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
         // Arrange
-        CultureInfo.CurrentCulture = new CultureInfo(cultureName);
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
 
         // Act
         var addresses = await GetGeocoder().GeocodeAsync("24 sussex drive ottawa, ontario", TestContext.Current.CancellationToken);
@@ -68,7 +68,7 @@ public abstract class AsyncGeocoderTest
     public async Task ReverseGeocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
         // Arrange
-        CultureInfo.CurrentCulture = new CultureInfo(cultureName);
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
 
         // Act
         var addresses = await GetGeocoder().ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken);

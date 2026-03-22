@@ -16,11 +16,6 @@ public class SettingsFixture
             .Build();
     }
 
-    public String GoogleApiKey
-    {
-        get { return GetValue("Providers:Google:ApiKey", "googleApiKey"); }
-    }
-
     public String AzureMapsKey
     {
         get { return GetValue("Providers:Azure:ApiKey", "azureMapsKey"); }
@@ -29,6 +24,11 @@ public class SettingsFixture
     public String BingMapsKey
     {
         get { return GetValue("Providers:Bing:ApiKey", "bingMapsKey"); }
+    }
+
+    public String GoogleApiKey
+    {
+        get { return GetValue("Providers:Google:ApiKey", "googleApiKey"); }
     }
 
     public String HereApiKey

@@ -99,6 +99,8 @@ public class GoogleGeocoderTest : GeocoderTest
 
         // Assert
         Assert.Contains(expectedSubstring, addresses[0].FormattedAddress);
+        Assert.Contains("USA", addresses[0].FormattedAddress, StringComparison.Ordinal);
+        Assert.Contains(addresses, x => HasShortName(x, "US"));
     }
 
     [Theory]

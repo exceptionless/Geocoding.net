@@ -6,16 +6,13 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class BingMapsTest : GeocoderTest
 {
-    private BingMapsGeocoder _bingMapsGeocoder = null!;
-
     public BingMapsTest(SettingsFixture settings)
         : base(settings) { }
 
     protected override IGeocoder CreateGeocoder()
     {
         SettingsFixture.SkipIfMissing(_settings.BingMapsKey, nameof(SettingsFixture.BingMapsKey));
-        _bingMapsGeocoder = new BingMapsGeocoder(_settings.BingMapsKey);
-        return _bingMapsGeocoder;
+        return new BingMapsGeocoder(_settings.BingMapsKey);
     }
 
     [Theory]
@@ -25,10 +22,11 @@ public class BingMapsTest : GeocoderTest
     public async Task Geocode_WithCulture_ReturnsLocalizedAddress(string address, string culture, string result)
     {
         // Arrange
-        _bingMapsGeocoder.Culture = culture;
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+        geocoder.Culture = culture;
 
         // Act
-        var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.Equal(result, addresses[0].FormattedAddress);
@@ -41,10 +39,11 @@ public class BingMapsTest : GeocoderTest
     public async Task Geocode_WithUserLocation_ReturnsBiasedResult(string address, double userLatitude, double userLongitude, string country)
     {
         // Arrange
-        _bingMapsGeocoder.UserLocation = new Location(userLatitude, userLongitude);
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+        geocoder.UserLocation = new Location(userLatitude, userLongitude);
 
         // Act
-        var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.Contains(addresses, x => String.Equals(x.CountryRegion, country, StringComparison.Ordinal));
@@ -57,11 +56,12 @@ public class BingMapsTest : GeocoderTest
     public async Task Geocode_WithUserMapView_ReturnsBiasedResult(string address, double userLatitude1, double userLongitude1, double userLatitude2, double userLongitude2, string country)
     {
         // Arrange
-        _bingMapsGeocoder.UserMapView = new Bounds(userLatitude1, userLongitude1, userLatitude2, userLongitude2);
-        _bingMapsGeocoder.MaxResults = 20;
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+        geocoder.UserMapView = new Bounds(userLatitude1, userLongitude1, userLatitude2, userLongitude2);
+        geocoder.MaxResults = 20;
 
         // Act
-        var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.Contains(addresses, x => String.Equals(x.CountryRegion, country, StringComparison.Ordinal));
@@ -72,10 +72,11 @@ public class BingMapsTest : GeocoderTest
     public async Task Geocode_WithIncludeNeighborhood_ReturnsNeighborhood(string address)
     {
         // Arrange
-        _bingMapsGeocoder.IncludeNeighborhood = true;
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+        geocoder.IncludeNeighborhood = true;
 
         // Act
-        var addresses = (await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.NotNull(addresses[0].Neighborhood);
@@ -85,10 +86,19 @@ public class BingMapsTest : GeocoderTest
     //https://github.com/chadly/Geocoding.net/issues/8
     public async Task ReverseGeocode_WhiteHouseCoordinates_ReturnsResults()
     {
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+
         // Act
-        var addresses = (await _bingMapsGeocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.NotEmpty(addresses);
+    }
+
+    [Fact]
+    public void Constructor_EmptyApiKey_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new BingMapsGeocoder(String.Empty));
     }
 }

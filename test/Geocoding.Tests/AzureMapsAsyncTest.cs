@@ -23,12 +23,19 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
     public async Task Geocode_AddressInput_ReturnsCorrectEntityType(string address, EntityType type)
     {
         // Arrange
-        var geocoder = (AzureMapsGeocoder)CreateAsyncGeocoder();
+        var geocoder = GetGeocoder<AzureMapsGeocoder>();
 
         // Act
         var results = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.Equal(type, results[0].Type);
+    }
+
+    [Fact]
+    public void Constructor_EmptyApiKey_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => new AzureMapsGeocoder(String.Empty));
     }
 }

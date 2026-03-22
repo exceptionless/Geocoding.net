@@ -6,16 +6,13 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class BingMapsAsyncTest : AsyncGeocoderTest
 {
-    private BingMapsGeocoder _bingMapsGeocoder = null!;
-
     public BingMapsAsyncTest(SettingsFixture settings)
         : base(settings) { }
 
     protected override IGeocoder CreateAsyncGeocoder()
     {
         SettingsFixture.SkipIfMissing(_settings.BingMapsKey, nameof(SettingsFixture.BingMapsKey));
-        _bingMapsGeocoder = new BingMapsGeocoder(_settings.BingMapsKey);
-        return _bingMapsGeocoder;
+        return new BingMapsGeocoder(_settings.BingMapsKey);
     }
 
     [Theory]
@@ -26,8 +23,10 @@ public class BingMapsAsyncTest : AsyncGeocoderTest
     [InlineData("1600 pennsylvania ave washington dc", EntityType.Address)]
     public async Task Geocode_AddressInput_ReturnsCorrectEntityType(string address, EntityType type)
     {
+        var geocoder = GetGeocoder<BingMapsGeocoder>();
+
         // Act
-        var result = await _bingMapsGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
+        var result = await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
         var addresses = result.ToArray();
 
         // Assert

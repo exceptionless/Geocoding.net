@@ -31,7 +31,7 @@ public abstract class GeocoderTest
         new object[] { "miss, MO" }
     };
 
-    private readonly IGeocoder _geocoder;
+    private IGeocoder? _geocoder;
     protected readonly SettingsFixture _settings;
 
     public GeocoderTest(SettingsFixture settings)
@@ -39,10 +39,19 @@ public abstract class GeocoderTest
         //Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("en-us");
 
         _settings = settings;
-        _geocoder = CreateGeocoder();
     }
 
     protected abstract IGeocoder CreateGeocoder();
+
+    private IGeocoder GetGeocoder()
+    {
+        return _geocoder ??= CreateGeocoder();
+    }
+
+    protected TGeocoder GetGeocoder<TGeocoder>() where TGeocoder : class, IGeocoder
+    {
+        return GetGeocoder() as TGeocoder ?? throw new InvalidOperationException($"Expected geocoder of type {typeof(TGeocoder).Name}.");
+    }
 
     protected static async Task RunInCultureAsync(string cultureName, Func<Task> action)
     {
@@ -68,7 +77,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_ValidAddress_ReturnsExpectedResult(string address)
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         addresses[0].AssertWhiteHouse();
@@ -78,7 +87,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_NormalizedAddress_ReturnsExpectedResult()
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync("1600 pennsylvania ave nw", "washington", "dc", null!, null!, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync("1600 pennsylvania ave nw", "washington", "dc", null!, null!, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         addresses[0].AssertWhiteHouse();
@@ -94,7 +103,7 @@ public abstract class GeocoderTest
             Assert.Equal(cultureName, CultureInfo.CurrentCulture.Name);
 
             // Act
-            var addresses = (await _geocoder.GeocodeAsync("24 sussex drive ottawa, ontario", TestContext.Current.CancellationToken)).ToArray();
+            var addresses = (await GetGeocoder().GeocodeAsync("24 sussex drive ottawa, ontario", TestContext.Current.CancellationToken)).ToArray();
 
             // Assert
             addresses[0].AssertCanadianPrimeMinister();
@@ -111,7 +120,7 @@ public abstract class GeocoderTest
             Assert.Equal(cultureName, CultureInfo.CurrentCulture.Name);
 
             // Act
-            var addresses = (await _geocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
+            var addresses = (await GetGeocoder().ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
 
             // Assert
             addresses[0].AssertWhiteHouseArea();
@@ -122,7 +131,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_InvalidAddress_ReturnsEmpty()
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync("sdlkf;jasl;kjfldksj,fasldf", TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync("sdlkf;jasl;kjfldksj,fasldf", TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.Empty(addresses);
@@ -133,7 +142,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_SpecialCharacters_ReturnsResults(string address)
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.NotEmpty(addresses);
@@ -144,7 +153,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_StreetIntersection_ReturnsResults(string address)
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.NotEmpty(addresses);
@@ -154,7 +163,7 @@ public abstract class GeocoderTest
     public virtual async Task ReverseGeocode_WhiteHouseCoordinates_ReturnsExpectedArea()
     {
         // Act
-        var addresses = (await _geocoder.ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().ReverseGeocodeAsync(38.8976777, -77.036517, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         addresses[0].AssertWhiteHouseArea();
@@ -166,7 +175,7 @@ public abstract class GeocoderTest
     public virtual async Task Geocode_InvalidZipCode_ReturnsResults(string address)
     {
         // Act
-        var addresses = (await _geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await GetGeocoder().GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
         Assert.NotEmpty(addresses);

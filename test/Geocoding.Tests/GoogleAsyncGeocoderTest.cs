@@ -6,8 +6,6 @@ namespace Geocoding.Tests;
 [Collection("Settings")]
 public class GoogleAsyncGeocoderTest : AsyncGeocoderTest
 {
-    private GoogleGeocoder _googleGeocoder = null!;
-
     public GoogleAsyncGeocoderTest(SettingsFixture settings)
         : base(settings) { }
 
@@ -16,9 +14,7 @@ public class GoogleAsyncGeocoderTest : AsyncGeocoderTest
         String apiKey = _settings.GoogleApiKey;
         SettingsFixture.SkipIfMissing(apiKey, nameof(SettingsFixture.GoogleApiKey));
         GoogleTestGuard.EnsureAvailable(apiKey);
-        _googleGeocoder = new GoogleGeocoder(apiKey);
-
-        return _googleGeocoder;
+        return new GoogleGeocoder(apiKey);
     }
 
     [Theory]
@@ -29,8 +25,10 @@ public class GoogleAsyncGeocoderTest : AsyncGeocoderTest
     [InlineData("1600 pennsylvania ave washington dc", GoogleAddressType.Premise)]
     public async Task Geocode_AddressInput_ReturnsCorrectAddressType(string address, GoogleAddressType type)
     {
+        var geocoder = GetGeocoder<GoogleGeocoder>();
+
         // Act
-        var result = await _googleGeocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
+        var result = await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken);
         var addresses = result.ToArray();
 
         // Assert

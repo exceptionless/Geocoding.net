@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Text;
 
 namespace Geocoding.MapQuest;
@@ -137,8 +138,9 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <returns>The deserialized MapQuest response.</returns>
     public async Task<MapQuestResponse> Execute(BaseRequest f, CancellationToken cancellationToken = default(CancellationToken))
     {
-        HttpWebRequest request = await Send(f, cancellationToken).ConfigureAwait(false);
-        MapQuestResponse r = await Parse(request, cancellationToken).ConfigureAwait(false);
+        using var client = BuildClient();
+        using var request = CreateRequest(f);
+        MapQuestResponse r = await Parse(client, request, cancellationToken).ConfigureAwait(false);
         if (r is not null && !r.Results.IsNullOrEmpty())
         {
             foreach (MapQuestResult o in r.Results)
@@ -161,13 +163,24 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         return r!;
     }
 
-    private async Task<HttpWebRequest> Send(BaseRequest f, CancellationToken cancellationToken)
+    /// <summary>
+    /// Builds the HTTP client used for MapQuest requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
+    {
+        if (Proxy is null)
+            return new HttpClient();
+
+        return new HttpClient(new HttpClientHandler { Proxy = Proxy });
+    }
+
+    private HttpRequestMessage CreateRequest(BaseRequest f)
     {
         if (f is null)
             throw new ArgumentNullException(nameof(f));
 
-        HttpWebRequest request;
-        bool hasBody = false;
+        Uri requestUri;
         switch (f.RequestVerb)
         {
             case "GET":
@@ -175,84 +188,68 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             case "HEAD":
             {
                 var u = $"{f.RequestUri}json={WebUtility.UrlEncode(f.RequestBody)}&";
-                request = WebRequest.CreateHttp(u);
+                requestUri = new Uri(u, UriKind.Absolute);
             }
             break;
             case "POST":
             case "PUT":
             default:
             {
-                request = WebRequest.CreateHttp(f.RequestUri);
-                hasBody = !String.IsNullOrWhiteSpace(f.RequestBody);
+                requestUri = f.RequestUri;
             }
             break;
         }
-        request.Method = f.RequestVerb;
-        request.ContentType = "application/" + f.InputFormat + "; charset=utf-8";
 
-        if (Proxy is not null)
-            request.Proxy = Proxy;
-
-        if (hasBody)
+        var request = new HttpRequestMessage(new HttpMethod(f.RequestVerb), requestUri);
+        if (!String.IsNullOrWhiteSpace(f.RequestBody)
+            && !String.Equals(f.RequestVerb, "GET", StringComparison.OrdinalIgnoreCase)
+            && !String.Equals(f.RequestVerb, "DELETE", StringComparison.OrdinalIgnoreCase)
+            && !String.Equals(f.RequestVerb, "HEAD", StringComparison.OrdinalIgnoreCase))
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(f.RequestBody);
-            //request.Headers.ContentLength = buffer.Length;
-            using (cancellationToken.Register(request.Abort, false))
-            using (Stream rs = await request.GetRequestStreamAsync().ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await rs.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                await rs.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
+            request.Content = new StringContent(f.RequestBody, Encoding.UTF8, "application/" + f.InputFormat);
         }
+
         return request;
     }
 
-    private async Task<MapQuestResponse> Parse(HttpWebRequest request, CancellationToken cancellationToken)
+    private async Task<MapQuestResponse> Parse(HttpClient client, HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (request is null)
-            throw new ArgumentNullException(nameof(request));
-
         string requestInfo = $"[{request.Method}] {request.RequestUri}";
         try
         {
-            string json;
-            using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if ((int)response.StatusCode >= 300) //error
-                    throw new Exception((int)response.StatusCode + " " + response.StatusDescription);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
-                using (var sr = new StreamReader(response.GetResponseStream()!))
-                    json = await sr.ReadToEndAsync().ConfigureAwait(false);
-            }
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"{(int)response.StatusCode} {requestInfo} | {response.ReasonPhrase}{BuildResponsePreview(json)}");
+
             if (String.IsNullOrWhiteSpace(json))
                 throw new Exception("Remote system response with blank: " + requestInfo);
 
             MapQuestResponse? o = json.FromJSON<MapQuestResponse>();
             if (o is null)
-                throw new Exception("Unable to deserialize remote response: " + requestInfo + " => " + json);
+                throw new Exception("Unable to deserialize remote response: " + requestInfo);
 
             return o;
         }
-        catch (WebException wex) //convert to simple exception & close the response stream
+        catch (HttpRequestException ex)
         {
-            if (wex.Response is not HttpWebResponse response)
-                throw new Exception($"{requestInfo} | {wex.Status} | {wex.Message}", wex);
-
-            using (response)
-            {
-                var sb = new StringBuilder(requestInfo);
-                sb.Append(" | ");
-                sb.Append(response.StatusDescription);
-                sb.Append(" | ");
-                using (var sr = new StreamReader(response.GetResponseStream()!))
-                {
-                    sb.Append(await sr.ReadToEndAsync().ConfigureAwait(false));
-                }
-                throw new Exception((int)response.StatusCode + " " + sb.ToString());
-            }
+            throw new Exception($"{requestInfo} | {ex.Message}", ex);
         }
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " | Response preview: " + preview;
     }
 
     /// <inheritdoc />

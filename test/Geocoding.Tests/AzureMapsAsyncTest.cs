@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using Geocoding.Microsoft;
@@ -98,6 +100,26 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
         Assert.Empty(results);
     }
 
+    [Fact]
+    public async Task Geocode_HttpFailure_UsesTrimmedPreviewMessage()
+    {
+        // Arrange
+        var body = new string('x', 300);
+        var geocoder = new TestableAzureMapsGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            ReasonPhrase = "Bad Request",
+            Content = new StringContent(body)
+        })));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<AzureMapsGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.Contains("Azure Maps request failed (400 Bad Request).", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Response preview:", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(body, exception.Message, StringComparison.Ordinal);
+    }
+
     private static AzureMapsAddress[] ParseResponse(AzureMapsGeocoder geocoder, string json)
     {
         var responseType = typeof(AzureMapsGeocoder).GetNestedType("AzureSearchResponse", BindingFlags.NonPublic)!;
@@ -106,5 +128,21 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
 
         var results = (IEnumerable)parseMethod.Invoke(geocoder, [response!])!;
         return results.Cast<AzureMapsAddress>().ToArray();
+    }
+
+    private sealed class TestableAzureMapsGeocoder : AzureMapsGeocoder
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public TestableAzureMapsGeocoder(HttpMessageHandler handler)
+            : base("azure-key")
+        {
+            _handler = handler;
+        }
+
+        protected override HttpClient BuildClient()
+        {
+            return new HttpClient(_handler, disposeHandler: false);
+        }
     }
 }

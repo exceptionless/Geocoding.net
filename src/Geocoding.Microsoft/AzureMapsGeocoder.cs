@@ -202,17 +202,24 @@ public class AzureMapsGeocoder : IGeocoder
         using (var request = new HttpRequestMessage(HttpMethod.Get, queryUrl))
         using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
         {
-            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
             if (!response.IsSuccessStatusCode)
-                throw new AzureMapsGeocodingException($"Azure Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}");
+            {
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new AzureMapsGeocodingException($"Azure Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(body)}");
+            }
+
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             var payload = JsonSerializer.Deserialize<AzureSearchResponse>(json, Extensions.JsonOptions);
             return payload ?? new AzureSearchResponse();
         }
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for Azure Maps requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
         if (Proxy is null)
             return new HttpClient();
@@ -225,9 +232,10 @@ public class AzureMapsGeocoder : IGeocoder
     {
         if (response.Results is not null && response.Results.Length > 0)
         {
-            foreach (var result in response.Results.Where(result => result?.Position is not null))
+            foreach (var azureResult in response.Results
+                .Where(result => result?.Position is not null)
+                .Select(result => result!))
             {
-                var azureResult = result!;
                 var address = azureResult.Address ?? new AzureAddressPayload();
                 var formattedAddress = FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), azureResult.Poi?.Name, azureResult.Type, FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision), address.Country);
                 if (String.IsNullOrWhiteSpace(formattedAddress))
@@ -312,6 +320,18 @@ public class AzureMapsGeocoder : IGeocoder
             .ToArray();
 
         return parts.Length == 0 ? String.Empty : String.Join(" ", parts);
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " Response preview: " + preview;
     }
 
     private static string FirstNonEmpty(params string?[] values)

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Xml.XPath;
 
 namespace Geocoding.Yahoo;
@@ -74,7 +75,7 @@ public class YahooGeocoder : IGeocoder
 
         string url = String.Format(ServiceUrl, WebUtility.UrlEncode(address));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
@@ -83,7 +84,7 @@ public class YahooGeocoder : IGeocoder
     {
         string url = String.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
@@ -101,19 +102,23 @@ public class YahooGeocoder : IGeocoder
     {
         string url = String.Format(ServiceUrlReverse, String.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
-    private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpWebRequest request, CancellationToken cancellationToken)
+    private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         try
         {
-            using (cancellationToken.Register(request.Abort, false))
-            using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
+            using var requestToDispose = request;
+            using var client = BuildClient();
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return ProcessWebResponse(response);
+                return ProcessResponse(stream);
             }
         }
         catch (YahooGeocodingException)
@@ -148,16 +153,22 @@ public class YahooGeocoder : IGeocoder
         return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
     }
 
-    private HttpWebRequest BuildWebRequest(string url)
+    /// <summary>
+    /// Builds the HTTP client used for Yahoo requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
+    {
+        if (Proxy is null)
+            return new HttpClient();
+
+        return new HttpClient(new HttpClientHandler { Proxy = Proxy });
+    }
+
+    private HttpRequestMessage BuildRequest(string url)
     {
         url = GenerateOAuthSignature(new Uri(url));
-        var req = WebRequest.CreateHttp(url);
-        req.Method = "GET";
-        if (Proxy is not null)
-        {
-            req.Proxy = Proxy;
-        }
-        return req;
+        return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
     private string GenerateOAuthSignature(Uri uri)
@@ -185,9 +196,9 @@ public class YahooGeocoder : IGeocoder
         return $"{url}?{param}&oauth_signature={signature}";
     }
 
-    private IEnumerable<YahooAddress> ProcessWebResponse(WebResponse response)
+    private IEnumerable<YahooAddress> ProcessResponse(Stream stream)
     {
-        XPathDocument xmlDoc = LoadXmlResponse(response);
+        XPathDocument xmlDoc = LoadXmlResponse(stream);
         XPathNavigator nav = xmlDoc.CreateNavigator();
 
         YahooError error = EvaluateError(Convert.ToInt32(nav.Evaluate("number(/ResultSet/Error)")));
@@ -198,13 +209,10 @@ public class YahooGeocoder : IGeocoder
         return ParseAddresses(nav.Select("/ResultSet/Result")).ToArray();
     }
 
-    private XPathDocument LoadXmlResponse(WebResponse response)
+    private XPathDocument LoadXmlResponse(Stream stream)
     {
-        using (Stream stream = response.GetResponseStream())
-        {
-            XPathDocument doc = new XPathDocument(stream);
-            return doc;
-        }
+        XPathDocument doc = new XPathDocument(stream);
+        return doc;
     }
 
     private IEnumerable<YahooAddress> ParseAddresses(XPathNodeIterator nodes)

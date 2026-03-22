@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -53,14 +54,10 @@ public class SettingsFixture
 
     private String GetValue(params string[] keys)
     {
-        foreach (string key in keys)
-        {
-            String? value = _configuration[key];
-            if (!String.IsNullOrWhiteSpace(value))
-                return value;
-        }
-
-        return String.Empty;
+        return keys
+            .Select(key => _configuration[key])
+            .FirstOrDefault(value => !String.IsNullOrWhiteSpace(value))
+            ?? String.Empty;
     }
 
     public static void SkipIfMissing(String value, String settingName)

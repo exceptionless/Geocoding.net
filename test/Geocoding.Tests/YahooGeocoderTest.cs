@@ -1,4 +1,7 @@
 ﻿#pragma warning disable CS0618
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using Geocoding.Yahoo;
 using Xunit;
 
@@ -77,6 +80,67 @@ public class YahooGeocoderTest : GeocoderTest
     public override Task Geocode_InvalidZipCode_ReturnsResults(string address)
     {
         return base.Geocode_InvalidZipCode_ReturnsResults(address);
+    }
+
+    [Fact]
+    public void BuildRequest_GeneratesSignedGetRequest()
+    {
+        // Arrange
+        var geocoder = new YahooGeocoder("consumer-key", "consumer-secret");
+        var buildRequest = typeof(YahooGeocoder).GetMethod("BuildRequest", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        // Act
+        using var request = (HttpRequestMessage)buildRequest.Invoke(geocoder, [YahooGeocoder.ServiceUrl.Replace("{0}", "test")])!;
+        var requestUri = request.RequestUri!.ToString();
+
+        // Assert
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.StartsWith("http://yboss.yahooapis.com/geo/placefinder?", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_consumer_key=consumer-key", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_nonce=", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_signature=", requestUri, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Geocode_StatusFailure_WrapsHttpRequestException()
+    {
+        // Arrange
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized))));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.IsType<HttpRequestException>(exception.InnerException);
+    }
+
+    [Fact]
+    public async Task Geocode_TransportFailure_WrapsTransportException()
+    {
+        // Arrange
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => throw new HttpRequestException("socket failure")));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.IsType<HttpRequestException>(exception.InnerException);
+    }
+
+    private sealed class TestableYahooGeocoder : YahooGeocoder
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public TestableYahooGeocoder(HttpMessageHandler handler)
+            : base("consumer-key", "consumer-secret")
+        {
+            _handler = handler;
+        }
+
+        protected override HttpClient BuildClient()
+        {
+            return new HttpClient(_handler, disposeHandler: false);
+        }
     }
 }
 #pragma warning restore CS0618

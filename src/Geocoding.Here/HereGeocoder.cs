@@ -221,8 +221,12 @@ public class HereGeocoder : IGeocoder
 
             var address = item.Address ?? new HereAddressPayload();
             var coordinates = item.Access?.FirstOrDefault() ?? item.Position;
+            var formattedAddress = FirstNonEmpty(address.Label, item.Title);
+            if (String.IsNullOrWhiteSpace(formattedAddress))
+                continue;
+
             yield return new HereAddress(
-                address.Label ?? item.Title ?? "",
+                formattedAddress,
                 new Location(coordinates.Lat, coordinates.Lng),
                 address.Street,
                 address.HouseNumber,
@@ -239,7 +243,11 @@ public class HereGeocoder : IGeocoder
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for HERE requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
         if (Proxy is null)
             return new HttpClient();
@@ -256,9 +264,26 @@ public class HereGeocoder : IGeocoder
         var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
-            throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {json}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+            throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(json)}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
 
         return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " Response preview: " + preview;
+    }
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !String.IsNullOrWhiteSpace(value)) ?? String.Empty;
     }
 
     private static HereLocationType MapLocationType(string? resultType)

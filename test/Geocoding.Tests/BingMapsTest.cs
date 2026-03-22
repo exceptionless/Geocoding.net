@@ -1,4 +1,6 @@
-﻿using Geocoding.Microsoft;
+﻿using System.Net;
+using System.Net.Http;
+using Geocoding.Microsoft;
 using Xunit;
 using MicrosoftJson = Geocoding.Microsoft.Json;
 
@@ -213,9 +215,43 @@ public class BingMapsTest : GeocoderTest
         Assert.Empty(addresses);
     }
 
+    [Fact]
+    public async Task Geocode_HttpFailure_PreservesInnerExceptionPreview()
+    {
+        // Arrange
+        var body = new string('x', 300);
+        var geocoder = new TestableBingMapsGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            ReasonPhrase = "Bad Request",
+            Content = new StringContent(body)
+        })));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<BingGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.NotNull(exception.InnerException);
+        Assert.Contains("Bing Maps request failed (400 Bad Request).", exception.InnerException!.Message, StringComparison.Ordinal);
+        Assert.Contains("Response preview:", exception.InnerException.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(body, exception.InnerException.Message, StringComparison.Ordinal);
+    }
+
     private sealed class TestableBingMapsGeocoder : BingMapsGeocoder
     {
+        private readonly HttpMessageHandler? _handler;
+
         public TestableBingMapsGeocoder() : base("bing-key") { }
+
+        public TestableBingMapsGeocoder(HttpMessageHandler handler)
+            : base("bing-key")
+        {
+            _handler = handler;
+        }
+
+        protected override HttpClient BuildClient()
+        {
+            return _handler is null ? base.BuildClient() : new HttpClient(_handler, disposeHandler: false);
+        }
 
         public IEnumerable<BingAddress> Parse(MicrosoftJson.Response response)
         {

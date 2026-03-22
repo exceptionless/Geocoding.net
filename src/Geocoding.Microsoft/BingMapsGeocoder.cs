@@ -286,7 +286,11 @@ public class BingMapsGeocoder : IGeocoder
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for Bing Maps requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
         if (Proxy is null)
             return new HttpClient();
@@ -300,12 +304,13 @@ public class BingMapsGeocoder : IGeocoder
     {
         using (var client = BuildClient())
         {
-            using var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
+            using var request = CreateRequest(queryUrl);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new Exception($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {body}");
+                throw new BingGeocodingException(new HttpRequestException($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(body)}"));
             }
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
@@ -328,6 +333,18 @@ public class BingMapsGeocoder : IGeocoder
             return ConfidenceLevel.High;
 
         return ConfidenceLevel.Unknown;
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " Response preview: " + preview;
     }
 
     private string BingUrlEncode(string toEncode)

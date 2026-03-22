@@ -199,10 +199,17 @@ public class GoogleGeocoder : IGeocoder
     {
         try
         {
-            using (var client = BuildClient())
+            using var requestToDispose = request;
+            using var client = BuildClient();
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
             {
-                return await ProcessWebResponse(await client.SendAsync(request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                throw new GoogleGeocodingException(new HttpRequestException($"Google request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}"));
             }
+
+            return await ProcessWebResponse(response).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not GoogleGeocodingException)
         {
@@ -210,7 +217,11 @@ public class GoogleGeocoder : IGeocoder
         }
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for Google requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
         if (Proxy is null)
             return new HttpClient();
@@ -248,6 +259,23 @@ public class GoogleGeocoder : IGeocoder
             url = BusinessKey.GenerateSignature(url);
 
         return new HttpRequestMessage(HttpMethod.Get, url);
+    }
+
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
+    {
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+
+        char[] buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        if (read == 0)
+            return String.Empty;
+
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
+
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private async Task<IEnumerable<GoogleAddress>> ProcessWebResponse(HttpResponseMessage response)

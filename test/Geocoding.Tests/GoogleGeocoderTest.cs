@@ -1,4 +1,6 @@
-﻿using Geocoding.Google;
+﻿using System.Net;
+using System.Net.Http;
+using Geocoding.Google;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -206,8 +208,58 @@ public class GoogleGeocoderTest : GeocoderTest
         Assert.Contains("OverQueryLimit", exception.Message);
     }
 
+    [Fact]
+    public async Task Geocode_HttpFailure_PreservesInnerExceptionPreview()
+    {
+        // Arrange
+        var body = new string('x', 300);
+        var geocoder = new TestableGoogleGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            ReasonPhrase = "Bad Request",
+            Content = new StringContent(body)
+        })));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<GoogleGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.NotNull(exception.InnerException);
+        Assert.Contains("Google request failed (400 Bad Request).", exception.InnerException!.Message, StringComparison.Ordinal);
+        Assert.Contains("Response preview:", exception.InnerException.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(body, exception.InnerException.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Geocode_TransportFailure_WrapsInnerException()
+    {
+        // Arrange
+        var geocoder = new TestableGoogleGeocoder(new TestHttpMessageHandler((_, _) => throw new HttpRequestException("socket failure")));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<GoogleGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.IsType<HttpRequestException>(exception.InnerException);
+        Assert.Contains("socket failure", exception.InnerException!.Message, StringComparison.Ordinal);
+    }
+
     private static bool HasShortName(GoogleAddress address, string shortName)
     {
         return address.Components.Any(component => String.Equals(component.ShortName, shortName, StringComparison.Ordinal));
+    }
+
+    private sealed class TestableGoogleGeocoder : GoogleGeocoder
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public TestableGoogleGeocoder(HttpMessageHandler handler)
+        {
+            _handler = handler;
+        }
+
+        protected override HttpClient BuildClient()
+        {
+            return new HttpClient(_handler, disposeHandler: false);
+        }
     }
 }

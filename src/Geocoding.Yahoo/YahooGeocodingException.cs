@@ -34,4 +34,15 @@ public class YahooGeocodingException : GeocodingException
     {
         ErrorCode = YahooError.UnknownError;
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="YahooGeocodingException"/> class.
+    /// </summary>
+    /// <param name="message">The provider error message.</param>
+    /// <param name="innerException">The underlying provider exception.</param>
+    public YahooGeocodingException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        ErrorCode = YahooError.UnknownError;
+    }
 }

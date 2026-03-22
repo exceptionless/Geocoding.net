@@ -105,13 +105,21 @@ public class YahooGeocoderTest : GeocoderTest
     public async Task Geocode_StatusFailure_WrapsHttpRequestException()
     {
         // Arrange
-        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized))));
+        var body = new string('x', 300);
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent(body)
+        })));
 
         // Act
         var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
 
         // Assert
-        Assert.IsType<HttpRequestException>(exception.InnerException);
+        var innerException = Assert.IsType<HttpRequestException>(exception.InnerException);
+        Assert.Contains("Yahoo request failed (401 Unauthorized).", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Response preview:", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(body, exception.Message, StringComparison.Ordinal);
+        Assert.NotNull(innerException.Message);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Xml.XPath;
 
 namespace Geocoding.Yahoo;
@@ -113,7 +114,23 @@ public class YahooGeocoder : IGeocoder
             using var requestToDispose = request;
             using var client = BuildClient();
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                var message = $"Yahoo request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}";
+
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new YahooGeocodingException(message, ex);
+                }
+
+                throw new YahooGeocodingException(message, new HttpRequestException(message));
+            }
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
@@ -169,6 +186,23 @@ public class YahooGeocoder : IGeocoder
     {
         url = GenerateOAuthSignature(new Uri(url));
         return new HttpRequestMessage(HttpMethod.Get, url);
+    }
+
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
+    {
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+
+        char[] buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        if (read == 0)
+            return String.Empty;
+
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
+
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private string GenerateOAuthSignature(Uri uri)

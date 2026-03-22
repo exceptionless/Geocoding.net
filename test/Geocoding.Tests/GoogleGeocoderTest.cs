@@ -213,11 +213,7 @@ public class GoogleGeocoderTest : GeocoderTest
     {
         // Arrange
         var body = new string('x', 300);
-        var geocoder = new TestableGoogleGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
-        {
-            ReasonPhrase = "Bad Request",
-            Content = new StringContent(body)
-        })));
+        var geocoder = new TestableGoogleGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.BadRequest, "Bad Request", body)));
 
         // Act
         var exception = await Assert.ThrowsAsync<GoogleGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));

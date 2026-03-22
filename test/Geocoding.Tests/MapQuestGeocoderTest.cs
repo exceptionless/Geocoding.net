@@ -1,6 +1,5 @@
 ﻿using System.Net.Http;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using Geocoding.MapQuest;
 using Xunit;
@@ -85,11 +84,7 @@ public class MapQuestGeocoderTest : GeocoderTest
     {
         // Arrange
         var body = new string('x', 300);
-        var geocoder = new TestableMapQuestGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
-        {
-            ReasonPhrase = "Bad Gateway",
-            Content = new StringContent(body)
-        })));
+        var geocoder = new TestableMapQuestGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.BadGateway, "Bad Gateway", body)));
 
         // Act
         var exception = await Assert.ThrowsAsync<Exception>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));

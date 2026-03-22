@@ -105,11 +105,7 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
     {
         // Arrange
         var body = new string('x', 300);
-        var geocoder = new TestableAzureMapsGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
-        {
-            ReasonPhrase = "Bad Request",
-            Content = new StringContent(body)
-        })));
+        var geocoder = new TestableAzureMapsGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.BadRequest, "Bad Request", body)));
 
         // Act
         var exception = await Assert.ThrowsAsync<AzureMapsGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
@@ -123,7 +119,7 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
     private static AzureMapsAddress[] ParseResponse(AzureMapsGeocoder geocoder, string json)
     {
         var responseType = typeof(AzureMapsGeocoder).GetNestedType("AzureSearchResponse", BindingFlags.NonPublic)!;
-        var response = JsonSerializer.Deserialize(json, responseType);
+        var response = JsonSerializer.Deserialize(json, responseType, Extensions.JsonOptions);
         var parseMethod = typeof(AzureMapsGeocoder).GetMethod("ParseResponse", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
         var results = (IEnumerable)parseMethod.Invoke(geocoder, [response!])!;

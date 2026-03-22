@@ -1,4 +1,5 @@
-﻿using Geocoding.Google;
+﻿using System.Globalization;
+using Geocoding.Google;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -96,7 +97,32 @@ public class GoogleBusinessKeyTest
         var key = new BusinessKey("client-id", "signature", channel);
 
         // Assert
-        Assert.Equal(channel.Trim().ToLower(), key.Channel);
+        Assert.Equal(channel.Trim().ToLowerInvariant(), key.Channel);
+    }
+
+    [Fact]
+    public void Constructor_ChannelNormalization_IsCultureInvariant()
+    {
+        // Arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
+
+            // Act
+            var key = new BusinessKey("client-id", "signature", "CHANNELI");
+
+            // Assert
+            Assert.Equal("channeli", key.Channel);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
     }
 
     [Theory]

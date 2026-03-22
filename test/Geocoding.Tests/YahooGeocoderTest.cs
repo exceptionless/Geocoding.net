@@ -106,10 +106,7 @@ public class YahooGeocoderTest : GeocoderTest
     {
         // Arrange
         var body = new string('x', 300);
-        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized)
-        {
-            Content = new StringContent(body)
-        })));
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.Unauthorized, "Unauthorized", body)));
 
         // Act
         var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));

@@ -42,7 +42,7 @@ public class BusinessKey
             {
                 return;
             }
-            string formattedChannel = value!.Trim().ToLower();
+            string formattedChannel = value!.Trim().ToLowerInvariant();
             if (Regex.IsMatch(formattedChannel, @"^[a-z_0-9.-]+$"))
             {
                 _channel = formattedChannel;

@@ -257,11 +257,12 @@ public class AzureMapsGeocoder : IGeocoder
         if (response.Addresses is null)
             yield break;
 
-        foreach (var reverseResult in response.Addresses.Where(result => result?.Address is not null && !String.IsNullOrWhiteSpace(result.Position)))
+        foreach (var reverseAddress in response.Addresses
+            .Where(result => result?.Address is not null && !String.IsNullOrWhiteSpace(result.Position))
+            .Select(CreateReverseAddress)
+            .Where(address => address is not null))
         {
-            var reverseAddress = CreateReverseAddress(reverseResult);
-            if (reverseAddress is not null)
-                yield return reverseAddress;
+            yield return reverseAddress!;
         }
     }
 

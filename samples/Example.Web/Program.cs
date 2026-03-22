@@ -117,8 +117,7 @@ static string[] GetConfiguredProviders(ProviderOptions options)
 
     configuredProviders.Add("google");
 
-    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey)
-        || (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode)))
+    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
         configuredProviders.Add("here");
 
     if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
@@ -163,23 +162,16 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             return true;
 
         case "here":
-            if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
-            {
-                geocoder = new HereGeocoder(options.Here.ApiKey);
-                error = null;
-                return true;
-            }
-
-            if (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode))
-            {
-                geocoder = new HereGeocoder(options.Here.AppId, options.Here.AppCode);
-                error = null;
-                return true;
-            }
-
             geocoder = default!;
-            error = "Configure Providers:Here:ApiKey, or provide both Providers:Here:AppId and Providers:Here:AppCode, before using the HERE provider.";
-            return false;
+            if (String.IsNullOrWhiteSpace(options.Here.ApiKey))
+            {
+                error = "Configure Providers:Here:ApiKey before using the HERE provider.";
+                return false;
+            }
+
+            geocoder = new HereGeocoder(options.Here.ApiKey);
+            error = null;
+            return true;
 
         case "mapquest":
             if (String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
@@ -266,8 +258,6 @@ internal sealed class GoogleProviderOptions
 internal sealed class HereProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
-    public String AppId { get; init; } = String.Empty;
-    public String AppCode { get; init; } = String.Empty;
 }
 
 internal sealed class MapQuestProviderOptions

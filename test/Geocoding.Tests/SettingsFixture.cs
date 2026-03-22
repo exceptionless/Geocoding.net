@@ -36,16 +36,6 @@ public class SettingsFixture
         get { return GetValue("Providers:Here:ApiKey", "hereApiKey"); }
     }
 
-    public String HereAppCode
-    {
-        get { return GetValue("Providers:Here:AppCode", "hereAppCode"); }
-    }
-
-    public String HereAppId
-    {
-        get { return GetValue("Providers:Here:AppId", "hereAppId"); }
-    }
-
     public String MapQuestKey
     {
         get { return GetValue("Providers:MapQuest:ApiKey", "mapQuestKey"); }

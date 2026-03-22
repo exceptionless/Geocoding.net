@@ -1,13 +1,13 @@
 # Generic C# Geocoding API [![CI](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml) [![CodeQL](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml)
 
-Includes a model and interface for communicating with current geocoding providers while preserving selected legacy compatibility surfaces.
+Includes a model and interface for communicating with current geocoding providers.
 
 | Provider | Package | Status | Auth | Notes |
 | --- | --- | --- | --- | --- |
 | Google Maps | `Geocoding.Google` | Supported | API key or signed client credentials | `BusinessKey` supports signed Google Maps client-based requests when your deployment requires them. |
 | Azure Maps | `Geocoding.Microsoft` | Supported | Azure Maps subscription key | Primary Microsoft-backed geocoder. |
 | Bing Maps | `Geocoding.Microsoft` | Deprecated compatibility | Bing Maps enterprise key | `BingMapsGeocoder` remains available for existing consumers and is marked obsolete for new development. |
-| HERE Geocoding and Search | `Geocoding.Here` | Supported | HERE API key or legacy app_id/app_code | Uses the current HERE Geocoding and Search API when an API key is configured and retains the legacy credential flow for compatibility. |
+| HERE Geocoding and Search | `Geocoding.Here` | Supported | HERE API key | Uses the current HERE Geocoding and Search API. |
 | MapQuest | `Geocoding.MapQuest` | Supported | API key | Commercial API only. OpenStreetMap mode is no longer supported. |
 | Yahoo PlaceFinder/BOSS | `Geocoding.Yahoo` | Deprecated | OAuth consumer key + secret | Legacy package retained for compatibility, but the service remains deprecated and unverified. |
 
@@ -76,7 +76,9 @@ Bing Maps requires an existing Bing Maps enterprise key. The provider is depreca
 
 MapQuest requires a [developer API key](https://developer.mapquest.com/user/me/apps).
 
-HERE supports a [HERE API key](https://www.here.com/docs/category/identity-and-access-management) for the current Geocoding and Search API. Existing consumers can also continue using the legacy `app_id`/`app_code` constructor for compatibility.
+HERE supports a [HERE API key](https://www.here.com/docs/category/identity-and-access-management) for the current Geocoding and Search API.
+
+The current major-version line no longer supports HERE `app_id`/`app_code` credentials. Migrate existing HERE integrations to API keys before upgrading.
 
 Yahoo still uses the legacy OAuth consumer key and consumer secret flow, but onboarding remains unverified and the package is deprecated.
 
@@ -93,7 +95,7 @@ Alternatively, if you are on Windows, you can open the solution in [Visual Studi
 
 ### Service Tests
 
-You will need credentials for each respective service to run the service tests. Make a `settings-override.json` as a copy of `settings.json` in the test project and put in your provider credentials there. For HERE, that can be either `Providers:Here:ApiKey` or the legacy `Providers:Here:AppId` plus `Providers:Here:AppCode` pair. Then you should be able to run the tests.
+You will need credentials for each respective service to run the service tests. Make a `settings-override.json` as a copy of `settings.json` in the test project and put in your provider credentials there. Then you should be able to run the tests.
 
 Most provider-backed integration tests skip with a message indicating which setting is required when credentials are missing. The Yahoo suite now follows the same credential gating, but the provider remains deprecated and unverified.
 
@@ -105,4 +107,4 @@ The sample app in `samples/Example.Web` is an ASP.NET Core 10 minimal API that c
 dotnet run --project samples/Example.Web/Example.Web.csproj
 ```
 
-Configure a provider in `samples/Example.Web/appsettings.json` or via environment variables such as `Providers__Azure__ApiKey`, `Providers__Bing__ApiKey`, `Providers__Google__ApiKey`, `Providers__Here__ApiKey`, `Providers__Here__AppId`, `Providers__Here__AppCode`, or `Providers__MapQuest__ApiKey`. Once the app is running, use `samples/Example.Web/sample.http` to call `/providers`, `/geocode`, and `/reverse`.
+Configure a provider in `samples/Example.Web/appsettings.json` or via environment variables such as `Providers__Azure__ApiKey`, `Providers__Bing__ApiKey`, `Providers__Google__ApiKey`, `Providers__Here__ApiKey`, or `Providers__MapQuest__ApiKey`. Once the app is running, use `samples/Example.Web/sample.http` to call `/providers`, `/geocode`, and `/reverse`.

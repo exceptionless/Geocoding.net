@@ -1,11 +1,9 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HereJson = Geocoding.Here.Json;
 
 namespace Geocoding.Here;
 
@@ -19,13 +17,8 @@ public class HereGeocoder : IGeocoder
 {
     private const string BaseAddress = "https://geocode.search.hereapi.com/v1/geocode";
     private const string ReverseBaseAddress = "https://revgeocode.search.hereapi.com/v1/revgeocode";
-    private const string LegacyBaseAddress = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
-    private const string LegacyReverseBaseAddress = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
 
-    private readonly string? _apiKey;
-    private readonly string? _legacyAppId;
-    private readonly string? _legacyAppCode;
-    private bool UsesLegacyCredentials => !String.IsNullOrWhiteSpace(_legacyAppId) && !String.IsNullOrWhiteSpace(_legacyAppCode);
+    private readonly string _apiKey;
 
     /// <summary>
     /// Gets or sets the proxy used for HERE requests.
@@ -56,28 +49,8 @@ public class HereGeocoder : IGeocoder
         _apiKey = apiKey;
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HereGeocoder"/> class using the deprecated app_id/app_code signature.
-    /// </summary>
-    /// <param name="appId">The deprecated HERE application identifier.</param>
-    /// <param name="appCode">The deprecated HERE application code.</param>
-    public HereGeocoder(string appId, string appCode)
-    {
-        if (String.IsNullOrWhiteSpace(appId))
-            throw new ArgumentException("appId can not be null or empty.", nameof(appId));
-
-        if (String.IsNullOrWhiteSpace(appCode))
-            throw new ArgumentException("appCode can not be null or empty.", nameof(appCode));
-
-        _legacyAppId = appId;
-        _legacyAppCode = appCode;
-    }
-
     private Uri GetQueryUrl(string address)
     {
-        if (UsesLegacyCredentials)
-            return GetLegacyQueryUrl(("searchtext", address));
-
         var parameters = CreateBaseParameters();
         parameters.Add(new KeyValuePair<string, string>("q", address));
         AppendGlobalParameters(parameters, includeAtBias: true);
@@ -86,30 +59,17 @@ public class HereGeocoder : IGeocoder
 
     private Uri GetQueryUrl(string street, string city, string state, string postalCode, string country)
     {
-        if (new[] { street, city, state, postalCode, country }.All(part => String.IsNullOrWhiteSpace(part)))
-            throw new ArgumentException("At least one address component is required.");
-
-        if (UsesLegacyCredentials)
-        {
-            return GetLegacyQueryUrl(
-                ("street", street),
-                ("city", city),
-                ("state", state),
-                ("postalcode", postalCode),
-                ("country", country));
-        }
-
         var query = String.Join(", ", new[] { street, city, state, postalCode, country }
             .Where(part => !String.IsNullOrWhiteSpace(part)));
+
+        if (String.IsNullOrWhiteSpace(query))
+            throw new ArgumentException("At least one address component is required.");
 
         return GetQueryUrl(query);
     }
 
     private Uri GetQueryUrl(double latitude, double longitude)
     {
-        if (UsesLegacyCredentials)
-            return GetLegacyReverseQueryUrl(latitude, longitude);
-
         var parameters = CreateBaseParameters();
         parameters.Add(new KeyValuePair<string, string>("at", String.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude)));
         AppendGlobalParameters(parameters, includeAtBias: false);
@@ -127,67 +87,6 @@ public class HereGeocoder : IGeocoder
             parameters.Add(new KeyValuePair<string, string>("limit", MaxResults.Value.ToString(CultureInfo.InvariantCulture)));
 
         return parameters;
-    }
-
-    private Uri GetLegacyQueryUrl(params (string Key, string Value)[] values)
-    {
-        var parameters = CreateLegacyBaseParameters(includeProxBias: true);
-        foreach (var (key, value) in values)
-        {
-            if (!String.IsNullOrWhiteSpace(value))
-                parameters.Add(new KeyValuePair<string, string>(key, value));
-        }
-
-        return BuildLegacyUri(LegacyBaseAddress, parameters);
-    }
-
-    private Uri GetLegacyReverseQueryUrl(double latitude, double longitude)
-    {
-        var parameters = CreateLegacyBaseParameters(includeProxBias: false);
-        parameters.Add(new KeyValuePair<string, string>("prox", FormatLegacyCoordinate(latitude, longitude)));
-        return BuildLegacyUri(LegacyReverseBaseAddress, parameters);
-    }
-
-    private List<KeyValuePair<string, string>> CreateLegacyBaseParameters(bool includeProxBias)
-    {
-        var parameters = new List<KeyValuePair<string, string>>();
-
-        if (includeProxBias && UserLocation is not null)
-            parameters.Add(new KeyValuePair<string, string>("prox", FormatLegacyCoordinate(UserLocation.Latitude, UserLocation.Longitude)));
-
-        if (UserMapView is not null)
-        {
-            parameters.Add(new KeyValuePair<string, string>(
-                "mapview",
-                FormatLegacyBounds(UserMapView)));
-        }
-
-        if (MaxResults is > 0)
-            parameters.Add(new KeyValuePair<string, string>("maxresults", MaxResults.Value.ToString(CultureInfo.InvariantCulture)));
-
-        return parameters;
-    }
-
-    private Uri BuildLegacyUri(string baseAddress, IEnumerable<KeyValuePair<string, string>> parameters)
-    {
-        var url = String.Format(CultureInfo.InvariantCulture, baseAddress, UrlEncode(_legacyAppId!), UrlEncode(_legacyAppCode!), BuildQueryString(parameters));
-        return new Uri(url);
-    }
-
-    private static string FormatLegacyCoordinate(double latitude, double longitude)
-    {
-        return String.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude);
-    }
-
-    private static string FormatLegacyBounds(Bounds bounds)
-    {
-        return String.Format(
-            CultureInfo.InvariantCulture,
-            "{0},{1},{2},{3}",
-            bounds.SouthWest.Latitude,
-            bounds.SouthWest.Longitude,
-            bounds.NorthEast.Latitude,
-            bounds.NorthEast.Longitude);
     }
 
     private void AppendGlobalParameters(ICollection<KeyValuePair<string, string>> parameters, bool includeAtBias)
@@ -242,12 +141,6 @@ public class HereGeocoder : IGeocoder
         try
         {
             var url = GetQueryUrl(address);
-            if (UsesLegacyCredentials)
-            {
-                var legacyResponse = await GetLegacyResponse(url, cancellationToken).ConfigureAwait(false);
-                return ParseLegacyResponse(legacyResponse);
-            }
-
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
@@ -263,12 +156,6 @@ public class HereGeocoder : IGeocoder
         try
         {
             var url = GetQueryUrl(street, city, state, postalCode, country);
-            if (UsesLegacyCredentials)
-            {
-                var legacyResponse = await GetLegacyResponse(url, cancellationToken).ConfigureAwait(false);
-                return ParseLegacyResponse(legacyResponse);
-            }
-
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
@@ -293,12 +180,6 @@ public class HereGeocoder : IGeocoder
         try
         {
             var url = GetQueryUrl(latitude, longitude);
-            if (UsesLegacyCredentials)
-            {
-                var legacyResponse = await GetLegacyResponse(url, cancellationToken).ConfigureAwait(false);
-                return ParseLegacyResponse(legacyResponse);
-            }
-
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
@@ -380,27 +261,6 @@ public class HereGeocoder : IGeocoder
         return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
     }
 
-    private async Task<HereJson.Response> GetLegacyResponse(Uri queryUrl, CancellationToken cancellationToken)
-    {
-        using var client = BuildClient();
-        using var request = CreateRequest(queryUrl);
-        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-        var serializer = new DataContractJsonSerializer(typeof(HereJson.ServerResponse));
-        var payload = (HereJson.ServerResponse?)serializer.ReadObject(stream);
-        if (payload is null)
-            return new HereJson.Response { View = Array.Empty<HereJson.View>() };
-
-        if (!String.IsNullOrWhiteSpace(payload.ErrorType))
-        {
-            var errorType = payload.ErrorType!;
-            throw new HereGeocodingException(payload.Details ?? errorType, errorType, payload.ErrorSubtype ?? errorType);
-        }
-
-        return payload.Response ?? new HereJson.Response { View = Array.Empty<HereJson.View>() };
-    }
-
     private static HereLocationType MapLocationType(string? resultType)
     {
         switch (resultType?.Trim().ToLowerInvariant())
@@ -422,42 +282,6 @@ public class HereGeocoder : IGeocoder
                 return HereLocationType.Area;
             default:
                 return HereLocationType.Unknown;
-        }
-    }
-
-    private IEnumerable<HereAddress> ParseLegacyResponse(HereJson.Response response)
-    {
-        if (response.View is null)
-            yield break;
-
-        foreach (var view in response.View)
-        {
-            if (view?.Result is null)
-                continue;
-
-            foreach (var result in view.Result)
-            {
-                if (result?.Location is null)
-                    continue;
-
-                var location = result.Location;
-                if (location.DisplayPosition is null)
-                    continue;
-
-                if (!Enum.TryParse(location.LocationType, true, out HereLocationType locationType))
-                    locationType = HereLocationType.Unknown;
-
-                yield return new HereAddress(
-                    location.Address?.Label ?? location.Name ?? String.Empty,
-                    new Location(location.DisplayPosition.Latitude, location.DisplayPosition.Longitude),
-                    location.Address?.Street,
-                    location.Address?.HouseNumber,
-                    location.Address?.City,
-                    location.Address?.State,
-                    location.Address?.PostalCode,
-                    location.Address?.Country,
-                    locationType);
-            }
         }
     }
 

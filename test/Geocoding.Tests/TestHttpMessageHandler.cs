@@ -20,14 +20,10 @@ internal sealed class TestHttpMessageHandler : HttpMessageHandler
 
     public static Task<HttpResponseMessage> CreateResponseAsync(HttpStatusCode statusCode, string? reasonPhrase = null, string? body = null)
     {
-        var response = new HttpResponseMessage(statusCode)
+        return Task.FromResult(new HttpResponseMessage(statusCode)
         {
-            ReasonPhrase = reasonPhrase
-        };
-
-        if (!String.IsNullOrWhiteSpace(body))
-            response.Content = new StringContent(body, Encoding.UTF8, "text/plain");
-
-        return Task.FromResult(response);
+            ReasonPhrase = reasonPhrase,
+            Content = String.IsNullOrWhiteSpace(body) ? null : new StringContent(body, Encoding.UTF8, "text/plain")
+        });
     }
 }

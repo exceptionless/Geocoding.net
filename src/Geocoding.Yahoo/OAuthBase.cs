@@ -30,8 +30,8 @@ public class OAuthBase
     /// </summary>
     protected class QueryParameter
     {
-        private string _name = null!;
-        private string _value = null!;
+        private readonly string _name = null!;
+        private readonly string _value = null!;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryParameter"/> class.

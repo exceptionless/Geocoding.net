@@ -128,8 +128,6 @@ public class YahooGeocoder : IGeocoder
                 {
                     throw new YahooGeocodingException(message, ex);
                 }
-
-                throw new YahooGeocodingException(message, new HttpRequestException(message));
             }
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))

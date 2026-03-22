@@ -56,13 +56,13 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                                         select l);
         }
         else
-            return new Address[0];
+            return Array.Empty<Address>();
     }
 
     private IEnumerable<Address> HandleSingleResponse(IEnumerable<MapQuestLocation> locs)
     {
         if (locs is null)
-            return new Address[0];
+            return Array.Empty<Address>();
         else
         {
             return from l in locs.OfType<MapQuestLocation>()

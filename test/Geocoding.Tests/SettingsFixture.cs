@@ -43,12 +43,12 @@ public class SettingsFixture
 
     public String YahooConsumerKey
     {
-        get { return GetValue("yahooConsumerKey"); }
+        get { return GetValue("Providers:Yahoo:ConsumerKey", "yahooConsumerKey"); }
     }
 
     public String YahooConsumerSecret
     {
-        get { return GetValue("yahooConsumerSecret"); }
+        get { return GetValue("Providers:Yahoo:ConsumerSecret", "yahooConsumerSecret"); }
     }
 
     private String GetValue(params string[] keys)

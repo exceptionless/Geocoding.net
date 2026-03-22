@@ -109,13 +109,13 @@ static string[] GetConfiguredProviders(ProviderOptions options)
 {
     var configuredProviders = new List<string>();
 
-    configuredProviders.Add("google");
-
     if (!String.IsNullOrWhiteSpace(options.Azure.ApiKey))
         configuredProviders.Add("azure");
 
     if (!String.IsNullOrWhiteSpace(options.Bing.ApiKey))
         configuredProviders.Add("bing");
+
+    configuredProviders.Add("google");
 
     if (!String.IsNullOrWhiteSpace(GetHereApiKey(options)))
         configuredProviders.Add("here");
@@ -204,7 +204,7 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
 
         default:
             geocoder = default!;
-            error = $"Unknown provider '{provider}'. Use one of: google, azure, bing, here, mapquest.";
+            error = $"Unknown provider '{provider}'. Use one of: azure, bing, google, here, mapquest.";
             return false;
     }
 }
@@ -245,9 +245,9 @@ internal sealed record AddressResponse(string FormattedAddress, string Provider,
 
 internal sealed class ProviderOptions
 {
-    public GoogleProviderOptions Google { get; init; } = new();
     public AzureProviderOptions Azure { get; init; } = new();
     public BingProviderOptions Bing { get; init; } = new();
+    public GoogleProviderOptions Google { get; init; } = new();
     public HereProviderOptions Here { get; init; } = new();
     public MapQuestProviderOptions MapQuest { get; init; } = new();
 }

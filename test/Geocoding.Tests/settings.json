@@ -1,12 +1,12 @@
 ﻿{
   "Providers": {
-    "Google": {
-      "ApiKey": ""
-    },
     "Azure": {
       "ApiKey": ""
     },
     "Bing": {
+      "ApiKey": ""
+    },
+    "Google": {
       "ApiKey": ""
     },
     "Here": {
@@ -14,8 +14,10 @@
     },
     "MapQuest": {
       "ApiKey": ""
+    },
+    "Yahoo": {
+      "ConsumerKey": "",
+      "ConsumerSecret": ""
     }
-  },
-  "yahooConsumerKey": "",
-  "yahooConsumerSecret": ""
+  }
 }

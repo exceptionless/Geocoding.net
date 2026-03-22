@@ -175,14 +175,14 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             case "HEAD":
             {
                 var u = $"{f.RequestUri}json={WebUtility.UrlEncode(f.RequestBody)}&";
-                request = (HttpWebRequest)WebRequest.Create(u);
+                request = WebRequest.CreateHttp(u);
             }
             break;
             case "POST":
             case "PUT":
             default:
             {
-                request = (HttpWebRequest)WebRequest.Create(f.RequestUri);
+                request = WebRequest.CreateHttp(f.RequestUri);
                 hasBody = !String.IsNullOrWhiteSpace(f.RequestBody);
             }
             break;
@@ -237,7 +237,10 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         }
         catch (WebException wex) //convert to simple exception & close the response stream
         {
-            using (HttpWebResponse response = (HttpWebResponse)wex.Response!)
+            if (wex.Response is not HttpWebResponse response)
+                throw new Exception($"{requestInfo} | {wex.Status} | {wex.Message}", wex);
+
+            using (response)
             {
                 var sb = new StringBuilder(requestInfo);
                 sb.Append(" | ");

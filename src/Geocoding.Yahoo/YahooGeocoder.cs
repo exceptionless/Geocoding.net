@@ -151,7 +151,7 @@ public class YahooGeocoder : IGeocoder
     private HttpWebRequest BuildWebRequest(string url)
     {
         url = GenerateOAuthSignature(new Uri(url));
-        var req = (WebRequest.Create(url) as HttpWebRequest)!;
+        var req = WebRequest.CreateHttp(url);
         req.Method = "GET";
         if (Proxy is not null)
         {

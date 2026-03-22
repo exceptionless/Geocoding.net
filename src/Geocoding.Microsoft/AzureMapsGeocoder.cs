@@ -198,7 +198,8 @@ public class AzureMapsGeocoder : IGeocoder
     private async Task<AzureSearchResponse> GetResponseAsync(Uri queryUrl, CancellationToken cancellationToken)
     {
         using (var client = BuildClient())
-        using (var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, queryUrl), cancellationToken).ConfigureAwait(false))
+        using (var request = new HttpRequestMessage(HttpMethod.Get, queryUrl))
+        using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
         {
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 

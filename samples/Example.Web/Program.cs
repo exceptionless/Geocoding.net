@@ -117,7 +117,8 @@ static string[] GetConfiguredProviders(ProviderOptions options)
 
     configuredProviders.Add("google");
 
-    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
+    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey)
+        || (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode)))
         configuredProviders.Add("here");
 
     if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
@@ -162,23 +163,23 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             return true;
 
         case "here":
-            if (!String.IsNullOrWhiteSpace(options.Here.AppId) || !String.IsNullOrWhiteSpace(options.Here.AppCode))
+            if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
             {
-                geocoder = default!;
-                error = "HERE now uses Providers:Here:ApiKey. The legacy AppId/AppCode settings are no longer supported.";
-                return false;
+                geocoder = new HereGeocoder(options.Here.ApiKey);
+                error = null;
+                return true;
             }
 
-            if (String.IsNullOrWhiteSpace(options.Here.ApiKey))
+            if (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode))
             {
-                geocoder = default!;
-                error = "Configure Providers:Here:ApiKey before using the HERE provider.";
-                return false;
+                geocoder = new HereGeocoder(options.Here.AppId, options.Here.AppCode);
+                error = null;
+                return true;
             }
 
-            geocoder = new HereGeocoder(options.Here.ApiKey);
-            error = null;
-            return true;
+            geocoder = default!;
+            error = "Configure Providers:Here:ApiKey, or provide both Providers:Here:AppId and Providers:Here:AppCode, before using the HERE provider.";
+            return false;
 
         case "mapquest":
             if (String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
@@ -247,17 +248,17 @@ internal sealed class ProviderOptions
     public MapQuestProviderOptions MapQuest { get; init; } = new();
 }
 
-internal sealed class GoogleProviderOptions
-{
-    public String ApiKey { get; init; } = String.Empty;
-}
-
 internal sealed class AzureProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }
 
 internal sealed class BingProviderOptions
+{
+    public String ApiKey { get; init; } = String.Empty;
+}
+
+internal sealed class GoogleProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }

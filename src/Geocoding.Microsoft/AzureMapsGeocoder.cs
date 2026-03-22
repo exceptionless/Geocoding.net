@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -224,13 +225,11 @@ public class AzureMapsGeocoder : IGeocoder
     {
         if (response.Results is not null && response.Results.Length > 0)
         {
-            foreach (var result in response.Results)
+            foreach (var result in response.Results.Where(result => result?.Position is not null))
             {
-                if (result?.Position is null)
-                    continue;
-
-                var address = result.Address ?? new AzureAddressPayload();
-                var formattedAddress = FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), result.Poi?.Name, result.Type, FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision), address.Country);
+                var azureResult = result!;
+                var address = azureResult.Address ?? new AzureAddressPayload();
+                var formattedAddress = FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), azureResult.Poi?.Name, azureResult.Type, FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision), address.Country);
                 if (String.IsNullOrWhiteSpace(formattedAddress))
                     continue;
 
@@ -241,7 +240,7 @@ public class AzureMapsGeocoder : IGeocoder
 
                 yield return new AzureMapsAddress(
                     formattedAddress,
-                    new Location(result.Position.Lat, result.Position.Lon),
+                    new Location(azureResult.Position!.Lat, azureResult.Position.Lon),
                     BuildStreetLine(address.StreetNumber, address.StreetName),
                     FirstNonEmpty(address.CountrySubdivisionName, address.CountrySubdivision),
                     address.CountrySecondarySubdivision,
@@ -249,8 +248,8 @@ public class AzureMapsGeocoder : IGeocoder
                     locality,
                     neighborhood,
                     address.PostalCode,
-                    EvaluateEntityType(result),
-                    EvaluateConfidence(result));
+                    EvaluateEntityType(azureResult),
+                    EvaluateConfidence(azureResult));
             }
             yield break;
         }

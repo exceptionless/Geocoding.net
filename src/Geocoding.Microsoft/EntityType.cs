@@ -9,9 +9,9 @@
 public enum EntityType
 {
     /// <summary>Unknown entity type not recognized by the library.</summary>
-    Unknown,
+    Unknown = -1,
     /// <summary>The Address value.</summary>
-    Address,
+    Address = 0,
     /// <summary>The AdminDivision1 value.</summary>
     AdminDivision1,
     /// <summary>The AdminDivision2 value.</summary>

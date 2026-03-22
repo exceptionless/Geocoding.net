@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Reflection;
+using System.Text.Json;
 using Geocoding.Microsoft;
 using Xunit;
 
@@ -37,5 +40,71 @@ public class AzureMapsAsyncTest : AsyncGeocoderTest
     {
         // Act & Assert
         Assert.Throws<ArgumentException>(() => new AzureMapsGeocoder(String.Empty));
+    }
+
+    [Fact]
+    public void ParseResponse_SearchResultWithoutUsableFormattedAddress_SkipsEntry()
+    {
+        // Arrange
+        var geocoder = new AzureMapsGeocoder("azure-key");
+
+        const string json = """
+                {
+                    "results": [
+                        {
+                            "position": { "lat": 38.8976777, "lon": -77.036517 },
+                            "address": {
+                                "freeformAddress": "   ",
+                                "municipality": "   ",
+                                "country": "   "
+                            }
+                        }
+                    ]
+                }
+                """;
+
+        // Act
+        var results = ParseResponse(geocoder, json);
+
+        // Assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void ParseResponse_ReverseResultWithoutUsableFormattedAddress_SkipsEntry()
+    {
+        // Arrange
+        var geocoder = new AzureMapsGeocoder("azure-key");
+
+        const string json = """
+                {
+                    "addresses": [
+                        {
+                            "position": "38.8976777,-77.036517",
+                            "address": {
+                                "freeformAddress": "   ",
+                                "municipality": "   ",
+                                "country": "   "
+                            }
+                        }
+                    ]
+                }
+                """;
+
+        // Act
+        var results = ParseResponse(geocoder, json);
+
+        // Assert
+        Assert.Empty(results);
+    }
+
+    private static AzureMapsAddress[] ParseResponse(AzureMapsGeocoder geocoder, string json)
+    {
+        var responseType = typeof(AzureMapsGeocoder).GetNestedType("AzureSearchResponse", BindingFlags.NonPublic)!;
+        var response = JsonSerializer.Deserialize(json, responseType);
+        var parseMethod = typeof(AzureMapsGeocoder).GetMethod("ParseResponse", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        var results = (IEnumerable)parseMethod.Invoke(geocoder, [response!])!;
+        return results.Cast<AzureMapsAddress>().ToArray();
     }
 }

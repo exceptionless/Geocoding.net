@@ -74,9 +74,42 @@ public class TolerantStringEnumConverterTest
         Assert.Equal(EnumWithUnknown.Unknown, model!.Value);
     }
 
+    [Fact]
+    public void FromJson_NumericValueForByteEnum_ReturnsKnownValue()
+    {
+        // Arrange
+        const string json = "{\"value\":1}";
+
+        // Act
+        var model = json.FromJSON<ByteEnumWithUnknownModel>();
+
+        // Assert
+        Assert.NotNull(model);
+        Assert.Equal(ByteEnumWithUnknown.Known, model!.Value);
+    }
+
+    [Fact]
+    public void FromJson_UnknownNumericValueForByteEnum_ReturnsUnknown()
+    {
+        // Arrange
+        const string json = "{\"value\":99}";
+
+        // Act
+        var model = json.FromJSON<ByteEnumWithUnknownModel>();
+
+        // Assert
+        Assert.NotNull(model);
+        Assert.Equal(ByteEnumWithUnknown.Unknown, model!.Value);
+    }
+
     private sealed class EnumWithUnknownModel
     {
         public EnumWithUnknown Value { get; set; }
+    }
+
+    private sealed class ByteEnumWithUnknownModel
+    {
+        public ByteEnumWithUnknown Value { get; set; }
     }
 
     private sealed class NullableEnumWithUnknownModel
@@ -99,5 +132,11 @@ public class TolerantStringEnumConverterTest
     {
         First = 0,
         Second = 1
+    }
+
+    private enum ByteEnumWithUnknown : byte
+    {
+        Unknown = 0,
+        Known = 1
     }
 }

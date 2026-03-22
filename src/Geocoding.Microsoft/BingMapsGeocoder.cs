@@ -245,12 +245,20 @@ public class BingMapsGeocoder : IGeocoder
 
         foreach (var resourceSet in response.ResourceSets)
         {
-            if (resourceSet is null || resourceSet.Locations.IsNullOrEmpty())
+            if (resourceSet is null)
                 continue;
 
-            foreach (var location in resourceSet.Locations)
+            var locations = resourceSet.Locations;
+            if (locations.IsNullOrEmpty())
+                continue;
+
+            foreach (var location in locations)
             {
-                if (location.Point is null || location.Address is null || location.Point.Coordinates.Length < 2)
+                if (location.Point is null || location.Address is null)
+                    continue;
+
+                var coordinates = location.Point.Coordinates;
+                if (coordinates is null || coordinates.Length < 2 || String.IsNullOrWhiteSpace(location.Address.FormattedAddress))
                     continue;
 
                 if (!Enum.TryParse(location.EntityType, out EntityType entityType))
@@ -258,7 +266,7 @@ public class BingMapsGeocoder : IGeocoder
 
                 list.Add(new BingAddress(
                     location.Address.FormattedAddress!,
-                    new Location(location.Point.Coordinates[0], location.Point.Coordinates[1]),
+                    new Location(coordinates[0], coordinates[1]),
                     location.Address.AddressLine,
                     location.Address.AdminDistrict,
                     location.Address.AdminDistrict2,
@@ -312,17 +320,16 @@ public class BingMapsGeocoder : IGeocoder
 
     private ConfidenceLevel EvaluateConfidence(string? confidence)
     {
-        switch (confidence?.ToLower())
-        {
-            case "low":
-                return ConfidenceLevel.Low;
-            case "medium":
-                return ConfidenceLevel.Medium;
-            case "high":
-                return ConfidenceLevel.High;
-            default:
-                return ConfidenceLevel.Unknown;
-        }
+        if (String.Equals(confidence, "low", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.Low;
+
+        if (String.Equals(confidence, "medium", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.Medium;
+
+        if (String.Equals(confidence, "high", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.High;
+
+        return ConfidenceLevel.Unknown;
     }
 
     private string BingUrlEncode(string toEncode)

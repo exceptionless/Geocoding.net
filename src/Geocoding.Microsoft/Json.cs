@@ -507,7 +507,7 @@ internal sealed class ResourceArrayConverter : JsonConverter<Resource[]>
         foreach (var element in document.RootElement.EnumerateArray())
         {
             var resourceType = ResolveResourceType(element);
-            var resource = (Resource?)JsonSerializer.Deserialize(element.GetRawText(), resourceType, options);
+            var resource = (Resource?)element.Deserialize(resourceType, options);
             if (resource is not null)
                 resources.Add(resource);
         }

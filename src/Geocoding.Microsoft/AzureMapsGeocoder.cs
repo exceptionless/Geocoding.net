@@ -39,6 +39,7 @@ public class AzureMapsGeocoder : IGeocoder
 
     /// <summary>
     /// Gets or sets the user IP address associated with the request.
+    /// Retained for API compatibility only. Azure Maps Search does not accept an explicit user-IP hint when using subscription-key authentication, so the value is ignored.
     /// </summary>
     public IPAddress? UserIP { get; set; }
 
@@ -228,13 +229,17 @@ public class AzureMapsGeocoder : IGeocoder
                     continue;
 
                 var address = result.Address ?? new AzureAddressPayload();
+                var formattedAddress = FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), result.Poi?.Name, result.Type, FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision), address.Country);
+                if (String.IsNullOrWhiteSpace(formattedAddress))
+                    continue;
+
                 var locality = FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision);
                 var neighborhood = IncludeNeighborhood
                     ? FirstNonEmpty(address.Neighbourhood, address.MunicipalitySubdivision)
                     : String.Empty;
 
                 yield return new AzureMapsAddress(
-                    FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), result.Poi?.Name, result.Type, locality, address.Country),
+                    formattedAddress,
                     new Location(result.Position.Lat, result.Position.Lon),
                     BuildStreetLine(address.StreetNumber, address.StreetName),
                     FirstNonEmpty(address.CountrySubdivisionName, address.CountrySubdivision),
@@ -249,36 +254,44 @@ public class AzureMapsGeocoder : IGeocoder
             yield break;
         }
 
-        if (response.Addresses is not null)
+        if (response.Addresses is null)
+            yield break;
+
+        foreach (var reverseResult in response.Addresses.Where(result => result?.Address is not null && !String.IsNullOrWhiteSpace(result.Position)))
         {
-            foreach (var reverseResult in response.Addresses)
-            {
-                if (reverseResult?.Address is null || reverseResult.Position is null || String.IsNullOrWhiteSpace(reverseResult.Position))
-                    continue;
-
-                var address = reverseResult.Address;
-                if (!TryParsePosition(reverseResult.Position!, out var lat, out var lon))
-                    continue;
-
-                var locality = FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision);
-                var neighborhood = IncludeNeighborhood
-                    ? FirstNonEmpty(address.Neighbourhood, address.MunicipalitySubdivision)
-                    : String.Empty;
-
-                yield return new AzureMapsAddress(
-                    FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), locality, address.Country),
-                    new Location(lat, lon),
-                    BuildStreetLine(address.StreetNumber, address.StreetName),
-                    FirstNonEmpty(address.CountrySubdivisionName, address.CountrySubdivision),
-                    address.CountrySecondarySubdivision,
-                    address.Country,
-                    locality,
-                    neighborhood,
-                    address.PostalCode,
-                    EntityType.Address,
-                    ConfidenceLevel.High);
-            }
+            var reverseAddress = CreateReverseAddress(reverseResult);
+            if (reverseAddress is not null)
+                yield return reverseAddress;
         }
+    }
+
+    private AzureMapsAddress? CreateReverseAddress(AzureReverseResult? reverseResult)
+    {
+        if (reverseResult?.Address is null || !TryParsePosition(reverseResult.Position!, out var lat, out var lon))
+            return null;
+
+        var address = reverseResult.Address;
+        var formattedAddress = FirstNonEmpty(address.FreeformAddress, address.StreetNameAndNumber, BuildStreetLine(address.StreetNumber, address.StreetName), FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision), address.Country);
+        if (String.IsNullOrWhiteSpace(formattedAddress))
+            return null;
+
+        var locality = FirstNonEmpty(address.LocalName, address.Municipality, address.CountryTertiarySubdivision);
+        var neighborhood = IncludeNeighborhood
+            ? FirstNonEmpty(address.Neighbourhood, address.MunicipalitySubdivision)
+            : String.Empty;
+
+        return new AzureMapsAddress(
+            formattedAddress,
+            new Location(lat, lon),
+            BuildStreetLine(address.StreetNumber, address.StreetName),
+            FirstNonEmpty(address.CountrySubdivisionName, address.CountrySubdivision),
+            address.CountrySecondarySubdivision,
+            address.Country,
+            locality,
+            neighborhood,
+            address.PostalCode,
+            EntityType.Address,
+            ConfidenceLevel.High);
     }
 
     private static bool TryParsePosition(string position, out double latitude, out double longitude)

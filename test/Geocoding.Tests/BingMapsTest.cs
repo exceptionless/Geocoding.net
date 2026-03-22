@@ -1,6 +1,6 @@
 ﻿using Geocoding.Microsoft;
-using MicrosoftJson = Geocoding.Microsoft.Json;
 using Xunit;
+using MicrosoftJson = Geocoding.Microsoft.Json;
 
 namespace Geocoding.Tests;
 
@@ -134,6 +134,70 @@ public class BingMapsTest : GeocoderTest
                         {
                             Point = new MicrosoftJson.Point { Coordinates = [38.8976777] },
                             Address = new MicrosoftJson.Address { FormattedAddress = "White House" },
+                            EntityType = nameof(EntityType.Address),
+                            Confidence = "High"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Act
+        var addresses = geocoder.Parse(response).ToArray();
+
+        // Assert
+        Assert.Empty(addresses);
+    }
+
+    [Fact]
+    public void ParseResponse_LocationWithNullCoordinates_SkipsEntry()
+    {
+        // Arrange
+        var geocoder = new TestableBingMapsGeocoder();
+        var response = new MicrosoftJson.Response
+        {
+            ResourceSets =
+            [
+                new MicrosoftJson.ResourceSet
+                {
+                    Resources =
+                    [
+                        new MicrosoftJson.Location
+                        {
+                            Point = new MicrosoftJson.Point { Coordinates = null! },
+                            Address = new MicrosoftJson.Address { FormattedAddress = "White House" },
+                            EntityType = nameof(EntityType.Address),
+                            Confidence = "High"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Act
+        var addresses = geocoder.Parse(response).ToArray();
+
+        // Assert
+        Assert.Empty(addresses);
+    }
+
+    [Fact]
+    public void ParseResponse_LocationWithBlankFormattedAddress_SkipsEntry()
+    {
+        // Arrange
+        var geocoder = new TestableBingMapsGeocoder();
+        var response = new MicrosoftJson.Response
+        {
+            ResourceSets =
+            [
+                new MicrosoftJson.ResourceSet
+                {
+                    Resources =
+                    [
+                        new MicrosoftJson.Location
+                        {
+                            Point = new MicrosoftJson.Point { Coordinates = [38.8976777, -77.036517] },
+                            Address = new MicrosoftJson.Address { FormattedAddress = "   " },
                             EntityType = nameof(EntityType.Address),
                             Confidence = "High"
                         }

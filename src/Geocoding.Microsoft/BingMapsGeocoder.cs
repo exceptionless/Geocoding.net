@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -252,20 +253,17 @@ public class BingMapsGeocoder : IGeocoder
             if (locations.IsNullOrEmpty())
                 continue;
 
-            foreach (var location in locations)
+            foreach (var location in locations.Where(location => location?.Point?.Coordinates is { Length: >= 2 }
+                && location.Address is not null
+                && !String.IsNullOrWhiteSpace(location.Address.FormattedAddress)))
             {
-                if (location.Point is null || location.Address is null)
-                    continue;
-
-                var coordinates = location.Point.Coordinates;
-                if (coordinates is null || coordinates.Length < 2 || String.IsNullOrWhiteSpace(location.Address.FormattedAddress))
-                    continue;
+                var coordinates = location!.Point!.Coordinates!;
 
                 if (!Enum.TryParse(location.EntityType, out EntityType entityType))
                     entityType = EntityType.Unknown;
 
                 list.Add(new BingAddress(
-                    location.Address.FormattedAddress!,
+                    location.Address!.FormattedAddress!,
                     new Location(coordinates[0], coordinates[1]),
                     location.Address.AddressLine,
                     location.Address.AdminDistrict,

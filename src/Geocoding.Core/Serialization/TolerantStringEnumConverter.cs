@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -58,11 +59,12 @@ internal sealed class TolerantStringEnumConverter<TEnum> : JsonConverter<TEnum> 
 
     private static TEnum GetFallbackValue()
     {
-        foreach (string name in Enum.GetNames(EnumType))
-        {
-            if (String.Equals(name, "Unknown", StringComparison.OrdinalIgnoreCase))
-                return (TEnum)Enum.Parse(EnumType, name);
-        }
+        string? unknownName = Enum.GetNames(EnumType)
+            .Where(name => String.Equals(name, "Unknown", StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault();
+
+        if (unknownName is not null)
+            return (TEnum)Enum.Parse(EnumType, unknownName);
 
         return default;
     }

@@ -130,13 +130,6 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
 {
     switch (provider.Trim().ToLowerInvariant())
     {
-        case "google":
-            geocoder = String.IsNullOrWhiteSpace(options.Google.ApiKey)
-                ? new GoogleGeocoder()
-                : new GoogleGeocoder(options.Google.ApiKey);
-            error = null;
-            return true;
-
         case "azure":
             if (String.IsNullOrWhiteSpace(options.Azure.ApiKey))
             {
@@ -158,6 +151,13 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             }
 
             geocoder = new BingMapsGeocoder(options.Bing.ApiKey);
+            error = null;
+            return true;
+
+        case "google":
+            geocoder = String.IsNullOrWhiteSpace(options.Google.ApiKey)
+                ? new GoogleGeocoder()
+                : new GoogleGeocoder(options.Google.ApiKey);
             error = null;
             return true;
 

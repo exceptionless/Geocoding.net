@@ -3,8 +3,8 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
+using Geocoding.Extensions;
 using Geocoding.Here;
-using Geocoding.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests;

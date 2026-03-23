@@ -1,4 +1,4 @@
-using Geocoding.Serialization;
+using Geocoding.Extensions;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -12,7 +12,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"something-new\"}";
 
         // Act
-        var model = json.FromJSON<EnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -26,7 +26,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":999}";
 
         // Act
-        var model = json.FromJSON<EnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -40,7 +40,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":null}";
 
         // Act
-        var model = json.FromJSON<NullableEnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<NullableEnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -54,7 +54,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"something-new\"}";
 
         // Act
-        var model = json.FromJSON<EnumWithoutUnknownModel>();
+        var model = JsonExtensions.FromJson<EnumWithoutUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -68,7 +68,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"999\"}";
 
         // Act
-        var model = json.FromJSON<EnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -82,7 +82,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":1}";
 
         // Act
-        var model = json.FromJSON<ByteEnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<ByteEnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);
@@ -96,7 +96,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":99}";
 
         // Act
-        var model = json.FromJSON<ByteEnumWithUnknownModel>();
+        var model = JsonExtensions.FromJson<ByteEnumWithUnknownModel>(json);
 
         // Assert
         Assert.NotNull(model);

@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using Geocoding.Collections;
+using Geocoding.Extensions;
 
 namespace Geocoding.MapQuest;
 

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-namespace Geocoding.Serialization;
+using Geocoding.Serialization;
+
+namespace Geocoding.Extensions;
 
 /// <summary>
 /// JSON serialization helpers and shared serializer options.
@@ -19,7 +21,7 @@ public static class JsonExtensions
     /// </summary>
     /// <param name="value">The object to serialize.</param>
     /// <returns>The JSON payload, or an empty string when the input is null.</returns>
-    public static string ToJSON(object? value)
+    public static string ToJson(object? value)
     {
         if (value is null)
             return String.Empty;
@@ -33,7 +35,7 @@ public static class JsonExtensions
     /// <typeparam name="T">The destination type.</typeparam>
     /// <param name="json">The JSON payload.</param>
     /// <returns>A deserialized instance, or default value for blank input.</returns>
-    public static T? FromJSON<T>(string? json)
+    public static T? FromJson<T>(string? json)
     {
         if (String.IsNullOrWhiteSpace(json))
             return default;

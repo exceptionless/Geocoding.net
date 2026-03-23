@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Geocoding.Collections;
+namespace Geocoding.Extensions;
 
 /// <summary>
 /// Collection-related helpers.

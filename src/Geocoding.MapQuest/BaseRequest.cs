@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
-using Geocoding.Serialization;
+using Geocoding.Extensions;
 
 namespace Geocoding.MapQuest;
 
@@ -135,7 +135,7 @@ public abstract class BaseRequest
     {
         get
         {
-            return JsonExtensions.ToJSON(this);
+            return JsonExtensions.ToJson(this);
         }
     }
 

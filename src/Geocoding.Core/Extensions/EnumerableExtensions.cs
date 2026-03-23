@@ -1,4 +1,4 @@
-namespace Geocoding.Collections;
+namespace Geocoding.Extensions;
 
 /// <summary>
 /// Enumerable-related helpers.

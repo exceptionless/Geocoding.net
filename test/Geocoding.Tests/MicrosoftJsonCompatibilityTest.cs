@@ -1,7 +1,7 @@
 using System.Text.Json;
+using Geocoding.Extensions;
 using Geocoding.Microsoft;
 using Geocoding.Microsoft.Json;
-using Geocoding.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests;

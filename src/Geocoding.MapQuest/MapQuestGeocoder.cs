@@ -1,8 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using Geocoding.Collections;
-using Geocoding.Serialization;
+using Geocoding.Extensions;
 
 namespace Geocoding.MapQuest;
 
@@ -227,7 +226,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             if (String.IsNullOrWhiteSpace(json))
                 throw new Exception("Remote system response with blank: " + requestInfo);
 
-            MapQuestResponse? o = JsonExtensions.FromJSON<MapQuestResponse>(json);
+            MapQuestResponse? o = JsonExtensions.FromJson<MapQuestResponse>(json);
             if (o is null)
                 throw new Exception("Unable to deserialize remote response: " + requestInfo);
 

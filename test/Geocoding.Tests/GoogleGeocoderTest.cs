@@ -93,7 +93,7 @@ public class GoogleGeocoderTest : GeocoderTest
 
     [Theory]
     [InlineData("Winnetka", 46, -90, 47, -91, "Winnetka, IL")]
-    [InlineData("Winnetka", 34.172684, -118.604794, 34.236144, -118.500938, "Winnetka, Los Angeles, CA")]
+    [InlineData("Winnetka", 34.172684, -118.604794, 34.236144, -118.500938, "Winnetka, Los Angeles, CA, USA")]
     public async Task Geocode_WithBoundsBias_ReturnsBiasedResult(string address, double biasLatitude1, double biasLongitude1, double biasLatitude2, double biasLongitude2, string expectedSubstring)
     {
         // Arrange
@@ -169,19 +169,22 @@ public class GoogleGeocoderTest : GeocoderTest
         Assert.DoesNotContain(addresses, x => HasShortName(x, "NJ"));
     }
 
-    [Fact]
-    public async Task Geocode_WithPostalCodeFilter_ReturnsResultInExpectedPostalCode()
+    [Theory]
+    [InlineData("Rothwell")]
+    public async Task Geocode_WithPostalCodeFilter_ReturnsExpectedRegionalResults(string address)
     {
         // Arrange
         var geocoder = GetGeocoder<GoogleGeocoder>();
         geocoder.ComponentFilters = new List<GoogleComponentFilter>();
-        geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "94043"));
+        geocoder.ComponentFilters.Add(new GoogleComponentFilter(GoogleComponentFilterType.PostalCode, "NN14"));
 
         // Act
-        var addresses = (await geocoder.GeocodeAsync("1600 Amphitheatre Parkway, Mountain View, CA", TestContext.Current.CancellationToken)).ToArray();
+        var addresses = (await geocoder.GeocodeAsync(address, TestContext.Current.CancellationToken)).ToArray();
 
         // Assert
-        Assert.Contains(addresses, x => HasShortName(x, "94043"));
+        Assert.Contains(addresses, x => HasShortName(x, "Northamptonshire"));
+        Assert.DoesNotContain(addresses, x => HasShortName(x, "West Yorkshire"));
+        Assert.DoesNotContain(addresses, x => HasShortName(x, "Moreton Bay"));
     }
 
     [Fact]

@@ -85,7 +85,7 @@ public class YahooGeocoderTest : GeocoderTest
     }
 
     [Fact]
-    public void BuildRequest_GeneratesSignedGetRequest()
+    public void BuildRequest_WithPlacefinderUrl_ReturnsSignedGetRequest()
     {
         // Arrange
         var geocoder = new YahooGeocoder("consumer-key", "consumer-secret");

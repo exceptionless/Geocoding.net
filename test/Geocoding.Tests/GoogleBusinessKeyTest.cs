@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Geocoding.Tests;
 
+[Collection("Settings")]
 public class GoogleBusinessKeyTest
 {
     [Fact]

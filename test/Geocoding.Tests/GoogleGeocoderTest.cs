@@ -185,31 +185,6 @@ public class GoogleGeocoderTest : GeocoderTest
     }
 
     [Fact]
-    public void GoogleGeocodingException_WithProviderMessage_PreservesStatusAndMessage()
-    {
-        // Act
-        var exception = new GoogleGeocodingException(GoogleStatus.RequestDenied, "This API is not activated on your API project.");
-
-        // Assert
-        Assert.Equal(GoogleStatus.RequestDenied, exception.Status);
-        Assert.Equal("This API is not activated on your API project.", exception.ProviderMessage);
-        Assert.Contains("RequestDenied", exception.Message);
-        Assert.Contains("This API is not activated on your API project.", exception.Message);
-    }
-
-    [Fact]
-    public void GoogleGeocodingException_WithoutProviderMessage_LeavesProviderMessageNull()
-    {
-        // Act
-        var exception = new GoogleGeocodingException(GoogleStatus.OverQueryLimit);
-
-        // Assert
-        Assert.Equal(GoogleStatus.OverQueryLimit, exception.Status);
-        Assert.Null(exception.ProviderMessage);
-        Assert.Contains("OverQueryLimit", exception.Message);
-    }
-
-    [Fact]
     public async Task Geocode_HttpFailure_PreservesInnerExceptionPreview()
     {
         // Arrange

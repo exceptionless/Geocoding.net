@@ -75,7 +75,7 @@ public class BingMapsGeocoder : IGeocoder
         first = AppendParameter(parameters, address, Query, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return String.Format(FormattedQuery, parameters.ToString(), _bingKey);
+        return String.Format(FormattedQuery, parameters, _bingKey);
     }
 
     private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
@@ -89,7 +89,7 @@ public class BingMapsGeocoder : IGeocoder
         first = AppendParameter(parameters, street, Address, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return String.Format(FormattedQuery, parameters.ToString(), _bingKey);
+        return String.Format(FormattedQuery, parameters, _bingKey);
     }
 
     private string GetQueryUrl(double latitude, double longitude)
@@ -249,15 +249,11 @@ public class BingMapsGeocoder : IGeocoder
             if (resourceSet is null)
                 continue;
 
-            var locations = resourceSet.Locations;
-            if (locations.IsNullOrEmpty())
-                continue;
-
-            foreach (var location in locations.Where(location => location?.Point?.Coordinates is { Length: >= 2 }
+            foreach (var location in resourceSet.Resources.OfType<Json.Location>().Where(location => location.Point?.Coordinates is { Length: >= 2 }
                 && location.Address is not null
                 && !String.IsNullOrWhiteSpace(location.Address.FormattedAddress)))
             {
-                var coordinates = location!.Point!.Coordinates!;
+                var coordinates = location.Point!.Coordinates!;
 
                 if (!Enum.TryParse(location.EntityType, out EntityType entityType))
                     entityType = EntityType.Unknown;
@@ -309,8 +305,8 @@ public class BingMapsGeocoder : IGeocoder
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new BingGeocodingException(new HttpRequestException($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(body)}"));
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                throw new BingGeocodingException(new HttpRequestException($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}"));
             }
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
@@ -335,16 +331,21 @@ public class BingMapsGeocoder : IGeocoder
         return ConfidenceLevel.Unknown;
     }
 
-    private static string BuildResponsePreview(string? body)
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
     {
-        if (String.IsNullOrWhiteSpace(body))
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+        var buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+
+        if (read == 0)
             return String.Empty;
 
-        var preview = body!.Trim();
-        if (preview.Length > 256)
-            preview = preview.Substring(0, 256) + "...";
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
 
-        return " Response preview: " + preview;
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private string BingUrlEncode(string toEncode)

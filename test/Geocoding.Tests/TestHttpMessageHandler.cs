@@ -18,12 +18,17 @@ internal sealed class TestHttpMessageHandler : HttpMessageHandler
         return _sendAsync(request, cancellationToken);
     }
 
-    public static Task<HttpResponseMessage> CreateResponseAsync(HttpStatusCode statusCode, string? reasonPhrase = null, string? body = null)
+    public static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? reasonPhrase = null, string? body = null)
     {
-        return Task.FromResult(new HttpResponseMessage(statusCode)
+        return new HttpResponseMessage(statusCode)
         {
             ReasonPhrase = reasonPhrase,
             Content = String.IsNullOrWhiteSpace(body) ? null : new StringContent(body, Encoding.UTF8, "text/plain")
-        });
+        };
+    }
+
+    public static Task<HttpResponseMessage> CreateResponseAsync(HttpStatusCode statusCode, string? reasonPhrase = null, string? body = null)
+    {
+        return Task.FromResult(CreateResponse(statusCode, reasonPhrase, body));
     }
 }

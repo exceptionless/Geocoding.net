@@ -49,14 +49,11 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private IEnumerable<Address> HandleSingleResponse(MapQuestResponse res)
     {
-        if (res is not null && !res.Results.IsNullOrEmpty())
-        {
-            return HandleSingleResponse(from r in res.Results.OfType<MapQuestResult>()
-                                        from l in r.Locations?.OfType<MapQuestLocation>() ?? Enumerable.Empty<MapQuestLocation>()
-                                        select l);
-        }
-        else
-            return Array.Empty<Address>();
+        return res is not null && !res.Results.IsNullOrEmpty()
+            ? HandleSingleResponse(from r in res.Results.OfType<MapQuestResult>()
+                                   from l in r.Locations?.OfType<MapQuestLocation>() ?? Enumerable.Empty<MapQuestLocation>()
+                                   select l)
+            : Array.Empty<Address>();
     }
 
     private IEnumerable<Address> HandleSingleResponse(IEnumerable<MapQuestLocation> locs)

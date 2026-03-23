@@ -132,6 +132,7 @@ Before marking work complete, verify:
 - **xUnit** as the primary testing framework
 - Tests cover all providers with shared base patterns (`GeocoderTest`, `AsyncGeocoderTest`)
 - Provider-specific tests extend base test classes
+- For `HttpClient` failure-path tests, prefer `TestHttpMessageHandler.CreateResponse(...)` or `CreateResponseAsync(...)` instead of constructing `HttpResponseMessage` inline inside handler lambdas
 
 ### Running Tests
 

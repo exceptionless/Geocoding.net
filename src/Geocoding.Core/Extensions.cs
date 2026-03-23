@@ -27,7 +27,7 @@ public static class Extensions
     /// <typeparam name="T">The enumerable item type.</typeparam>
     /// <param name="self">The source enumerable.</param>
     /// <param name="actor">The action to execute for each item.</param>
-    public static void ForEach<T>(this IEnumerable<T> self, Action<T> actor)
+    public static void ForEach<T>(this IEnumerable<T>? self, Action<T> actor)
     {
         if (actor is null)
             throw new ArgumentNullException(nameof(actor));
@@ -66,7 +66,7 @@ public static class Extensions
     /// </summary>
     /// <param name="o">The object to serialize.</param>
     /// <returns>The JSON payload, or an empty string when the input is null.</returns>
-    public static string ToJSON(this object o)
+    public static string ToJSON(this object? o)
     {
         if (o is null)
             return String.Empty;

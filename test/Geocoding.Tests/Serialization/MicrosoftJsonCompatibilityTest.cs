@@ -9,7 +9,7 @@ namespace Geocoding.Tests.Serialization;
 public class MicrosoftJsonCompatibilityTest
 {
     [Fact]
-    public void EntityType_PreservesExistingNumericValues()
+    public void EntityType_WithExpectedName_PreservesExistingNumericValues()
     {
         string[] expectedNames = """
     Unknown

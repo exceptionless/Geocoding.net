@@ -68,6 +68,7 @@ samples/
 - Use modern C# features where the target frameworks support them
 - Follow SOLID, DRY principles; remove unused code and parameters
 - Clear, descriptive naming; prefer explicit over clever
+- Use ordinal or invariant string operations for protocol-level values such as HTTP verbs, OAuth parameter sorting, provider identifiers, and other locale-independent tokens
 - For existing public value-like types, prefer additive equality fixes over record conversions unless an API shape change is explicitly intended
 - Handle cancellation tokens properly: pass through call chains
 - Always dispose resources: use `using` statements

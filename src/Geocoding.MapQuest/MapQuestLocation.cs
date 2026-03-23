@@ -16,7 +16,8 @@ public class MapQuestLocation : ParsedAddress
     /// Initializes a new instance of the <see cref="MapQuestLocation"/> class for deserialization.
     /// </summary>
     [JsonConstructor]
-    protected MapQuestLocation() { }
+    public MapQuestLocation()
+        : this(Unknown, new Location(0, 0)) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MapQuestLocation"/> class.

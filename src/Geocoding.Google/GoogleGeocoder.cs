@@ -199,7 +199,6 @@ public class GoogleGeocoder : IGeocoder
     {
         try
         {
-            using var requestToDispose = request;
             using var client = BuildClient();
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -214,6 +213,10 @@ public class GoogleGeocoder : IGeocoder
         catch (Exception ex) when (ex is not GoogleGeocodingException)
         {
             throw new GoogleGeocodingException(ex);
+        }
+        finally
+        {
+            request.Dispose();
         }
     }
 

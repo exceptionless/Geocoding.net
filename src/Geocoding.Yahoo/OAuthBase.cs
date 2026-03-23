@@ -79,11 +79,11 @@ public class OAuthBase
         {
             if (x.Name == y.Name)
             {
-                return String.Compare(x.Value, y.Value);
+                return StringComparer.Ordinal.Compare(x.Value, y.Value);
             }
             else
             {
-                return String.Compare(x.Name, y.Name);
+                return StringComparer.Ordinal.Compare(x.Name, y.Name);
             }
         }
 
@@ -338,7 +338,7 @@ public class OAuthBase
         normalizedRequestParameters = NormalizeRequestParameters(parameters);
 
         StringBuilder signatureBase = new StringBuilder();
-        signatureBase.AppendFormat("{0}&", httpMethod.ToUpper());
+        signatureBase.AppendFormat("{0}&", httpMethod.ToUpperInvariant());
         signatureBase.AppendFormat("{0}&", UrlEncode(normalizedUrl));
         signatureBase.AppendFormat("{0}", UrlEncode(normalizedRequestParameters));
 
@@ -400,13 +400,15 @@ public class OAuthBase
             case SignatureTypes.PLAINTEXT:
                 return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}")!;
             case SignatureTypes.HMACSHA1:
+            {
                 string signatureBase = GenerateSignatureBase(url, consumerKey, token, tokenSecret, httpMethod, timeStamp, nonce, HMACSHA1SignatureType, out normalizedUrl, out normalizedRequestParameters);
 
-                HMACSHA1 hmacsha1 = new HMACSHA1();
+                using HMACSHA1 hmacsha1 = new HMACSHA1();
                 hmacsha1.Key = Encoding.ASCII.GetBytes(
                     $"{UrlEncode(consumerSecret)}&{(String.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
 
                 return GenerateSignatureUsingHash(signatureBase, hmacsha1);
+            }
             case SignatureTypes.RSASHA1:
                 throw new NotImplementedException();
             default:

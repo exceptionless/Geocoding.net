@@ -111,7 +111,6 @@ public class YahooGeocoder : IGeocoder
     {
         try
         {
-            using var requestToDispose = request;
             using var client = BuildClient();
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -120,14 +119,7 @@ public class YahooGeocoder : IGeocoder
                 var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
                 var message = $"Yahoo request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}";
 
-                try
-                {
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (HttpRequestException ex)
-                {
-                    throw new YahooGeocodingException(message, ex);
-                }
+                throw new YahooGeocodingException(message, new HttpRequestException(message));
             }
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
@@ -145,6 +137,10 @@ public class YahooGeocoder : IGeocoder
         {
             //wrap in yahoo exception
             throw new YahooGeocodingException(ex);
+        }
+        finally
+        {
+            request.Dispose();
         }
     }
 

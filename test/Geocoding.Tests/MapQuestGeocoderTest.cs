@@ -1,6 +1,9 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.Json;
+using Geocoding.Extensions;
 using Geocoding.MapQuest;
 using Geocoding.Tests.Utility;
 using Xunit;
@@ -44,6 +47,59 @@ public class MapQuestGeocoderTest : GeocoderTest
         // Act & Assert
         var exception = Assert.Throws<NotSupportedException>(() => geocoder.UseOSM = true);
         Assert.Contains("no longer supported", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void RequestVerb_Normalization_IsCultureInvariant()
+    {
+        // Arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
+            var request = new TestRequest("mapquest-key");
+
+            // Act
+            request.SetVerb("mixid");
+
+            // Assert
+            Assert.Equal("MIXID", request.RequestVerb);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
+    }
+
+    [Fact]
+    public void MapQuestLocation_Deserialization_PreservesProviderDefaults()
+    {
+        // Arrange
+        const string json = """
+            {
+              "location": "1600 Pennsylvania Ave NW, Washington, DC 20500, US",
+              "latLng": { "lat": 38.8977, "lng": -77.0365 },
+              "displayLatLng": { "lat": 38.8977, "lng": -77.0365 },
+              "street": "1600 Pennsylvania Ave NW",
+              "adminArea5": "Washington",
+              "adminArea3": "DC",
+              "adminArea1": "US",
+              "postalCode": "20500"
+            }
+            """;
+
+        // Act
+        var location = JsonSerializer.Deserialize<MapQuestLocation>(json, JsonExtensions.JsonOptions);
+
+        // Assert
+        Assert.NotNull(location);
+        Assert.Equal("MapQuest", location.Provider);
+        Assert.Equal("1600 Pennsylvania Ave NW, Washington, DC 20500, US", location.FormattedAddress);
+        Assert.Equal(new Location(38.8977, -77.0365), location.Coordinates);
     }
 
     [Fact]
@@ -109,6 +165,19 @@ public class MapQuestGeocoderTest : GeocoderTest
         protected override HttpClient BuildClient()
         {
             return new HttpClient(_handler, disposeHandler: false);
+        }
+    }
+
+    private sealed class TestRequest : BaseRequest
+    {
+        public TestRequest(string key)
+            : base(key) { }
+
+        public override string RequestAction => "address";
+
+        public void SetVerb(string verb)
+        {
+            RequestVerb = verb;
         }
     }
 }

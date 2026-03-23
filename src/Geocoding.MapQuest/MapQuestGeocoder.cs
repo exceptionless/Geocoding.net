@@ -151,7 +151,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                     if (!String.IsNullOrWhiteSpace(l.FormattedAddress) || o.ProvidedLocation is null)
                         continue;
 
-                    if (string.Compare(o.ProvidedLocation.FormattedAddress, "unknown", true) != 0)
+                    if (!String.Equals(o.ProvidedLocation.FormattedAddress, "unknown", StringComparison.OrdinalIgnoreCase))
                         l.FormattedAddress = o.ProvidedLocation.FormattedAddress;
                     else
                         l.FormattedAddress = o.ProvidedLocation.ToString();

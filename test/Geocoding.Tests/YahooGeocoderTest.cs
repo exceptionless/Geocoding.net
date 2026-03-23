@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CS0618
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -133,6 +134,68 @@ public class YahooGeocoderTest : GeocoderTest
         Assert.IsType<HttpRequestException>(exception.InnerException);
     }
 
+    [Fact]
+    public void QueryParameterComparer_UsesOrdinalComparison()
+    {
+        // Arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
+            var helper = new TestOAuthBase();
+
+            // Act
+            var comparison = helper.CompareParameters("I", "first", "ı", "second");
+
+            // Assert
+            Assert.Equal(StringComparer.Ordinal.Compare("I", "ı"), comparison);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
+    }
+
+    [Fact]
+    public void GenerateSignatureBase_HttpMethodNormalization_IsCultureInvariant()
+    {
+        // Arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        var originalUICulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
+            var helper = new TestOAuthBase();
+
+            // Act
+            var signatureBase = helper.GenerateSignatureBase(
+                new Uri("https://example.com/resource?a=1"),
+                "consumer-key",
+                String.Empty,
+                String.Empty,
+                "mixid",
+                "1234567890",
+                "nonce",
+                "HMAC-SHA1",
+                out _,
+                out _);
+
+            // Assert
+            Assert.StartsWith("MIXID&", signatureBase, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUICulture;
+        }
+    }
+
     private sealed class TestableYahooGeocoder : YahooGeocoder
     {
         private readonly HttpMessageHandler _handler;
@@ -146,6 +209,16 @@ public class YahooGeocoderTest : GeocoderTest
         protected override HttpClient BuildClient()
         {
             return new HttpClient(_handler, disposeHandler: false);
+        }
+    }
+
+    private sealed class TestOAuthBase : OAuthBase
+    {
+        public int CompareParameters(string leftName, string leftValue, string rightName, string rightValue)
+        {
+            return new QueryParameterComparer().Compare(
+                new QueryParameter(leftName, leftValue),
+                new QueryParameter(rightName, rightValue));
         }
     }
 }

@@ -124,7 +124,7 @@ public abstract class BaseRequest
     public virtual string RequestVerb
     {
         get { return _verb; }
-        protected set { _verb = String.IsNullOrWhiteSpace(value) ? "POST" : value.Trim().ToUpper(); }
+        protected set { _verb = String.IsNullOrWhiteSpace(value) ? "POST" : value.Trim().ToUpperInvariant(); }
     }
 
     /// <summary>

@@ -97,7 +97,7 @@ public class YahooGeocoderTest : GeocoderTest
 
         // Assert
         Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.StartsWith("http://yboss.yahooapis.com/geo/placefinder?", requestUri, StringComparison.Ordinal);
+        Assert.StartsWith("https://yboss.yahooapis.com/geo/placefinder?", requestUri, StringComparison.Ordinal);
         Assert.Contains("oauth_consumer_key=consumer-key", requestUri, StringComparison.Ordinal);
         Assert.Contains("oauth_nonce=", requestUri, StringComparison.Ordinal);
         Assert.Contains("oauth_signature=", requestUri, StringComparison.Ordinal);

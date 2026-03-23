@@ -18,15 +18,15 @@ public class YahooGeocoder : IGeocoder
     /// <summary>
     /// The single-line Yahoo geocoding service URL format.
     /// </summary>
-    public const string ServiceUrl = "http://yboss.yahooapis.com/geo/placefinder?q={0}";
+    public const string ServiceUrl = "https://yboss.yahooapis.com/geo/placefinder?q={0}";
     /// <summary>
     /// The multi-part Yahoo geocoding service URL format.
     /// </summary>
-    public const string ServiceUrlNormal = "http://yboss.yahooapis.com/geo/placefinder?street={0}&city={1}&state={2}&postal={3}&country={4}";
+    public const string ServiceUrlNormal = "https://yboss.yahooapis.com/geo/placefinder?street={0}&city={1}&state={2}&postal={3}&country={4}";
     /// <summary>
     /// The Yahoo reverse geocoding service URL format.
     /// </summary>
-    public const string ServiceUrlReverse = "http://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
+    public const string ServiceUrlReverse = "https://yboss.yahooapis.com/geo/placefinder?q={0}&gflags=R";
 
     private readonly string _consumerKey, _consumerSecret;
 

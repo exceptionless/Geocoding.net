@@ -135,7 +135,7 @@ public class YahooGeocoderTest : GeocoderTest
     }
 
     [Fact]
-    public void QueryParameterComparer_UsesOrdinalComparison()
+    public void Compare_TurkishCulture_IsCultureInvariant()
     {
         // Arrange
         var originalCulture = CultureInfo.CurrentCulture;

@@ -138,10 +138,6 @@ public class YahooGeocoder : IGeocoder
             //wrap in yahoo exception
             throw new YahooGeocodingException(ex);
         }
-        finally
-        {
-            request.Dispose();
-        }
     }
 
     async Task<IEnumerable<Address>> IGeocoder.GeocodeAsync(string address, CancellationToken cancellationToken)

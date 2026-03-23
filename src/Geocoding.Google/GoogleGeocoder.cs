@@ -214,10 +214,6 @@ public class GoogleGeocoder : IGeocoder
         {
             throw new GoogleGeocodingException(ex);
         }
-        finally
-        {
-            request.Dispose();
-        }
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
 using Geocoding.Microsoft;
+using Geocoding.Tests.Utility;
 using Xunit;
 using MicrosoftJson = Geocoding.Microsoft.Json;
 

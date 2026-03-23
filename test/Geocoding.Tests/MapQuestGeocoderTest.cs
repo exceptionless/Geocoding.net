@@ -1,7 +1,8 @@
-﻿using System.Net.Http;
-using System.Net;
+﻿using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using Geocoding.MapQuest;
+using Geocoding.Tests.Utility;
 using Xunit;
 
 namespace Geocoding.Tests;

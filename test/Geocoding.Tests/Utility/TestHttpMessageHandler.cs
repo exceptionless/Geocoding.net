@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 
-namespace Geocoding.Tests;
+namespace Geocoding.Tests.Utility;
 
 internal sealed class TestHttpMessageHandler : HttpMessageHandler
 {

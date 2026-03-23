@@ -2,9 +2,11 @@
 
 Includes a model and interface for communicating with current geocoding providers.
 
+This repository is the actively maintained Geocoding.net fork for current provider integrations and compatibility work.
+
 | Provider | Package | Status | Auth | Notes |
 | --- | --- | --- | --- | --- |
-| Google Maps | `Geocoding.Google` | Supported | API key or signed client credentials | `BusinessKey` supports signed Google Maps client-based requests when your deployment requires them. |
+| Google Maps | `Geocoding.Google` | Supported | API key or signed client credentials | `BusinessKey` remains available as a legacy signed-client compatibility path. |
 | Azure Maps | `Geocoding.Microsoft` | Supported | Azure Maps subscription key | Primary Microsoft-backed geocoder. |
 | Bing Maps | `Geocoding.Microsoft` | Deprecated compatibility | Bing Maps enterprise key | `BingMapsGeocoder` remains available for existing consumers and is marked obsolete for new development. |
 | HERE Geocoding and Search | `Geocoding.Here` | Supported | HERE API key | Uses the current HERE Geocoding and Search API. |
@@ -70,6 +72,8 @@ The Microsoft providers expose `AzureMapsAddress`, and the legacy `BingMapsGeoco
 
 Google uses a [Geocoding API key](https://developers.google.com/maps/documentation/geocoding/get-api-key), and many environments now require one for reliable access.
 
+If you still depend on signed Google Maps client credentials, `BusinessKey` remains available as a legacy compatibility option.
+
 Azure Maps requires an [Azure Maps account key](https://learn.microsoft.com/en-us/azure/azure-maps/how-to-manage-account-keys#create-a-new-account).
 
 Bing Maps requires an existing Bing Maps enterprise key. The provider is deprecated and retained only for compatibility during migration to Azure Maps.
@@ -98,6 +102,12 @@ Alternatively, if you are on Windows, you can open the solution in [Visual Studi
 You will need credentials for each respective service to run the service tests. Make a `settings-override.json` as a copy of `settings.json` in the test project and put in your provider credentials there. Then you should be able to run the tests.
 
 Most provider-backed integration tests skip with a message indicating which setting is required when credentials are missing. The Yahoo suite now follows the same credential gating, but the provider remains deprecated and unverified.
+
+Provider-specific tests stay at the root of `test/Geocoding.Tests` with provider-prefixed filenames. Shared cross-cutting areas use focused folders such as `Models`, `Serialization`, `Extensions`, and `Utility`.
+
+Provider-specific automated coverage exists for Google, Microsoft (Azure Maps and Bing compatibility), HERE, MapQuest, and Yahoo compatibility, alongside shared core behavior tests.
+
+See the docs site in `docs/` for the provider guides, onboarding material, and sample app usage notes.
 
 ## Sample App
 

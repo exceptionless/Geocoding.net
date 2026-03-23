@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.Json;
 using Geocoding.Extensions;
 using Geocoding.Microsoft;
+using Geocoding.Tests.Utility;
 using Xunit;
 
 namespace Geocoding.Tests;

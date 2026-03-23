@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Geocoding.Tests;
+namespace Geocoding.Tests.Extensions;
 
 public static class AddressAssertionExtensions
 {

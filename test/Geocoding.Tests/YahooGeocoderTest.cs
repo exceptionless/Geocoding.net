@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using Geocoding.Tests.Utility;
 using Geocoding.Yahoo;
 using Xunit;
 

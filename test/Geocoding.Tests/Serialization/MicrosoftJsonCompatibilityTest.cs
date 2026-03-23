@@ -4,14 +4,14 @@ using Geocoding.Microsoft;
 using Geocoding.Microsoft.Json;
 using Xunit;
 
-namespace Geocoding.Tests;
+namespace Geocoding.Tests.Serialization;
 
 public class MicrosoftJsonCompatibilityTest
 {
-  [Fact]
-  public void EntityType_PreservesExistingNumericValues()
-  {
-    string[] expectedNames = """
+    [Fact]
+    public void EntityType_PreservesExistingNumericValues()
+    {
+        string[] expectedNames = """
     Unknown
     Address
     AdminDivision1
@@ -208,15 +208,15 @@ public class MicrosoftJsonCompatibilityTest
     PointOfInterest
     """.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-    Assert.Equal(expectedNames.Length, Enum.GetNames<EntityType>().Length);
+        Assert.Equal(expectedNames.Length, Enum.GetNames<EntityType>().Length);
 
-    for (int index = 0; index < expectedNames.Length; index++)
-    {
-      var entityType = Enum.Parse<EntityType>(expectedNames[index]);
-      var expectedValue = index == 0 ? -1 : index - 1;
-      Assert.Equal(expectedValue, (int)entityType);
+        for (int index = 0; index < expectedNames.Length; index++)
+        {
+            var entityType = Enum.Parse<EntityType>(expectedNames[index]);
+            var expectedValue = index == 0 ? -1 : index - 1;
+            Assert.Equal(expectedValue, (int)entityType);
+        }
     }
-  }
 
     [Fact]
     public void Response_WithLocationResource_DeserializesToLocation()

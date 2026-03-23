@@ -1,7 +1,7 @@
 using Geocoding.Extensions;
 using Xunit;
 
-namespace Geocoding.Tests;
+namespace Geocoding.Tests.Serialization;
 
 public class TolerantStringEnumConverterTest
 {

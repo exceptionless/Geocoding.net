@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Geocoding.Tests.Extensions;
 using Xunit;
 
 namespace Geocoding.Tests;

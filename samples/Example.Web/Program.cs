@@ -17,13 +17,13 @@ app.MapGet("/", (IOptions<ProviderOptions> options) => Results.Ok(new
     endpoints = new[]
     {
         "/providers",
-        "/geocode?provider=google&address=1600 Pennsylvania Ave NW, Washington, DC",
-        "/reverse?provider=google&latitude=38.8976763&longitude=-77.0365298"
+        "/geocode?provider={provider}&address=1600 Pennsylvania Ave NW, Washington, DC",
+        "/reverse?provider={provider}&latitude=38.8976763&longitude=-77.0365298"
     },
-    configuredProviders = GetConfiguredProviders(options.Value)
+    configuredProviders = options.Value.ConfiguredProviders
 }));
 
-app.MapGet("/providers", (IOptions<ProviderOptions> options) => Results.Ok(GetConfiguredProviders(options.Value)));
+app.MapGet("/providers", (IOptions<ProviderOptions> options) => Results.Ok(options.Value.ConfiguredProviders));
 
 app.MapGet("/geocode", async Task<IResult> (string? provider, string? address, IOptions<ProviderOptions> options, CancellationToken cancellationToken) =>
 {
@@ -105,27 +105,6 @@ app.MapGet("/reverse", async Task<IResult> (string? provider, double? latitude, 
 
 app.Run();
 
-static string[] GetConfiguredProviders(ProviderOptions options)
-{
-    var configuredProviders = new List<string>();
-
-    if (!String.IsNullOrWhiteSpace(options.Azure.ApiKey))
-        configuredProviders.Add("azure");
-
-    if (!String.IsNullOrWhiteSpace(options.Bing.ApiKey))
-        configuredProviders.Add("bing");
-
-    configuredProviders.Add("google");
-
-    if (!String.IsNullOrWhiteSpace(options.Here.ApiKey))
-        configuredProviders.Add("here");
-
-    if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
-        configuredProviders.Add("mapquest");
-
-    return configuredProviders.ToArray();
-}
-
 static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeocoder geocoder, out string? error)
 {
     switch (provider.Trim().ToLowerInvariant())
@@ -155,9 +134,14 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             return true;
 
         case "google":
-            geocoder = String.IsNullOrWhiteSpace(options.Google.ApiKey)
-                ? new GoogleGeocoder()
-                : new GoogleGeocoder(options.Google.ApiKey);
+            if (String.IsNullOrWhiteSpace(options.Google.ApiKey))
+            {
+                geocoder = default!;
+                error = "Configure Providers:Google:ApiKey before using the Google provider.";
+                return false;
+            }
+
+            geocoder = new GoogleGeocoder(options.Google.ApiKey);
             error = null;
             return true;
 
@@ -238,6 +222,32 @@ internal sealed class ProviderOptions
     public GoogleProviderOptions Google { get; init; } = new();
     public HereProviderOptions Here { get; init; } = new();
     public MapQuestProviderOptions MapQuest { get; init; } = new();
+    public YahooProviderOptions Yahoo { get; init; } = new();
+
+    public string[] ConfiguredProviders
+    {
+        get
+        {
+            var providers = new List<string>();
+
+            if (!String.IsNullOrWhiteSpace(Azure.ApiKey))
+                providers.Add("azure");
+
+            if (!String.IsNullOrWhiteSpace(Bing.ApiKey))
+                providers.Add("bing");
+
+            if (!String.IsNullOrWhiteSpace(Google.ApiKey))
+                providers.Add("google");
+
+            if (!String.IsNullOrWhiteSpace(Here.ApiKey))
+                providers.Add("here");
+
+            if (!String.IsNullOrWhiteSpace(MapQuest.ApiKey) && !MapQuest.UseOsm)
+                providers.Add("mapquest");
+
+            return providers.ToArray();
+        }
+    }
 }
 
 internal sealed class AzureProviderOptions
@@ -264,4 +274,10 @@ internal sealed class MapQuestProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
     public bool UseOsm { get; init; }
+}
+
+internal sealed class YahooProviderOptions
+{
+    public String ConsumerKey { get; init; } = String.Empty;
+    public String ConsumerSecret { get; init; } = String.Empty;
 }

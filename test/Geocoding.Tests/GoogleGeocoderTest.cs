@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
 using Geocoding.Google;
+using Geocoding.Tests.Utility;
 using Xunit;
 
 namespace Geocoding.Tests;

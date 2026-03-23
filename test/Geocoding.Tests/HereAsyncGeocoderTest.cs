@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.Json;
 using Geocoding.Extensions;
 using Geocoding.Here;
+using Geocoding.Tests.Utility;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -104,5 +105,4 @@ public class HereAsyncGeocoderTest : AsyncGeocoderTest
             return new HttpClient(_handler, disposeHandler: false);
         }
     }
-
 }

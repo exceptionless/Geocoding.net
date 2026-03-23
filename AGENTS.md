@@ -10,7 +10,7 @@ Geocoding.net provides a unified interface for geocoding and reverse geocoding a
 
 - **Core** (`Geocoding.Core`) - `IGeocoder` interface, `Address`, `Location`, distance calculations
 - **Google Maps** (`Geocoding.Google`) - Google Maps Geocoding API
-- **Bing Maps** (`Geocoding.Microsoft`) - Bing Maps / Virtual Earth API
+- **Microsoft** (`Geocoding.Microsoft`) - Azure Maps plus legacy Bing Maps compatibility
 - **HERE** (`Geocoding.Here`) - HERE Geocoding API
 - **MapQuest** (`Geocoding.MapQuest`) - MapQuest Geocoding API (commercial & OpenStreetMap)
 - **Yahoo** (`Geocoding.Yahoo`) - Yahoo BOSS Geo Services
@@ -38,10 +38,10 @@ src/
 ├── Geocoding.Google            # Google Maps geocoding provider
 ├── Geocoding.Here              # HERE geocoding provider
 ├── Geocoding.MapQuest          # MapQuest geocoding provider
-├── Geocoding.Microsoft         # Bing Maps geocoding provider
+├── Geocoding.Microsoft         # Azure Maps plus legacy Bing Maps compatibility
 └── Geocoding.Yahoo             # Yahoo geocoding provider
 test/
-└── Geocoding.Tests             # xUnit tests for all providers
+└── Geocoding.Tests             # xUnit tests with provider-prefixed root tests plus folders for shared concerns
 samples/
 └── Example.Web                 # Sample web application
 ```
@@ -77,7 +77,7 @@ samples/
 - **Async suffix**: All async methods end with `Async` (e.g., `GeocodeAsync`, `ReverseGeocodeAsync`)
 - **Provider-specific data**: Each provider exposes its own `Address` subclass with additional properties
 - **Exception types**: Each provider has its own exception type (e.g., `GoogleGeocodingException`, `BingGeocodingException`)
-- **JSON parsing**: Providers use `Newtonsoft.Json` for API response parsing
+- **JSON parsing**: Providers use `System.Text.Json` with the shared geocoding serializer helpers
 
 ## Making Changes
 
@@ -132,6 +132,7 @@ Before marking work complete, verify:
 - **xUnit** as the primary testing framework
 - Tests cover all providers with shared base patterns (`GeocoderTest`, `AsyncGeocoderTest`)
 - Provider-specific tests extend base test classes
+- Keep provider-specific test files at the root of `test/Geocoding.Tests` with provider-prefixed names; use folders only for shared cross-cutting concerns such as `Models`, `Serialization`, `Extensions`, and `Utility`
 - For `HttpClient` failure-path tests, prefer `TestHttpMessageHandler.CreateResponse(...)` or `CreateResponseAsync(...)` instead of constructing `HttpResponseMessage` inline inside handler lambdas
 
 ### Running Tests

@@ -1,7 +1,7 @@
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Geocoding.Extensions;

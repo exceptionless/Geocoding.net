@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -20,7 +20,7 @@ public class RequestOptions
     /// The number of results to limit the response to in the case of an ambiguous address.
     /// Defaults: -1 (indicates no limit)
     /// </summary>
-    [JsonProperty("maxResults")]
+    [JsonPropertyName("maxResults")]
     public virtual int MaxResults
     {
         get { return _maxResults; }
@@ -30,18 +30,19 @@ public class RequestOptions
     /// <summary>
     /// This parameter tells the service whether it should return a URL to a static map thumbnail image for a location being geocoded.
     /// </summary>
-    [JsonProperty("thumbMaps")]
+    [JsonPropertyName("thumbMaps")]
     public virtual bool ThumbMap { get; set; }
 
     /// <summary>
     /// This option tells the service whether it should fail when given a latitude/longitude pair in an address or batch geocode call, or if it should ignore that and try and geo-code what it can.
     /// </summary>
-    [JsonProperty("ignoreLatLngInput")]
+    [JsonPropertyName("ignoreLatLngInput")]
     public virtual bool IgnoreLatLngInput { get; set; }
 
     /// <summary>
     /// Optional name of JSONP callback method.
     /// </summary>
-    [JsonProperty("callback", NullValueHandling = NullValueHandling.Ignore)]
-    public virtual string JsonpCallBack { get; set; }
+    [JsonPropertyName("callback")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public virtual string? JsonpCallBack { get; set; }
 }

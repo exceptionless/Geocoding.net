@@ -1,28 +1,27 @@
 ---
 name: security-principles
 description: >
-    Use this skill when handling secrets, credentials, PII, input validation, or any
-    security-sensitive code. Covers secrets management, secure defaults, encryption, logging
-    safety, and common vulnerability prevention. Apply when adding authentication, configuring
-    environment variables, reviewing code for security issues, or working with sensitive data.
+    Use this skill when handling provider API keys, external geocoding responses, request
+    construction, logging safety, or other security-sensitive code in Geocoding.net. Apply when
+    reviewing secrets handling, input validation, secure transport, or safety risks around
+    external provider integrations and sample/test configuration.
 ---
 
 # Security Principles
 
 ## Secrets Management
 
-Secrets are injected via Kubernetes ConfigMaps and environment variables — never commit secrets to the repository.
+Provider credentials belong in local override files or environment variables and must never be committed to the repository.
 
-- **Configuration files** — Use `appsettings.yml` for non-secret config
-- **Environment variables** — Secrets injected at runtime via `EX_*` prefix
-- **Kubernetes** — ConfigMaps mount configuration, Secrets mount credentials
+- **Tracked placeholders** — `test/Geocoding.Tests/settings.json` is versioned and should contain placeholders only; do not put real keys there
+- **Test credentials** — Keep provider API keys in `test/Geocoding.Tests/settings-override.json` or via `GEOCODING_` environment variables
+- **Sample configuration** — Use placeholder values only in `samples/Example.Web/appsettings.json`
+- **Environment variables** — Use environment variables for CI or local overrides when needed
 
 ```csharp
-// AppOptions binds to configuration (including env vars)
-public class AppOptions
+public sealed class ProviderOptions
 {
-    public string? StripeApiKey { get; set; }
-    public AuthOptions Auth { get; set; } = new();
+    public string? ApiKey { get; set; }
 }
 ```
 
@@ -31,24 +30,25 @@ public class AppOptions
 - Check bounds and formats before processing
 - Use `ArgumentNullException.ThrowIfNull()` and similar guards
 - Validate early, fail fast
+- Validate coordinates, address fragments, and batch sizes before sending requests
 
 ## Sanitize External Data
 
-- Never trust data from queues, caches, user input, or external sources
+- Never trust data from geocoding providers, user input, or sample configuration
 - Validate against expected schema
-- Sanitize HTML/script content before storage or display
+- Handle missing or malformed response fields without assuming provider correctness
 
 ## No Sensitive Data in Logs
 
-- Never log passwords, tokens, API keys, or PII
+- Never log passwords, tokens, API keys, or raw provider payloads
 - Log identifiers and prefixes, not full values
 - Use structured logging with safe placeholders
 
 ## Use Secure Defaults
 
-- Default to encrypted connections (SSL/TLS enabled)
-- Default to restrictive permissions
-- Require explicit opt-out for security features
+- Default to HTTPS provider endpoints
+- Avoid disabling certificate or transport validation
+- Require explicit opt-out for any non-secure development-only behavior
 
 ## Avoid Deprecated Cryptographic Algorithms
 
@@ -64,9 +64,15 @@ Use modern cryptographic algorithms:
 
 ## Input Bounds Checking
 
-- Enforce minimum/maximum values on pagination parameters
+- Enforce minimum/maximum values on pagination or batch parameters
 - Limit batch sizes to prevent resource exhaustion
-- Validate string lengths before storage
+- Validate string lengths before request construction
+
+## Safe Request Construction
+
+- URL-encode user-supplied address fragments and query parameters
+- Do not concatenate secrets or untrusted input into URLs without escaping
+- Preserve provider-specific signing or authentication requirements without leaking secrets into logs
 
 ## OWASP Reference
 

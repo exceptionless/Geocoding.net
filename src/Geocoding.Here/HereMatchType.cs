@@ -4,7 +4,7 @@
 /// Represents the match type returned by the HERE geocoding service.
 /// </summary>
 /// <remarks>
-/// https://developer.here.com/documentation/geocoder/topics/resource-type-response-geocode.html
+/// https://www.here.com/docs/category/geocoding-search
 /// </remarks>
 public enum HereMatchType
 {

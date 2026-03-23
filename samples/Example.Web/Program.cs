@@ -1,9 +1,8 @@
-using Geocoding;
+﻿using Geocoding;
 using Geocoding.Google;
 using Geocoding.Here;
 using Geocoding.MapQuest;
 using Geocoding.Microsoft;
-using Geocoding.Yahoo;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,13 +17,13 @@ app.MapGet("/", (IOptions<ProviderOptions> options) => Results.Ok(new
     endpoints = new[]
     {
         "/providers",
-        "/geocode?provider=google&address=1600 Pennsylvania Ave NW, Washington, DC",
-        "/reverse?provider=google&latitude=38.8976763&longitude=-77.0365298"
+        "/geocode?provider={provider}&address=1600 Pennsylvania Ave NW, Washington, DC",
+        "/reverse?provider={provider}&latitude=38.8976763&longitude=-77.0365298"
     },
-    configuredProviders = GetConfiguredProviders(options.Value)
+    configuredProviders = options.Value.ConfiguredProviders
 }));
 
-app.MapGet("/providers", (IOptions<ProviderOptions> options) => Results.Ok(GetConfiguredProviders(options.Value)));
+app.MapGet("/providers", (IOptions<ProviderOptions> options) => Results.Ok(options.Value.ConfiguredProviders));
 
 app.MapGet("/geocode", async Task<IResult> (string? provider, string? address, IOptions<ProviderOptions> options, CancellationToken cancellationToken) =>
 {
@@ -106,35 +105,19 @@ app.MapGet("/reverse", async Task<IResult> (string? provider, double? latitude, 
 
 app.Run();
 
-static string[] GetConfiguredProviders(ProviderOptions options)
-{
-    var configuredProviders = new List<string>();
-
-    configuredProviders.Add("google");
-
-    if (!String.IsNullOrWhiteSpace(options.Bing.ApiKey))
-        configuredProviders.Add("bing");
-
-    if (!String.IsNullOrWhiteSpace(options.Here.AppId) && !String.IsNullOrWhiteSpace(options.Here.AppCode))
-        configuredProviders.Add("here");
-
-    if (!String.IsNullOrWhiteSpace(options.MapQuest.ApiKey))
-        configuredProviders.Add("mapquest");
-
-    if (!String.IsNullOrWhiteSpace(options.Yahoo.ConsumerKey) && !String.IsNullOrWhiteSpace(options.Yahoo.ConsumerSecret))
-        configuredProviders.Add("yahoo");
-
-    return configuredProviders.ToArray();
-}
-
 static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeocoder geocoder, out string? error)
 {
     switch (provider.Trim().ToLowerInvariant())
     {
-        case "google":
-            geocoder = String.IsNullOrWhiteSpace(options.Google.ApiKey)
-                ? new GoogleGeocoder()
-                : new GoogleGeocoder(options.Google.ApiKey);
+        case "azure":
+            if (String.IsNullOrWhiteSpace(options.Azure.ApiKey))
+            {
+                geocoder = default!;
+                error = "Configure Providers:Azure:ApiKey before using the Azure Maps provider.";
+                return false;
+            }
+
+            geocoder = new AzureMapsGeocoder(options.Azure.ApiKey);
             error = null;
             return true;
 
@@ -150,15 +133,27 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             error = null;
             return true;
 
-        case "here":
-            if (String.IsNullOrWhiteSpace(options.Here.AppId) || String.IsNullOrWhiteSpace(options.Here.AppCode))
+        case "google":
+            if (String.IsNullOrWhiteSpace(options.Google.ApiKey))
             {
                 geocoder = default!;
-                error = "Configure Providers:Here:AppId and Providers:Here:AppCode before using the HERE provider.";
+                error = "Configure Providers:Google:ApiKey before using the Google provider.";
                 return false;
             }
 
-            geocoder = new HereGeocoder(options.Here.AppId, options.Here.AppCode);
+            geocoder = new GoogleGeocoder(options.Google.ApiKey);
+            error = null;
+            return true;
+
+        case "here":
+            geocoder = default!;
+            if (String.IsNullOrWhiteSpace(options.Here.ApiKey))
+            {
+                error = "Configure Providers:Here:ApiKey before using the HERE provider.";
+                return false;
+            }
+
+            geocoder = new HereGeocoder(options.Here.ApiKey);
             error = null;
             return true;
 
@@ -170,6 +165,13 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
                 return false;
             }
 
+            if (options.MapQuest.UseOsm)
+            {
+                geocoder = default!;
+                error = "MapQuest OpenStreetMap mode is no longer supported. Use the commercial MapQuest API instead.";
+                return false;
+            }
+
             geocoder = new MapQuestGeocoder(options.MapQuest.ApiKey)
             {
                 UseOSM = options.MapQuest.UseOsm
@@ -177,21 +179,9 @@ static bool TryCreateGeocoder(string provider, ProviderOptions options, out IGeo
             error = null;
             return true;
 
-        case "yahoo":
-            if (String.IsNullOrWhiteSpace(options.Yahoo.ConsumerKey) || String.IsNullOrWhiteSpace(options.Yahoo.ConsumerSecret))
-            {
-                geocoder = default!;
-                error = "Configure Providers:Yahoo:ConsumerKey and Providers:Yahoo:ConsumerSecret before using the Yahoo provider.";
-                return false;
-            }
-
-            geocoder = new YahooGeocoder(options.Yahoo.ConsumerKey, options.Yahoo.ConsumerSecret);
-            error = null;
-            return true;
-
         default:
             geocoder = default!;
-            error = $"Unknown provider '{provider}'. Use one of: google, bing, here, mapquest, yahoo.";
+            error = $"Unknown provider '{provider}'. Use one of: azure, bing, google, here, mapquest.";
             return false;
     }
 }
@@ -227,14 +217,40 @@ internal sealed record AddressResponse(string FormattedAddress, string Provider,
 
 internal sealed class ProviderOptions
 {
-    public GoogleProviderOptions Google { get; init; } = new();
+    public AzureProviderOptions Azure { get; init; } = new();
     public BingProviderOptions Bing { get; init; } = new();
+    public GoogleProviderOptions Google { get; init; } = new();
     public HereProviderOptions Here { get; init; } = new();
     public MapQuestProviderOptions MapQuest { get; init; } = new();
     public YahooProviderOptions Yahoo { get; init; } = new();
+
+    public string[] ConfiguredProviders
+    {
+        get
+        {
+            var providers = new List<string>();
+
+            if (!String.IsNullOrWhiteSpace(Azure.ApiKey))
+                providers.Add("azure");
+
+            if (!String.IsNullOrWhiteSpace(Bing.ApiKey))
+                providers.Add("bing");
+
+            if (!String.IsNullOrWhiteSpace(Google.ApiKey))
+                providers.Add("google");
+
+            if (!String.IsNullOrWhiteSpace(Here.ApiKey))
+                providers.Add("here");
+
+            if (!String.IsNullOrWhiteSpace(MapQuest.ApiKey) && !MapQuest.UseOsm)
+                providers.Add("mapquest");
+
+            return providers.ToArray();
+        }
+    }
 }
 
-internal sealed class GoogleProviderOptions
+internal sealed class AzureProviderOptions
 {
     public String ApiKey { get; init; } = String.Empty;
 }
@@ -244,10 +260,14 @@ internal sealed class BingProviderOptions
     public String ApiKey { get; init; } = String.Empty;
 }
 
+internal sealed class GoogleProviderOptions
+{
+    public String ApiKey { get; init; } = String.Empty;
+}
+
 internal sealed class HereProviderOptions
 {
-    public String AppId { get; init; } = String.Empty;
-    public String AppCode { get; init; } = String.Empty;
+    public String ApiKey { get; init; } = String.Empty;
 }
 
 internal sealed class MapQuestProviderOptions

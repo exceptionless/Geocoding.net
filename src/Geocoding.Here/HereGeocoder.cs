@@ -1,44 +1,38 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Geocoding.Extensions;
 
 namespace Geocoding.Here;
 
 /// <summary>
-/// Provides geocoding and reverse geocoding through the HERE geocoding API.
+/// Provides geocoding and reverse geocoding through the HERE Geocoding and Search API.
 /// </summary>
 /// <remarks>
-/// https://developer.here.com/documentation/geocoder/topics/request-constructing.html
+/// https://www.here.com/docs/category/geocoding-search
 /// </remarks>
 public class HereGeocoder : IGeocoder
 {
-    private const string GeocodingQuery = "https://geocoder.api.here.com/6.2/geocode.json?app_id={0}&app_code={1}&{2}";
-    private const string ReverseGeocodingQuery = "https://reverse.geocoder.api.here.com/6.2/reversegeocode.json?app_id={0}&app_code={1}&mode=retrieveAddresses&{2}";
-    private const string Searchtext = "searchtext={0}";
-    private const string Prox = "prox={0}";
-    private const string Street = "street={0}";
-    private const string City = "city={0}";
-    private const string State = "state={0}";
-    private const string PostalCode = "postalcode={0}";
-    private const string Country = "country={0}";
+    private const string BaseAddress = "https://geocode.search.hereapi.com/v1/geocode";
+    private const string ReverseBaseAddress = "https://revgeocode.search.hereapi.com/v1/revgeocode";
 
-    private readonly string _appId;
-    private readonly string _appCode;
+    private readonly string _apiKey;
 
     /// <summary>
     /// Gets or sets the proxy used for HERE requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the user location bias for requests.
     /// </summary>
-    public Location UserLocation { get; set; }
+    public Location? UserLocation { get; set; }
     /// <summary>
     /// Gets or sets the map view bias for requests.
     /// </summary>
-    public Bounds UserMapView { get; set; }
+    public Bounds? UserMapView { get; set; }
     /// <summary>
     /// Gets or sets the maximum number of results to request.
     /// </summary>
@@ -47,71 +41,82 @@ public class HereGeocoder : IGeocoder
     /// <summary>
     /// Initializes a new instance of the <see cref="HereGeocoder"/> class.
     /// </summary>
-    /// <param name="appId">The HERE application identifier.</param>
-    /// <param name="appCode">The HERE application code.</param>
-    public HereGeocoder(string appId, string appCode)
+    /// <param name="apiKey">The HERE API key.</param>
+    public HereGeocoder(string apiKey)
     {
-        if (string.IsNullOrWhiteSpace(appId))
-            throw new ArgumentException("appId can not be null or empty");
+        if (String.IsNullOrWhiteSpace(apiKey))
+            throw new ArgumentException("apiKey can not be null or empty.", nameof(apiKey));
 
-        if (string.IsNullOrWhiteSpace(appCode))
-            throw new ArgumentException("appCode can not be null or empty");
-
-        _appId = appId;
-        _appCode = appCode;
+        _apiKey = apiKey;
     }
 
-    private string GetQueryUrl(string address)
+    private Uri GetQueryUrl(string address)
     {
-        var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, address, Searchtext, true);
-        AppendGlobalParameters(parameters, first);
-
-        return string.Format(GeocodingQuery, _appId, _appCode, parameters.ToString());
+        var parameters = CreateBaseParameters();
+        parameters.Add(new KeyValuePair<string, string>("q", address));
+        AppendGlobalParameters(parameters, includeAtBias: true);
+        return BuildUri(BaseAddress, parameters);
     }
 
-    private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
+    private Uri GetQueryUrl(string street, string city, string state, string postalCode, string country)
     {
-        var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, street, Street, true);
-        first = AppendParameter(parameters, city, City, first);
-        first = AppendParameter(parameters, state, State, first);
-        first = AppendParameter(parameters, postalCode, PostalCode, first);
-        first = AppendParameter(parameters, country, Country, first);
-        AppendGlobalParameters(parameters, first);
+        var query = String.Join(", ", new[] { street, city, state, postalCode, country }
+            .Where(part => !String.IsNullOrWhiteSpace(part)));
 
-        return string.Format(GeocodingQuery, _appId, _appCode, parameters.ToString());
+        if (String.IsNullOrWhiteSpace(query))
+            throw new ArgumentException("At least one address component is required.");
+
+        return GetQueryUrl(query);
     }
 
-    private string GetQueryUrl(double latitude, double longitude)
+    private Uri GetQueryUrl(double latitude, double longitude)
     {
-        var parameters = new StringBuilder();
-        var first = AppendParameter(parameters, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), Prox, true);
-        AppendGlobalParameters(parameters, first);
-
-        return string.Format(ReverseGeocodingQuery, _appId, _appCode, parameters.ToString());
+        var parameters = CreateBaseParameters();
+        parameters.Add(new KeyValuePair<string, string>("at", String.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude)));
+        AppendGlobalParameters(parameters, includeAtBias: false);
+        return BuildUri(ReverseBaseAddress, parameters);
     }
 
-    private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
+    private List<KeyValuePair<string, string>> CreateBaseParameters()
     {
-        if (UserLocation != null)
-            yield return new KeyValuePair<string, string>("prox", UserLocation.ToString());
+        var parameters = new List<KeyValuePair<string, string>>
+        {
+            new("apiKey", _apiKey!)
+        };
 
-        if (UserMapView != null)
-            yield return new KeyValuePair<string, string>("mapview", string.Concat(UserMapView.SouthWest.ToString(), ",", UserMapView.NorthEast.ToString()));
+        if (MaxResults is not null && MaxResults.Value > 0)
+            parameters.Add(new KeyValuePair<string, string>("limit", MaxResults.Value.ToString(CultureInfo.InvariantCulture)));
 
-        if (MaxResults != null && MaxResults.Value > 0)
-            yield return new KeyValuePair<string, string>("maxresults", MaxResults.Value.ToString(CultureInfo.InvariantCulture));
+        return parameters;
     }
 
-    private bool AppendGlobalParameters(StringBuilder parameters, bool first)
+    private void AppendGlobalParameters(ICollection<KeyValuePair<string, string>> parameters, bool includeAtBias)
     {
-        var values = GetGlobalParameters().ToArray();
+        if (includeAtBias && UserLocation is not null)
+            parameters.Add(new KeyValuePair<string, string>("at", String.Format(CultureInfo.InvariantCulture, "{0},{1}", UserLocation.Latitude, UserLocation.Longitude)));
 
-        if (!first) parameters.Append("&");
-        parameters.Append(BuildQueryString(values));
+        if (UserMapView is not null)
+        {
+            parameters.Add(new KeyValuePair<string, string>(
+                "in",
+                String.Format(
+                    CultureInfo.InvariantCulture,
+                    "bbox:{0},{1},{2},{3}",
+                    UserMapView.SouthWest.Longitude,
+                    UserMapView.SouthWest.Latitude,
+                    UserMapView.NorthEast.Longitude,
+                    UserMapView.NorthEast.Latitude)));
+        }
+    }
 
-        return first && !values.Any();
+    private Uri BuildUri(string baseAddress, IEnumerable<KeyValuePair<string, string>> parameters)
+    {
+        var builder = new UriBuilder(baseAddress)
+        {
+            Query = BuildQueryString(parameters)
+        };
+
+        return builder.Uri;
     }
 
     private string BuildQueryString(IEnumerable<KeyValuePair<string, string>> parameters)
@@ -131,13 +136,16 @@ public class HereGeocoder : IGeocoder
     /// <inheritdoc />
     public async Task<IEnumerable<HereAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
+        if (String.IsNullOrWhiteSpace(address))
+            throw new ArgumentException("address can not be null or empty.", nameof(address));
+
         try
         {
             var url = GetQueryUrl(address);
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -152,7 +160,7 @@ public class HereGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -161,7 +169,7 @@ public class HereGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<HereAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
+        if (location is null)
             throw new ArgumentNullException(nameof(location));
 
         return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
@@ -176,7 +184,7 @@ public class HereGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HereGeocodingException)
         {
             throw new HereGeocodingException(ex);
         }
@@ -202,80 +210,178 @@ public class HereGeocoder : IGeocoder
         return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
     }
 
-    private bool AppendParameter(StringBuilder sb, string parameter, string format, bool first)
+    private IEnumerable<HereAddress> ParseResponse(HereResponse response)
     {
-        if (!string.IsNullOrEmpty(parameter))
-        {
-            if (!first)
-            {
-                sb.Append('&');
-            }
-            sb.Append(string.Format(format, UrlEncode(parameter)));
-            return false;
-        }
-        return first;
-    }
+        if (response.Items is null)
+            yield break;
 
-    private IEnumerable<HereAddress> ParseResponse(Json.Response response)
-    {
-        foreach (var view in response.View)
+        foreach (var item in response.Items)
         {
-            foreach (var result in view.Result)
-            {
-                var location = result.Location;
-                yield return new HereAddress(
-                    location.Address.Label,
-                    new Location(location.DisplayPosition.Latitude, location.DisplayPosition.Longitude),
-                    location.Address.Street,
-                    location.Address.HouseNumber,
-                    location.Address.City,
-                    location.Address.State,
-                    location.Address.PostalCode,
-                    location.Address.Country,
-                    (HereLocationType)Enum.Parse(typeof(HereLocationType), location.LocationType, true));
-            }
+            if (item?.Position is null)
+                continue;
+
+            var address = item.Address ?? new HereAddressPayload();
+            var coordinates = item.Access?.FirstOrDefault() ?? item.Position;
+            var formattedAddress = FirstNonEmpty(address.Label, item.Title);
+            if (String.IsNullOrWhiteSpace(formattedAddress))
+                continue;
+
+            yield return new HereAddress(
+                formattedAddress,
+                new Location(coordinates.Lat, coordinates.Lng),
+                address.Street,
+                address.HouseNumber,
+                address.City ?? address.County,
+                address.State ?? address.StateCode,
+                address.PostalCode,
+                address.CountryName ?? address.CountryCode,
+                MapLocationType(item.ResultType));
         }
     }
 
-    private HttpRequestMessage CreateRequest(string url)
+    private HttpRequestMessage CreateRequest(Uri url)
     {
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for HERE requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
-        if (Proxy == null)
+        if (Proxy is null)
             return new HttpClient();
 
         var handler = new HttpClientHandler { Proxy = Proxy };
         return new HttpClient(handler);
     }
 
-    private async Task<Json.Response> GetResponse(string queryUrl, CancellationToken cancellationToken)
+    private async Task<HereResponse> GetResponse(Uri queryUrl, CancellationToken cancellationToken)
     {
-        using (var client = BuildClient())
+        using var client = BuildClient();
+        using var request = CreateRequest(queryUrl);
+        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(json)}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
+
+        return JsonSerializer.Deserialize<HereResponse>(json, JsonExtensions.JsonOptions) ?? new HereResponse();
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " Response preview: " + preview;
+    }
+
+    private static string FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !String.IsNullOrWhiteSpace(value)) ?? String.Empty;
+    }
+
+    private static HereLocationType MapLocationType(string? resultType)
+    {
+        switch (resultType?.Trim().ToLowerInvariant())
         {
-            var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
-            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                var jsonSerializer = new DataContractJsonSerializer(typeof(Json.ServerResponse));
-                var serverResponse = (Json.ServerResponse)jsonSerializer.ReadObject(stream);
-
-                if (serverResponse.ErrorType != null)
-                {
-                    throw new HereGeocodingException(serverResponse.Details, serverResponse.ErrorType, serverResponse.ErrorType);
-                }
-
-                return serverResponse.Response;
-            }
+            case "housenumber":
+            case "street":
+            case "addressblock":
+            case "intersection":
+                return HereLocationType.Address;
+            case "place":
+                return HereLocationType.Point;
+            case "locality":
+            case "district":
+            case "postalcode":
+            case "county":
+            case "state":
+            case "administrativearea":
+            case "country":
+                return HereLocationType.Area;
+            default:
+                return HereLocationType.Unknown;
         }
     }
 
     private string UrlEncode(string toEncode)
     {
-        if (string.IsNullOrEmpty(toEncode))
-            return string.Empty;
+        if (String.IsNullOrEmpty(toEncode))
+            return String.Empty;
 
         return WebUtility.UrlEncode(toEncode);
+    }
+
+    private sealed class HereResponse
+    {
+        [JsonPropertyName("items")]
+        public HereItem[] Items { get; set; } = Array.Empty<HereItem>();
+    }
+
+    private sealed class HereItem
+    {
+        [JsonPropertyName("title")]
+        public string? Title { get; set; }
+
+        [JsonPropertyName("resultType")]
+        public string? ResultType { get; set; }
+
+        [JsonPropertyName("address")]
+        public HereAddressPayload? Address { get; set; }
+
+        [JsonPropertyName("position")]
+        public HerePosition? Position { get; set; }
+
+        [JsonPropertyName("access")]
+        public HerePosition[]? Access { get; set; }
+    }
+
+    private sealed class HereAddressPayload
+    {
+        [JsonPropertyName("label")]
+        public string? Label { get; set; }
+
+        [JsonPropertyName("houseNumber")]
+        public string? HouseNumber { get; set; }
+
+        [JsonPropertyName("street")]
+        public string? Street { get; set; }
+
+        [JsonPropertyName("city")]
+        public string? City { get; set; }
+
+        [JsonPropertyName("county")]
+        public string? County { get; set; }
+
+        [JsonPropertyName("state")]
+        public string? State { get; set; }
+
+        [JsonPropertyName("stateCode")]
+        public string? StateCode { get; set; }
+
+        [JsonPropertyName("postalCode")]
+        public string? PostalCode { get; set; }
+
+        [JsonPropertyName("countryCode")]
+        public string? CountryCode { get; set; }
+
+        [JsonPropertyName("countryName")]
+        public string? CountryName { get; set; }
+    }
+
+    private sealed class HerePosition
+    {
+        [JsonPropertyName("lat")]
+        public double Lat { get; set; }
+
+        [JsonPropertyName("lng")]
+        public double Lng { get; set; }
     }
 }

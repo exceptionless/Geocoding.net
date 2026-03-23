@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -12,48 +13,57 @@ public class SettingsFixture
         _configuration = new ConfigurationBuilder()
             .AddJsonFile("settings.json")
             .AddJsonFile("settings-override.json", optional: true)
+            .AddEnvironmentVariables("GEOCODING_")
             .Build();
     }
 
-    public String YahooConsumerKey
+    public String AzureMapsKey
     {
-        get { return _configuration.GetValue<String>("yahooConsumerKey"); }
-    }
-
-    public String YahooConsumerSecret
-    {
-        get { return _configuration.GetValue<String>("yahooConsumerSecret"); }
+        get { return GetValue("Providers:Azure:ApiKey", "azureMapsKey"); }
     }
 
     public String BingMapsKey
     {
-        get { return _configuration.GetValue<String>("bingMapsKey"); }
+        get { return GetValue("Providers:Bing:ApiKey", "bingMapsKey"); }
     }
 
     public String GoogleApiKey
     {
-        get { return _configuration.GetValue<String>("googleApiKey"); }
+        get { return GetValue("Providers:Google:ApiKey", "googleApiKey"); }
+    }
+
+    public String HereApiKey
+    {
+        get { return GetValue("Providers:Here:ApiKey", "hereApiKey"); }
     }
 
     public String MapQuestKey
     {
-        get { return _configuration.GetValue<String>("mapQuestKey"); }
+        get { return GetValue("Providers:MapQuest:ApiKey", "mapQuestKey"); }
     }
 
-    public String HereAppId
+    public String YahooConsumerKey
     {
-        get { return _configuration.GetValue<String>("hereAppId"); }
+        get { return GetValue("Providers:Yahoo:ConsumerKey", "yahooConsumerKey"); }
     }
 
-    public String HereAppCode
+    public String YahooConsumerSecret
     {
-        get { return _configuration.GetValue<String>("hereAppCode"); }
+        get { return GetValue("Providers:Yahoo:ConsumerSecret", "yahooConsumerSecret"); }
+    }
+
+    private String GetValue(params string[] keys)
+    {
+        return keys
+            .Select(key => _configuration[key])
+            .FirstOrDefault(value => !String.IsNullOrWhiteSpace(value))
+            ?? String.Empty;
     }
 
     public static void SkipIfMissing(String value, String settingName)
     {
         if (String.IsNullOrWhiteSpace(value))
-            Assert.Skip($"Integration test requires '{settingName}' in test/Geocoding.Tests/settings-override.json.");
+            Assert.Skip($"Integration test requires '{settingName}' — set it in test/Geocoding.Tests/settings-override.json using the Providers section or via a GEOCODING_ environment variable.");
     }
 }
 

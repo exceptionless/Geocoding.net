@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -35,18 +35,18 @@ public class ReverseGeocodeRequest : BaseRequest
         Location = loc;
     }
 
-    [JsonIgnore] private LocationRequest _loc;
+    [JsonIgnore] private LocationRequest _loc = null!;
     /// <summary>
     /// Latitude and longitude for the request
     /// </summary>
-    [JsonProperty("location")]
+    [JsonPropertyName("location")]
     public virtual LocationRequest Location
     {
         get { return _loc; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Location");
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
 
             _loc = value;
         }

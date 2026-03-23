@@ -16,5 +16,9 @@ public enum GoogleStatus
     /// <summary>The RequestDenied value.</summary>
     RequestDenied,
     /// <summary>The InvalidRequest value.</summary>
-    InvalidRequest
+    InvalidRequest,
+    /// <summary>The OverDailyLimit value (billing or API key issue).</summary>
+    OverDailyLimit,
+    /// <summary>The UnknownError value (server-side error).</summary>
+    UnknownError
 }

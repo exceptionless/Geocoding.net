@@ -10,7 +10,7 @@ public class GoogleAddress : Address
     private readonly GoogleAddressComponent[] _components;
     private readonly bool _isPartialMatch;
     private readonly GoogleViewport _viewport;
-    private readonly Bounds _bounds;
+    private readonly Bounds? _bounds;
     private readonly string _placeId;
 
     /// <summary>
@@ -56,7 +56,7 @@ public class GoogleAddress : Address
     /// <summary>
     /// Gets the bounds returned by Google.
     /// </summary>
-    public Bounds Bounds
+    public Bounds? Bounds
     {
         get { return _bounds; }
     }
@@ -74,7 +74,7 @@ public class GoogleAddress : Address
     /// </summary>
     /// <param name="type">The component type to locate.</param>
     /// <returns>The matching component, or <c>null</c> if no component matches.</returns>
-    public GoogleAddressComponent this[GoogleAddressType type]
+    public GoogleAddressComponent? this[GoogleAddressType type]
     {
         get { return Components.FirstOrDefault(c => c.Types.Contains(type)); }
     }
@@ -92,11 +92,11 @@ public class GoogleAddress : Address
     /// <param name="locationType">The location type returned by Google.</param>
     /// <param name="placeId">The Google place identifier.</param>
     public GoogleAddress(GoogleAddressType type, string formattedAddress, GoogleAddressComponent[] components,
-        Location coordinates, GoogleViewport viewport, Bounds bounds, bool isPartialMatch, GoogleLocationType locationType, string placeId)
+        Location coordinates, GoogleViewport viewport, Bounds? bounds, bool isPartialMatch, GoogleLocationType locationType, string placeId)
         : base(formattedAddress, coordinates, "Google")
     {
-        if (components == null)
-            throw new ArgumentNullException("components");
+        if (components is null)
+            throw new ArgumentNullException(nameof(components));
 
         _type = type;
         _components = components;

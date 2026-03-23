@@ -10,7 +10,7 @@ public class GeocodingException : Exception
     /// </summary>
     /// <param name="message">The exception message.</param>
     /// <param name="innerException">The inner exception.</param>
-    public GeocodingException(string message, Exception innerException = null)
+    public GeocodingException(string message, Exception? innerException = null)
         : base(message, innerException)
     {
     }

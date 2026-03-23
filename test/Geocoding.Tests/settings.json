@@ -1,13 +1,23 @@
 ﻿{
-  "yahooConsumerKey": "",
-  "yahooConsumerSecret": "",
-
-  "bingMapsKey": "",
-
-  "googleApiKey": "",
-
-  "mapQuestKey": "",
-
-  "hereAppId": "",
-  "hereAppCode": ""
+  "Providers": {
+    "Azure": {
+      "ApiKey": ""
+    },
+    "Bing": {
+      "ApiKey": ""
+    },
+    "Google": {
+      "ApiKey": ""
+    },
+    "Here": {
+      "ApiKey": ""
+    },
+    "MapQuest": {
+      "ApiKey": ""
+    },
+    "Yahoo": {
+      "ConsumerKey": "",
+      "ConsumerSecret": ""
+    }
+  }
 }

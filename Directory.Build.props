@@ -10,6 +10,7 @@
     <RepositoryUrl>https://github.com/exceptionless/Geocoding.net.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>5.0</MinVerMinimumMajorMinor>

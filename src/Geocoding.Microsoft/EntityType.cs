@@ -4,12 +4,14 @@
 /// Represents the entity type returned by the Bing Maps service.
 /// </summary>
 /// <remarks>
-/// http://msdn.microsoft.com/en-us/library/ff728811.aspx
+/// https://learn.microsoft.com/en-us/bingmaps/rest-services/common-parameters-and-types/type-identifiers/
 /// </remarks>
 public enum EntityType
 {
+    /// <summary>Unknown entity type not recognized by the library.</summary>
+    Unknown = -1,
     /// <summary>The Address value.</summary>
-    Address,
+    Address = 0,
     /// <summary>The AdminDivision1 value.</summary>
     AdminDivision1,
     /// <summary>The AdminDivision2 value.</summary>
@@ -391,5 +393,7 @@ public enum EntityType
     /// <summary>The Wetland value.</summary>
     Wetland,
     /// <summary>The Zoo value.</summary>
-    Zoo
+    Zoo,
+    /// <summary>The PointOfInterest value.</summary>
+    PointOfInterest
 }

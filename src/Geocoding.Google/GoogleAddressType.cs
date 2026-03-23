@@ -4,72 +4,94 @@
 /// Represents the address type returned by the Google geocoding service.
 /// </summary>
 /// <remarks>
-/// http://code.google.com/apis/maps/documentation/geocoding/#Types
+/// https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types
 /// </remarks>
 public enum GoogleAddressType
 {
     /// <summary>The Unknown value.</summary>
-    Unknown,
+    Unknown = 0,
     /// <summary>The StreetAddress value.</summary>
-    StreetAddress,
+    StreetAddress = 1,
     /// <summary>The Route value.</summary>
-    Route,
+    Route = 2,
     /// <summary>The Intersection value.</summary>
-    Intersection,
+    Intersection = 3,
     /// <summary>The Political value.</summary>
-    Political,
+    Political = 4,
     /// <summary>The Country value.</summary>
-    Country,
+    Country = 5,
     /// <summary>The AdministrativeAreaLevel1 value.</summary>
-    AdministrativeAreaLevel1,
+    AdministrativeAreaLevel1 = 6,
     /// <summary>The AdministrativeAreaLevel2 value.</summary>
-    AdministrativeAreaLevel2,
+    AdministrativeAreaLevel2 = 7,
     /// <summary>The AdministrativeAreaLevel3 value.</summary>
-    AdministrativeAreaLevel3,
+    AdministrativeAreaLevel3 = 8,
+    /// <summary>The AdministrativeAreaLevel4 value.</summary>
+    AdministrativeAreaLevel4 = 32,
+    /// <summary>The AdministrativeAreaLevel5 value.</summary>
+    AdministrativeAreaLevel5 = 33,
+    /// <summary>The AdministrativeAreaLevel6 value.</summary>
+    AdministrativeAreaLevel6 = 34,
+    /// <summary>The AdministrativeAreaLevel7 value.</summary>
+    AdministrativeAreaLevel7 = 35,
     /// <summary>The ColloquialArea value.</summary>
-    ColloquialArea,
+    ColloquialArea = 9,
     /// <summary>The Locality value.</summary>
-    Locality,
+    Locality = 10,
     /// <summary>The SubLocality value.</summary>
-    SubLocality,
+    SubLocality = 11,
     /// <summary>The Neighborhood value.</summary>
-    Neighborhood,
+    Neighborhood = 12,
     /// <summary>The Premise value.</summary>
-    Premise,
+    Premise = 13,
     /// <summary>The Subpremise value.</summary>
-    Subpremise,
+    Subpremise = 14,
     /// <summary>The PostalCode value.</summary>
-    PostalCode,
+    PostalCode = 15,
     /// <summary>The NaturalFeature value.</summary>
-    NaturalFeature,
+    NaturalFeature = 16,
     /// <summary>The Airport value.</summary>
-    Airport,
+    Airport = 17,
     /// <summary>The Park value.</summary>
-    Park,
+    Park = 18,
     /// <summary>The PointOfInterest value.</summary>
-    PointOfInterest,
+    PointOfInterest = 19,
     /// <summary>The PostBox value.</summary>
-    PostBox,
+    PostBox = 20,
     /// <summary>The StreetNumber value.</summary>
-    StreetNumber,
+    StreetNumber = 21,
     /// <summary>The Floor value.</summary>
-    Floor,
+    Floor = 22,
     /// <summary>The Room value.</summary>
-    Room,
+    Room = 23,
     /// <summary>The PostalTown value.</summary>
-    PostalTown,
+    PostalTown = 24,
     /// <summary>The Establishment value.</summary>
-    Establishment,
+    Establishment = 25,
     /// <summary>The SubLocalityLevel1 value.</summary>
-    SubLocalityLevel1,
+    SubLocalityLevel1 = 26,
     /// <summary>The SubLocalityLevel2 value.</summary>
-    SubLocalityLevel2,
+    SubLocalityLevel2 = 27,
     /// <summary>The SubLocalityLevel3 value.</summary>
-    SubLocalityLevel3,
+    SubLocalityLevel3 = 28,
     /// <summary>The SubLocalityLevel4 value.</summary>
-    SubLocalityLevel4,
+    SubLocalityLevel4 = 29,
     /// <summary>The SubLocalityLevel5 value.</summary>
-    SubLocalityLevel5,
+    SubLocalityLevel5 = 30,
     /// <summary>The PostalCodeSuffix value.</summary>
-    PostalCodeSuffix
+    PostalCodeSuffix = 31,
+    /// <summary>The PostalCodePrefix value.</summary>
+    PostalCodePrefix = 36,
+    /// <summary>The PlusCode value.</summary>
+    PlusCode = 37,
+    /// <summary>The Landmark value.</summary>
+    Landmark = 38,
+    /// <summary>The Parking value.</summary>
+    Parking = 39,
+    /// <summary>The BusStation value.</summary>
+    BusStation = 40,
+    /// <summary>The TrainStation value.</summary>
+    TrainStation = 41,
+    /// <summary>The TransitStation value.</summary>
+    TransitStation = 42
 }

@@ -2,6 +2,10 @@
 /packages
 /samples/packages
 test/Geocoding.Tests/settings-override.json
+docs/node_modules
+docs/.vitepress/cache
+docs/.vitepress/dist
+/plans/plan.md
 
 .vs
 /artifacts

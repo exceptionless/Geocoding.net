@@ -3,6 +3,7 @@
 /// <summary>
 /// Represents an address returned by the Yahoo geocoding service.
 /// </summary>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class YahooAddress : Address
 {
     private readonly string _name, _house, _street, _unit, _unitType, _neighborhood, _city, _county, _countyCode, _state, _stateCode, _postalCode, _country, _countryCode;

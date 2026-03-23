@@ -20,7 +20,7 @@ Set provider credentials in `samples/Example.Web/appsettings.json` or through en
 - `Providers__Yahoo__ConsumerKey`
 - `Providers__Yahoo__ConsumerSecret`
 
-The sample intentionally excludes Yahoo from runtime provider selection because the legacy provider still depends on discontinued non-TLS endpoints, but the placeholder settings remain aligned with the shared test configuration shape.
+The sample intentionally excludes Yahoo from runtime provider selection because the Yahoo provider targets a legacy, discontinued service and is maintained only for compatibility with existing integrations; the placeholder settings remain aligned with the shared test configuration shape.
 
 ## Example Configuration
 

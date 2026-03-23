@@ -111,7 +111,7 @@ See the docs site in `docs/` for the provider guides, onboarding material, and s
 
 ## Sample App
 
-The sample app in `samples/Example.Web` is an ASP.NET Core 10 minimal API that can geocode and reverse geocode against any configured provider, including the deprecated Bing compatibility option when explicitly enabled. Yahoo remains excluded from the sample because the legacy provider still targets discontinued non-TLS endpoints.
+The sample app in `samples/Example.Web` is an ASP.NET Core 10 minimal API that can geocode and reverse geocode against any configured provider, including the deprecated Bing compatibility option when explicitly enabled. Yahoo remains excluded from the sample because the underlying Yahoo PlaceFinder/BOSS APIs are deprecated/discontinued and the `Geocoding.Yahoo` provider is retained for compatibility only.
 
 ```bash
 dotnet run --project samples/Example.Web/Example.Web.csproj

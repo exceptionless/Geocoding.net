@@ -50,7 +50,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private IEnumerable<Address> HandleSingleResponse(MapQuestResponse res)
     {
-        return res is not null && !CollectionExtensions.IsNullOrEmpty(res.Results)
+        return res is not null && !res.Results.IsNullOrEmpty()
             ? HandleSingleResponse(from r in res.Results.OfType<MapQuestResult>()
                                    from l in r.Locations?.OfType<MapQuestLocation>() ?? Enumerable.Empty<MapQuestLocation>()
                                    select l)
@@ -139,7 +139,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
         using var client = BuildClient();
         using var request = CreateRequest(f);
         MapQuestResponse r = await Parse(client, request, cancellationToken).ConfigureAwait(false);
-        if (r is not null && !CollectionExtensions.IsNullOrEmpty(r.Results))
+        if (r is not null && !r.Results.IsNullOrEmpty())
         {
             foreach (MapQuestResult o in r.Results)
             {
@@ -226,7 +226,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             if (String.IsNullOrWhiteSpace(json))
                 throw new Exception("Remote system response with blank: " + requestInfo);
 
-            MapQuestResponse? o = JsonExtensions.FromJson<MapQuestResponse>(json);
+            MapQuestResponse? o = json.FromJson<MapQuestResponse>();
             if (o is null)
                 throw new Exception("Unable to deserialize remote response: " + requestInfo);
 
@@ -260,7 +260,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                         where !String.IsNullOrWhiteSpace(a)
                         group a by a into ag
                         select ag.Key).ToArray();
-        if (CollectionExtensions.IsNullOrEmpty(adr))
+        if (adr.IsNullOrEmpty())
             throw new ArgumentException("Atleast one none blank item is required in addresses");
 
         var f = new BatchGeocodeRequest(_key, adr) { UseOSM = UseOSM };
@@ -270,7 +270,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private ICollection<ResultItem> HandleBatchResponse(MapQuestResponse res)
     {
-        if (res is not null && !CollectionExtensions.IsNullOrEmpty(res.Results))
+        if (res is not null && !res.Results.IsNullOrEmpty())
         {
             return (from r in res.Results.OfType<MapQuestResult>()
                     let locations = r.Locations?.OfType<MapQuestLocation>().ToArray() ?? Array.Empty<MapQuestLocation>()

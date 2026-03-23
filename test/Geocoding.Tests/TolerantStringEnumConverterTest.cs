@@ -12,7 +12,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"something-new\"}";
 
         // Act
-        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
+        var model = json.FromJson<EnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -26,7 +26,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":999}";
 
         // Act
-        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
+        var model = json.FromJson<EnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -40,7 +40,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":null}";
 
         // Act
-        var model = JsonExtensions.FromJson<NullableEnumWithUnknownModel>(json);
+        var model = json.FromJson<NullableEnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -54,7 +54,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"something-new\"}";
 
         // Act
-        var model = JsonExtensions.FromJson<EnumWithoutUnknownModel>(json);
+        var model = json.FromJson<EnumWithoutUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -68,7 +68,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":\"999\"}";
 
         // Act
-        var model = JsonExtensions.FromJson<EnumWithUnknownModel>(json);
+        var model = json.FromJson<EnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -82,7 +82,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":1}";
 
         // Act
-        var model = JsonExtensions.FromJson<ByteEnumWithUnknownModel>(json);
+        var model = json.FromJson<ByteEnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);
@@ -96,7 +96,7 @@ public class TolerantStringEnumConverterTest
         const string json = "{\"value\":99}";
 
         // Act
-        var model = JsonExtensions.FromJson<ByteEnumWithUnknownModel>(json);
+        var model = json.FromJson<ByteEnumWithUnknownModel>();
 
         // Assert
         Assert.NotNull(model);

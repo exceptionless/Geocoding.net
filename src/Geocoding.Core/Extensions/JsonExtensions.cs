@@ -21,7 +21,7 @@ public static class JsonExtensions
     /// </summary>
     /// <param name="value">The object to serialize.</param>
     /// <returns>The JSON payload, or an empty string when the input is null.</returns>
-    public static string ToJson(object? value)
+    public static string ToJson(this object? value)
     {
         if (value is null)
             return String.Empty;
@@ -35,7 +35,7 @@ public static class JsonExtensions
     /// <typeparam name="T">The destination type.</typeparam>
     /// <param name="json">The JSON payload.</param>
     /// <returns>A deserialized instance, or default value for blank input.</returns>
-    public static T? FromJson<T>(string? json)
+    public static T? FromJson<T>(this string? json)
     {
         if (String.IsNullOrWhiteSpace(json))
             return default;

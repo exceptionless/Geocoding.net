@@ -135,7 +135,7 @@ public abstract class BaseRequest
     {
         get
         {
-            return JsonExtensions.ToJson(this);
+            return this.ToJson();
         }
     }
 

@@ -11,7 +11,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">The enumerable item type.</typeparam>
     /// <param name="source">The source enumerable.</param>
     /// <param name="actor">The action to execute for each item.</param>
-    public static void ForEach<T>(IEnumerable<T>? source, Action<T> actor)
+    public static void ForEach<T>(this IEnumerable<T>? source, Action<T> actor)
     {
         if (actor is null)
             throw new ArgumentNullException(nameof(actor));

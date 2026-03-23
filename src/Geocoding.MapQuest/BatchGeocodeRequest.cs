@@ -16,7 +16,7 @@ public class BatchGeocodeRequest : BaseRequest
     public BatchGeocodeRequest(string key, ICollection<string> addresses)
         : base(key)
     {
-        if (CollectionExtensions.IsNullOrEmpty(addresses))
+        if (addresses.IsNullOrEmpty())
             throw new ArgumentException("addresses can not be null or empty");
 
         Locations = (from l in addresses select new LocationRequest(l)).ToArray();
@@ -34,15 +34,13 @@ public class BatchGeocodeRequest : BaseRequest
         get { return _locations; }
         set
         {
-            if (CollectionExtensions.IsNullOrEmpty(value))
+            if (value.IsNullOrEmpty())
                 throw new ArgumentNullException("Locations can not be null or empty!");
 
             _locations.Clear();
-            EnumerableExtensions.ForEach(
-                from v in value
-                where v is not null
-                select v,
-                v => _locations.Add(v));
+            (from v in value
+             where v is not null
+             select v).ForEach(v => _locations.Add(v));
 
             if (_locations.Count == 0)
                 throw new InvalidOperationException("At least one valid Location is required");

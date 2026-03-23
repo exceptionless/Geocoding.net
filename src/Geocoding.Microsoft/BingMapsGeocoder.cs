@@ -242,7 +242,7 @@ public class BingMapsGeocoder : IGeocoder
     {
         var list = new List<BingAddress>();
 
-        if (CollectionExtensions.IsNullOrEmpty(response.ResourceSets))
+        if (response.ResourceSets.IsNullOrEmpty())
             return list;
 
         foreach (var resourceSet in response.ResourceSets)

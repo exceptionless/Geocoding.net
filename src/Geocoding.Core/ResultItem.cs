@@ -5,7 +5,7 @@
 /// </summary>
 public class ResultItem
 {
-    private Address _input;
+    private Address _input = null!;
     /// <summary>
     /// Original input for this response
     /// </summary>
@@ -14,14 +14,14 @@ public class ResultItem
         get { return _input; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Input");
+            if (value is null)
+                throw new ArgumentNullException(nameof(Request));
 
             _input = value;
         }
     }
 
-    private IEnumerable<Address> _output;
+    private IEnumerable<Address> _output = null!;
     /// <summary>
     /// Output for the given input
     /// </summary>
@@ -30,8 +30,8 @@ public class ResultItem
         get { return _output; }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Response");
+            if (value is null)
+                throw new ArgumentNullException(nameof(Response));
 
             _output = value;
         }

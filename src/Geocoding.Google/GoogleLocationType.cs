@@ -4,7 +4,7 @@
 /// Represents the location type returned by the Google geocoding service.
 /// </summary>
 /// <remarks>
-/// https://developers.google.com/maps/documentation/geocoding/?csw=1#Results
+/// https://developers.google.com/maps/documentation/geocoding/requests-geocoding#GeocodingResults
 /// </remarks>
 public enum GoogleLocationType
 {

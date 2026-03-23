@@ -8,6 +8,7 @@ namespace Geocoding.Yahoo;
 /// <summary>
 /// Provides helper methods for generating OAuth 1.0 signatures.
 /// </summary>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class OAuthBase
 {
 
@@ -29,8 +30,8 @@ public class OAuthBase
     /// </summary>
     protected class QueryParameter
     {
-        private string _name = null;
-        private string _value = null;
+        private readonly string _name = null!;
+        private readonly string _value = null!;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueryParameter"/> class.
@@ -78,11 +79,11 @@ public class OAuthBase
         {
             if (x.Name == y.Name)
             {
-                return string.Compare(x.Value, y.Value);
+                return String.Compare(x.Value, y.Value);
             }
             else
             {
-                return string.Compare(x.Name, y.Name);
+                return String.Compare(x.Name, y.Name);
             }
         }
 
@@ -169,14 +170,14 @@ public class OAuthBase
     /// <returns>a Base64 string of the hash value</returns>
     private string ComputeHash(HashAlgorithm hashAlgorithm, string data)
     {
-        if (hashAlgorithm == null)
+        if (hashAlgorithm is null)
         {
-            throw new ArgumentNullException("hashAlgorithm");
+            throw new ArgumentNullException(nameof(hashAlgorithm));
         }
 
-        if (string.IsNullOrEmpty(data))
+        if (String.IsNullOrEmpty(data))
         {
-            throw new ArgumentNullException("data");
+            throw new ArgumentNullException(nameof(data));
         }
 
         byte[] dataBuffer = Encoding.ASCII.GetBytes(data);
@@ -199,12 +200,12 @@ public class OAuthBase
 
         List<QueryParameter> result = new List<QueryParameter>();
 
-        if (!string.IsNullOrEmpty(parameters))
+        if (!String.IsNullOrEmpty(parameters))
         {
             string[] p = parameters.Split('&');
             foreach (string s in p)
             {
-                if (!string.IsNullOrEmpty(s) && !s.StartsWith(OAuthParameterPrefix))
+                if (!String.IsNullOrEmpty(s) && !s.StartsWith(OAuthParameterPrefix))
                 {
                     if (s.IndexOf('=') > -1)
                     {
@@ -213,7 +214,7 @@ public class OAuthBase
                     }
                     else
                     {
-                        result.Add(new QueryParameter(s, string.Empty));
+                        result.Add(new QueryParameter(s, String.Empty));
                     }
                 }
             }
@@ -255,7 +256,7 @@ public class OAuthBase
     protected string NormalizeRequestParameters(IList<QueryParameter> parameters)
     {
         StringBuilder sb = new StringBuilder();
-        QueryParameter p = null;
+        QueryParameter? p = null;
         for (int i = 0; i < parameters.Count; i++)
         {
             p = parameters[i];
@@ -286,33 +287,33 @@ public class OAuthBase
     /// <returns>The signature base</returns>
     public string GenerateSignatureBase(Uri url, string consumerKey, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, string signatureType, out string normalizedUrl, out string normalizedRequestParameters)
     {
-        if (token == null)
+        if (token is null)
         {
-            token = string.Empty;
+            token = String.Empty;
         }
 
-        if (tokenSecret == null)
+        if (tokenSecret is null)
         {
-            tokenSecret = string.Empty;
+            tokenSecret = String.Empty;
         }
 
-        if (string.IsNullOrEmpty(consumerKey))
+        if (String.IsNullOrEmpty(consumerKey))
         {
-            throw new ArgumentNullException("consumerKey");
+            throw new ArgumentNullException(nameof(consumerKey));
         }
 
-        if (string.IsNullOrEmpty(httpMethod))
+        if (String.IsNullOrEmpty(httpMethod))
         {
-            throw new ArgumentNullException("httpMethod");
+            throw new ArgumentNullException(nameof(httpMethod));
         }
 
-        if (string.IsNullOrEmpty(signatureType))
+        if (String.IsNullOrEmpty(signatureType))
         {
-            throw new ArgumentNullException("signatureType");
+            throw new ArgumentNullException(nameof(signatureType));
         }
 
-        normalizedUrl = null;
-        normalizedRequestParameters = null;
+        normalizedUrl = null!;
+        normalizedRequestParameters = null!;
 
         List<QueryParameter> parameters = GetQueryParameters(url.Query);
         parameters.Add(new QueryParameter(OAuthVersionKey, OAuthVersion));
@@ -321,7 +322,7 @@ public class OAuthBase
         parameters.Add(new QueryParameter(OAuthSignatureMethodKey, signatureType));
         parameters.Add(new QueryParameter(OAuthConsumerKeyKey, consumerKey));
 
-        if (!string.IsNullOrEmpty(token))
+        if (!String.IsNullOrEmpty(token))
         {
             parameters.Add(new QueryParameter(OAuthTokenKey, token));
         }
@@ -391,19 +392,19 @@ public class OAuthBase
     /// <returns>A base64 string of the hash value</returns>
     public string GenerateSignature(Uri url, string consumerKey, string consumerSecret, string token, string tokenSecret, string httpMethod, string timeStamp, string nonce, SignatureTypes signatureType, out string normalizedUrl, out string normalizedRequestParameters)
     {
-        normalizedUrl = null;
-        normalizedRequestParameters = null;
+        normalizedUrl = null!;
+        normalizedRequestParameters = null!;
 
         switch (signatureType)
         {
             case SignatureTypes.PLAINTEXT:
-                return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}");
+                return WebUtility.UrlEncode($"{consumerSecret}&{tokenSecret}")!;
             case SignatureTypes.HMACSHA1:
                 string signatureBase = GenerateSignatureBase(url, consumerKey, token, tokenSecret, httpMethod, timeStamp, nonce, HMACSHA1SignatureType, out normalizedUrl, out normalizedRequestParameters);
 
                 HMACSHA1 hmacsha1 = new HMACSHA1();
                 hmacsha1.Key = Encoding.ASCII.GetBytes(
-                    $"{UrlEncode(consumerSecret)}&{(string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
+                    $"{UrlEncode(consumerSecret)}&{(String.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret))}");
 
                 return GenerateSignatureUsingHash(signatureBase, hmacsha1);
             case SignatureTypes.RSASHA1:

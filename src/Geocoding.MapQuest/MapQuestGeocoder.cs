@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using Geocoding.Extensions;
 
 namespace Geocoding.MapQuest;
 
@@ -7,7 +9,7 @@ namespace Geocoding.MapQuest;
 /// Provides geocoding and reverse geocoding through the MapQuest API.
 /// </summary>
 /// <remarks>
-/// See http://open.mapquestapi.com/geocoding/ and http://developer.mapquest.com/.
+/// See https://developer.mapquest.com/documentation/api/geocoding/.
 /// </remarks>
 public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 {
@@ -15,18 +17,24 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private volatile bool _useOsm;
     /// <summary>
-    /// When true, will use the Open Street Map API
+    /// Enables the legacy OpenStreetMap-backed MapQuest endpoint.
     /// </summary>
     public virtual bool UseOSM
     {
         get { return _useOsm; }
-        set { _useOsm = value; }
+        set
+        {
+            if (value)
+                throw new NotSupportedException("MapQuest OpenStreetMap geocoding is no longer supported. Use the commercial MapQuest API instead.");
+
+            _useOsm = false;
+        }
     }
 
     /// <summary>
     /// Gets or sets the proxy used for MapQuest requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MapQuestGeocoder"/> class.
@@ -34,35 +42,31 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <param name="key">The MapQuest application key.</param>
     public MapQuestGeocoder(string key)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            throw new ArgumentException("key can not be null or blank");
+        if (String.IsNullOrWhiteSpace(key))
+            throw new ArgumentException("key can not be null or blank.", nameof(key));
 
         _key = key;
     }
 
     private IEnumerable<Address> HandleSingleResponse(MapQuestResponse res)
     {
-        if (res != null && !res.Results.IsNullOrEmpty())
-        {
-            return HandleSingleResponse(from r in res.Results
-                                        where r != null && !r.Locations.IsNullOrEmpty()
-                                        from l in r.Locations
-                                        select l);
-        }
-        else
-            return new Address[0];
+        return res is not null && !res.Results.IsNullOrEmpty()
+            ? HandleSingleResponse(from r in res.Results.OfType<MapQuestResult>()
+                                   from l in r.Locations?.OfType<MapQuestLocation>() ?? Enumerable.Empty<MapQuestLocation>()
+                                   select l)
+            : Array.Empty<Address>();
     }
 
     private IEnumerable<Address> HandleSingleResponse(IEnumerable<MapQuestLocation> locs)
     {
-        if (locs == null)
-            return new Address[0];
+        if (locs is null)
+            return Array.Empty<Address>();
         else
         {
-            return from l in locs
-                   where l != null && l.Quality < Quality.COUNTRY
+            return from l in locs.OfType<MapQuestLocation>()
+                   where l.Quality < Quality.COUNTRY
                    let q = (int)l.Quality
-                   let c = string.IsNullOrWhiteSpace(l.Confidence) ? "ZZZZZZ" : l.Confidence
+                   let c = String.IsNullOrWhiteSpace(l.Confidence) ? "ZZZZZZ" : l.Confidence
                    orderby q ascending, c ascending
                    select l;
         }
@@ -71,8 +75,8 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <inheritdoc />
     public async Task<IEnumerable<Address>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (string.IsNullOrWhiteSpace(address))
-            throw new ArgumentException("address can not be null or empty!");
+        if (String.IsNullOrWhiteSpace(address))
+            throw new ArgumentException("address can not be null or empty.", nameof(address));
 
         var f = new GeocodeRequest(_key, address) { UseOSM = UseOSM };
         MapQuestResponse res = await Execute(f, cancellationToken).ConfigureAwait(false);
@@ -83,22 +87,22 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     public Task<IEnumerable<Address>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
     {
         var sb = new StringBuilder();
-        if (!string.IsNullOrWhiteSpace(street))
+        if (!String.IsNullOrWhiteSpace(street))
             sb.AppendFormat("{0}, ", street);
-        if (!string.IsNullOrWhiteSpace(city))
+        if (!String.IsNullOrWhiteSpace(city))
             sb.AppendFormat("{0}, ", city);
-        if (!string.IsNullOrWhiteSpace(state))
+        if (!String.IsNullOrWhiteSpace(state))
             sb.AppendFormat("{0} ", state);
-        if (!string.IsNullOrWhiteSpace(postalCode))
+        if (!String.IsNullOrWhiteSpace(postalCode))
             sb.AppendFormat("{0} ", postalCode);
-        if (!string.IsNullOrWhiteSpace(country))
+        if (!String.IsNullOrWhiteSpace(country))
             sb.AppendFormat("{0} ", country);
 
         if (sb.Length > 1)
             sb.Length--;
 
         string s = sb.ToString().Trim();
-        if (string.IsNullOrWhiteSpace(s))
+        if (String.IsNullOrWhiteSpace(s))
             throw new ArgumentException("Concatenated input values can not be null or blank");
 
         if (s.Last() == ',')
@@ -110,8 +114,8 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <inheritdoc />
     public async Task<IEnumerable<Address>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
-            throw new ArgumentNullException("location");
+        if (location is null)
+            throw new ArgumentNullException(nameof(location));
 
         var f = new ReverseGeocodeRequest(_key, location) { UseOSM = UseOSM };
         MapQuestResponse res = await Execute(f, cancellationToken).ConfigureAwait(false);
@@ -132,18 +136,19 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
     /// <returns>The deserialized MapQuest response.</returns>
     public async Task<MapQuestResponse> Execute(BaseRequest f, CancellationToken cancellationToken = default(CancellationToken))
     {
-        HttpWebRequest request = await Send(f, cancellationToken).ConfigureAwait(false);
-        MapQuestResponse r = await Parse(request, cancellationToken).ConfigureAwait(false);
-        if (r != null && !r.Results.IsNullOrEmpty())
+        using var client = BuildClient();
+        using var request = CreateRequest(f);
+        MapQuestResponse r = await Parse(client, request, cancellationToken).ConfigureAwait(false);
+        if (r is not null && !r.Results.IsNullOrEmpty())
         {
             foreach (MapQuestResult o in r.Results)
             {
-                if (o == null)
+                if (o is null)
                     continue;
 
-                foreach (MapQuestLocation l in o.Locations)
+                foreach (MapQuestLocation l in o.Locations ?? Array.Empty<MapQuestLocation>())
                 {
-                    if (!string.IsNullOrWhiteSpace(l.FormattedAddress) || o.ProvidedLocation == null)
+                    if (!String.IsNullOrWhiteSpace(l.FormattedAddress) || o.ProvidedLocation is null)
                         continue;
 
                     if (string.Compare(o.ProvidedLocation.FormattedAddress, "unknown", true) != 0)
@@ -153,16 +158,27 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
                 }
             }
         }
-        return r;
+        return r!;
     }
 
-    private async Task<HttpWebRequest> Send(BaseRequest f, CancellationToken cancellationToken)
+    /// <summary>
+    /// Builds the HTTP client used for MapQuest requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
-        if (f == null)
-            throw new ArgumentNullException("f");
+        if (Proxy is null)
+            return new HttpClient();
 
-        HttpWebRequest request;
-        bool hasBody = false;
+        return new HttpClient(new HttpClientHandler { Proxy = Proxy });
+    }
+
+    private HttpRequestMessage CreateRequest(BaseRequest f)
+    {
+        if (f is null)
+            throw new ArgumentNullException(nameof(f));
+
+        Uri requestUri;
         switch (f.RequestVerb)
         {
             case "GET":
@@ -170,91 +186,78 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             case "HEAD":
             {
                 var u = $"{f.RequestUri}json={WebUtility.UrlEncode(f.RequestBody)}&";
-                request = WebRequest.Create(u) as HttpWebRequest;
+                requestUri = new Uri(u, UriKind.Absolute);
             }
             break;
             case "POST":
             case "PUT":
             default:
             {
-                request = WebRequest.Create(f.RequestUri) as HttpWebRequest;
-                hasBody = !string.IsNullOrWhiteSpace(f.RequestBody);
+                requestUri = f.RequestUri;
             }
             break;
         }
-        request.Method = f.RequestVerb;
-        request.ContentType = "application/" + f.InputFormat + "; charset=utf-8";
 
-        if (Proxy != null)
-            request.Proxy = Proxy;
-
-        if (hasBody)
+        var request = new HttpRequestMessage(new HttpMethod(f.RequestVerb), requestUri);
+        if (!String.IsNullOrWhiteSpace(f.RequestBody)
+            && !String.Equals(f.RequestVerb, "GET", StringComparison.OrdinalIgnoreCase)
+            && !String.Equals(f.RequestVerb, "DELETE", StringComparison.OrdinalIgnoreCase)
+            && !String.Equals(f.RequestVerb, "HEAD", StringComparison.OrdinalIgnoreCase))
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(f.RequestBody);
-            //request.Headers.ContentLength = buffer.Length;
-            using (cancellationToken.Register(request.Abort, false))
-            using (Stream rs = await request.GetRequestStreamAsync().ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await rs.WriteAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                await rs.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
+            request.Content = new StringContent(f.RequestBody, Encoding.UTF8, "application/" + f.InputFormat);
         }
+
         return request;
     }
 
-    private async Task<MapQuestResponse> Parse(HttpWebRequest request, CancellationToken cancellationToken)
+    private async Task<MapQuestResponse> Parse(HttpClient client, HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (request == null)
-            throw new ArgumentNullException("request");
-
         string requestInfo = $"[{request.Method}] {request.RequestUri}";
         try
         {
-            string json;
-            using (HttpWebResponse response = await request.GetResponseAsync().ConfigureAwait(false) as HttpWebResponse)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if ((int)response.StatusCode >= 300) //error
-                    throw new Exception((int)response.StatusCode + " " + response.StatusDescription);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
-                using (var sr = new StreamReader(response.GetResponseStream()))
-                    json = await sr.ReadToEndAsync().ConfigureAwait(false);
-            }
-            if (string.IsNullOrWhiteSpace(json))
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"{(int)response.StatusCode} {requestInfo} | {response.ReasonPhrase}{BuildResponsePreview(json)}");
+
+            if (String.IsNullOrWhiteSpace(json))
                 throw new Exception("Remote system response with blank: " + requestInfo);
 
-            MapQuestResponse o = json.FromJSON<MapQuestResponse>();
-            if (o == null)
-                throw new Exception("Unable to deserialize remote response: " + requestInfo + " => " + json);
+            MapQuestResponse? o = json.FromJson<MapQuestResponse>();
+            if (o is null)
+                throw new Exception("Unable to deserialize remote response: " + requestInfo);
 
             return o;
         }
-        catch (WebException wex) //convert to simple exception & close the response stream
+        catch (HttpRequestException ex)
         {
-            using (HttpWebResponse response = wex.Response as HttpWebResponse)
-            {
-                var sb = new StringBuilder(requestInfo);
-                sb.Append(" | ");
-                sb.Append(response.StatusDescription);
-                sb.Append(" | ");
-                using (var sr = new StreamReader(response.GetResponseStream()))
-                {
-                    sb.Append(await sr.ReadToEndAsync().ConfigureAwait(false));
-                }
-                throw new Exception((int)response.StatusCode + " " + sb.ToString());
-            }
+            throw new Exception($"{requestInfo} | {ex.Message}", ex);
         }
+    }
+
+    private static string BuildResponsePreview(string? body)
+    {
+        if (String.IsNullOrWhiteSpace(body))
+            return String.Empty;
+
+        var preview = body!.Trim();
+        if (preview.Length > 256)
+            preview = preview.Substring(0, 256) + "...";
+
+        return " | Response preview: " + preview;
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<ResultItem>> GeocodeAsync(IEnumerable<string> addresses, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (addresses == null)
-            throw new ArgumentNullException("addresses");
+        if (addresses is null)
+            throw new ArgumentNullException(nameof(addresses));
 
         string[] adr = (from a in addresses
-                        where !string.IsNullOrWhiteSpace(a)
+                        where !String.IsNullOrWhiteSpace(a)
                         group a by a into ag
                         select ag.Key).ToArray();
         if (adr.IsNullOrEmpty())
@@ -267,13 +270,13 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private ICollection<ResultItem> HandleBatchResponse(MapQuestResponse res)
     {
-        if (res != null && !res.Results.IsNullOrEmpty())
+        if (res is not null && !res.Results.IsNullOrEmpty())
         {
-            return (from r in res.Results
-                    where r != null && !r.Locations.IsNullOrEmpty()
-                    let resp = HandleSingleResponse(r.Locations)
-                    where resp != null
-                    select new ResultItem(r.ProvidedLocation, resp)).ToArray();
+            return (from r in res.Results.OfType<MapQuestResult>()
+                    let locations = r.Locations?.OfType<MapQuestLocation>().ToArray() ?? Array.Empty<MapQuestLocation>()
+                    where locations.Length > 0
+                    let resp = HandleSingleResponse(locations)
+                    select new ResultItem(r.ProvidedLocation!, resp)).ToArray();
         }
         else
             return new ResultItem[0];

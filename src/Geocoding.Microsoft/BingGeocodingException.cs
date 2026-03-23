@@ -15,4 +15,11 @@ public class BingGeocodingException : GeocodingException
     /// <param name="innerException">The underlying provider exception.</param>
     public BingGeocodingException(Exception innerException)
         : base(DefaultMessage, innerException) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BingGeocodingException"/> class.
+    /// </summary>
+    /// <param name="message">The provider error message.</param>
+    public BingGeocodingException(string message)
+        : base(message) { }
 }

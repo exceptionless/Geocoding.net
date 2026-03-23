@@ -1,4 +1,8 @@
-﻿using Geocoding.Yahoo;
+﻿#pragma warning disable CS0618
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
+using Geocoding.Yahoo;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -15,73 +19,133 @@ public class YahooGeocoderTest : GeocoderTest
     {
         SettingsFixture.SkipIfMissing(_settings.YahooConsumerKey, nameof(SettingsFixture.YahooConsumerKey));
         SettingsFixture.SkipIfMissing(_settings.YahooConsumerSecret, nameof(SettingsFixture.YahooConsumerSecret));
-
-        return new YahooGeocoder(
-            _settings.YahooConsumerKey,
-            _settings.YahooConsumerSecret
-        );
+        return new YahooGeocoder(_settings.YahooConsumerKey, _settings.YahooConsumerSecret);
     }
 
-    //TODO: delete these when tests are ready to be unskipped
-    //see issue #27
-
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
+    [Theory]
     [MemberData(nameof(AddressData), MemberType = typeof(GeocoderTest))]
-    public override Task CanGeocodeAddress(string address)
+    public override Task Geocode_ValidAddress_ReturnsExpectedResult(string address)
     {
-        return base.CanGeocodeAddress(address);
+        return base.Geocode_ValidAddress_ReturnsExpectedResult(address);
     }
 
-    [Fact(Skip = "oauth not working for yahoo - see issue #27")]
-    public override Task CanGeocodeNormalizedAddress()
+    [Fact]
+    public override Task Geocode_NormalizedAddress_ReturnsExpectedResult()
     {
-        return base.CanGeocodeNormalizedAddress();
+        return base.Geocode_NormalizedAddress_ReturnsExpectedResult();
     }
 
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
+    [Theory]
     [MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
-    public override Task CanGeocodeAddressUnderDifferentCultures(string cultureName)
+    public override Task Geocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
-        return base.CanGeocodeAddressUnderDifferentCultures(cultureName);
+        return base.Geocode_DifferentCulture_ReturnsExpectedResult(cultureName);
     }
 
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
+    [Theory]
     [MemberData(nameof(CultureData), MemberType = typeof(GeocoderTest))]
-    public override Task CanReverseGeocodeAddressUnderDifferentCultures(string cultureName)
+    public override Task ReverseGeocode_DifferentCulture_ReturnsExpectedResult(string cultureName)
     {
-        return base.CanReverseGeocodeAddressUnderDifferentCultures(cultureName);
+        return base.ReverseGeocode_DifferentCulture_ReturnsExpectedResult(cultureName);
     }
 
-    [Fact(Skip = "oauth not working for yahoo - see issue #27")]
-    public override Task ShouldNotBlowUpOnBadAddress()
+    [Fact]
+    public override Task Geocode_InvalidAddress_ReturnsEmpty()
     {
-        return base.ShouldNotBlowUpOnBadAddress();
+        return base.Geocode_InvalidAddress_ReturnsEmpty();
     }
 
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
+    [Theory]
     [MemberData(nameof(SpecialCharacterAddressData), MemberType = typeof(GeocoderTest))]
-    public override Task CanGeocodeWithSpecialCharacters(string address)
+    public override Task Geocode_SpecialCharacters_ReturnsResults(string address)
     {
-        return base.CanGeocodeWithSpecialCharacters(address);
+        return base.Geocode_SpecialCharacters_ReturnsResults(address);
     }
 
-    [Fact(Skip = "oauth not working for yahoo - see issue #27")]
-    public override Task CanReverseGeocodeAsync()
-    {
-        return base.CanReverseGeocodeAsync();
-    }
-
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
-    [MemberData(nameof(InvalidZipCodeAddressData), MemberType = typeof(GeocoderTest))]
-    public override Task CanGeocodeInvalidZipCodes(string address)
-    {
-        return base.CanGeocodeInvalidZipCodes(address);
-    }
-
-    [Theory(Skip = "oauth not working for yahoo - see issue #27")]
+    [Theory]
     [MemberData(nameof(StreetIntersectionAddressData), MemberType = typeof(GeocoderTest))]
-    public override Task CanHandleStreetIntersectionsByAmpersand(string address)
+    public override Task Geocode_StreetIntersection_ReturnsResults(string address)
     {
-        return base.CanHandleStreetIntersectionsByAmpersand(address);
+        return base.Geocode_StreetIntersection_ReturnsResults(address);
+    }
+
+    [Fact]
+    public override Task ReverseGeocode_WhiteHouseCoordinates_ReturnsExpectedArea()
+    {
+        return base.ReverseGeocode_WhiteHouseCoordinates_ReturnsExpectedArea();
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidZipCodeAddressData), MemberType = typeof(GeocoderTest))]
+    public override Task Geocode_InvalidZipCode_ReturnsResults(string address)
+    {
+        return base.Geocode_InvalidZipCode_ReturnsResults(address);
+    }
+
+    [Fact]
+    public void BuildRequest_GeneratesSignedGetRequest()
+    {
+        // Arrange
+        var geocoder = new YahooGeocoder("consumer-key", "consumer-secret");
+        var buildRequest = typeof(YahooGeocoder).GetMethod("BuildRequest", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        // Act
+        using var request = (HttpRequestMessage)buildRequest.Invoke(geocoder, [YahooGeocoder.ServiceUrl.Replace("{0}", "test")])!;
+        var requestUri = request.RequestUri!.ToString();
+
+        // Assert
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.StartsWith("http://yboss.yahooapis.com/geo/placefinder?", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_consumer_key=consumer-key", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_nonce=", requestUri, StringComparison.Ordinal);
+        Assert.Contains("oauth_signature=", requestUri, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Geocode_StatusFailure_WrapsHttpRequestException()
+    {
+        // Arrange
+        var body = new string('x', 300);
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.Unauthorized, "Unauthorized", body)));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        var innerException = Assert.IsType<HttpRequestException>(exception.InnerException);
+        Assert.Contains("Yahoo request failed (401 Unauthorized).", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Response preview:", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(body, exception.Message, StringComparison.Ordinal);
+        Assert.NotNull(innerException.Message);
+    }
+
+    [Fact]
+    public async Task Geocode_TransportFailure_WrapsTransportException()
+    {
+        // Arrange
+        var geocoder = new TestableYahooGeocoder(new TestHttpMessageHandler((_, _) => throw new HttpRequestException("socket failure")));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<YahooGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+
+        // Assert
+        Assert.IsType<HttpRequestException>(exception.InnerException);
+    }
+
+    private sealed class TestableYahooGeocoder : YahooGeocoder
+    {
+        private readonly HttpMessageHandler _handler;
+
+        public TestableYahooGeocoder(HttpMessageHandler handler)
+            : base("consumer-key", "consumer-secret")
+        {
+            _handler = handler;
+        }
+
+        protected override HttpClient BuildClient()
+        {
+            return new HttpClient(_handler, disposeHandler: false);
+        }
     }
 }
+#pragma warning restore CS0618

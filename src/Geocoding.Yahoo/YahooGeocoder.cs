@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Xml.XPath;
 
 namespace Geocoding.Yahoo;
@@ -10,6 +12,7 @@ namespace Geocoding.Yahoo;
 /// <remarks>
 /// http://developer.yahoo.com/geo/placefinder/
 /// </remarks>
+[Obsolete("Yahoo PlaceFinder/BOSS geocoding has been discontinued. This type is retained for source compatibility only and will be removed in a future major version.")]
 public class YahooGeocoder : IGeocoder
 {
     /// <summary>
@@ -46,7 +49,7 @@ public class YahooGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Yahoo requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="YahooGeocoder"/> class.
@@ -55,11 +58,11 @@ public class YahooGeocoder : IGeocoder
     /// <param name="consumerSecret">The Yahoo consumer secret.</param>
     public YahooGeocoder(string consumerKey, string consumerSecret)
     {
-        if (string.IsNullOrEmpty(consumerKey))
-            throw new ArgumentNullException("consumerKey");
+        if (String.IsNullOrEmpty(consumerKey))
+            throw new ArgumentNullException(nameof(consumerKey));
 
-        if (string.IsNullOrEmpty(consumerSecret))
-            throw new ArgumentNullException("consumerSecret");
+        if (String.IsNullOrEmpty(consumerSecret))
+            throw new ArgumentNullException(nameof(consumerSecret));
 
         _consumerKey = consumerKey;
         _consumerSecret = consumerSecret;
@@ -68,29 +71,29 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (string.IsNullOrEmpty(address))
-            throw new ArgumentNullException("address");
+        if (String.IsNullOrEmpty(address))
+            throw new ArgumentNullException(nameof(address));
 
-        string url = string.Format(ServiceUrl, WebUtility.UrlEncode(address));
+        string url = String.Format(ServiceUrl, WebUtility.UrlEncode(address));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> GeocodeAsync(string street, string city, string state, string postalCode, string country, CancellationToken cancellationToken = default(CancellationToken))
     {
-        string url = string.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
+        string url = String.Format(ServiceUrlNormal, WebUtility.UrlEncode(street), WebUtility.UrlEncode(city), WebUtility.UrlEncode(state), WebUtility.UrlEncode(postalCode), WebUtility.UrlEncode(country));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
-            throw new ArgumentNullException("location");
+        if (location is null)
+            throw new ArgumentNullException(nameof(location));
 
         return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
     }
@@ -98,21 +101,39 @@ public class YahooGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<YahooAddress>> ReverseGeocodeAsync(double latitude, double longitude, CancellationToken cancellationToken = default(CancellationToken))
     {
-        string url = string.Format(ServiceUrlReverse, string.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
+        string url = String.Format(ServiceUrlReverse, String.Format(CultureInfo.InvariantCulture, "{0} {1}", latitude, longitude));
 
-        HttpWebRequest request = BuildWebRequest(url);
+        HttpRequestMessage request = BuildRequest(url);
         return ProcessRequest(request, cancellationToken);
     }
 
-    private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpWebRequest request, CancellationToken cancellationToken)
+    private async Task<IEnumerable<YahooAddress>> ProcessRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         try
         {
-            using (cancellationToken.Register(request.Abort, false))
-            using (WebResponse response = await request.GetResponseAsync().ConfigureAwait(false))
+            using var requestToDispose = request;
+            using var client = BuildClient();
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                var message = $"Yahoo request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}";
+
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new YahooGeocodingException(message, ex);
+                }
+            }
+
+            using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                return ProcessWebResponse(response);
+                return ProcessResponse(stream);
             }
         }
         catch (YahooGeocodingException)
@@ -147,16 +168,39 @@ public class YahooGeocoder : IGeocoder
         return await ReverseGeocodeAsync(latitude, longitude, cancellationToken).ConfigureAwait(false);
     }
 
-    private HttpWebRequest BuildWebRequest(string url)
+    /// <summary>
+    /// Builds the HTTP client used for Yahoo requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
+    {
+        if (Proxy is null)
+            return new HttpClient();
+
+        return new HttpClient(new HttpClientHandler { Proxy = Proxy });
+    }
+
+    private HttpRequestMessage BuildRequest(string url)
     {
         url = GenerateOAuthSignature(new Uri(url));
-        var req = WebRequest.Create(url) as HttpWebRequest;
-        req.Method = "GET";
-        if (Proxy != null)
-        {
-            req.Proxy = Proxy;
-        }
-        return req;
+        return new HttpRequestMessage(HttpMethod.Get, url);
+    }
+
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
+    {
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+
+        char[] buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        if (read == 0)
+            return String.Empty;
+
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
+
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private string GenerateOAuthSignature(Uri uri)
@@ -171,8 +215,8 @@ public class YahooGeocoder : IGeocoder
             uri,
             _consumerKey,
             _consumerSecret,
-            string.Empty,
-            string.Empty,
+            String.Empty,
+            String.Empty,
             "GET",
             timeStamp,
             nonce,
@@ -184,9 +228,9 @@ public class YahooGeocoder : IGeocoder
         return $"{url}?{param}&oauth_signature={signature}";
     }
 
-    private IEnumerable<YahooAddress> ProcessWebResponse(WebResponse response)
+    private IEnumerable<YahooAddress> ProcessResponse(Stream stream)
     {
-        XPathDocument xmlDoc = LoadXmlResponse(response);
+        XPathDocument xmlDoc = LoadXmlResponse(stream);
         XPathNavigator nav = xmlDoc.CreateNavigator();
 
         YahooError error = EvaluateError(Convert.ToInt32(nav.Evaluate("number(/ResultSet/Error)")));
@@ -197,20 +241,17 @@ public class YahooGeocoder : IGeocoder
         return ParseAddresses(nav.Select("/ResultSet/Result")).ToArray();
     }
 
-    private XPathDocument LoadXmlResponse(WebResponse response)
+    private XPathDocument LoadXmlResponse(Stream stream)
     {
-        using (Stream stream = response.GetResponseStream())
-        {
-            XPathDocument doc = new XPathDocument(stream);
-            return doc;
-        }
+        XPathDocument doc = new XPathDocument(stream);
+        return doc;
     }
 
     private IEnumerable<YahooAddress> ParseAddresses(XPathNodeIterator nodes)
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             int quality = Convert.ToInt32(nav.Evaluate("number(quality)"));
             string formattedAddress = ParseFormattedAddress(nav);
@@ -264,8 +305,8 @@ public class YahooGeocoder : IGeocoder
         lines[2] = (string)nav.Evaluate("string(line3)");
         lines[3] = (string)nav.Evaluate("string(line4)");
 
-        lines = lines.Select(s => (s ?? "").Trim()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-        return string.Join(", ", lines);
+        lines = lines.Select(s => (s ?? "").Trim()).Where(s => !String.IsNullOrEmpty(s)).ToArray();
+        return String.Join(", ", lines);
     }
 
     private YahooError EvaluateError(int errorCode)

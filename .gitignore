@@ -2,6 +2,7 @@
 /packages
 /samples/packages
 test/Geocoding.Tests/settings-override.json
+docs/plan.md
 
 .vs
 /artifacts

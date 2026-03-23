@@ -1,19 +1,21 @@
 # Generic C# Geocoding API [![CI](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/build.yml) [![CodeQL](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/exceptionless/Geocoding.net/actions/workflows/codeql-analysis.yml)
 
-Includes a model and interface for communicating with five popular Geocoding providers.  Current implementations include:
+Includes a model and interface for communicating with current geocoding providers.
 
-* [Google Maps](https://developers.google.com/maps/) - [Google geocoding docs](https://developers.google.com/maps/documentation/geocoding/)
-* [Yahoo! BOSS Geo Services](http://developer.yahoo.com/boss/geo/) - [Yahoo PlaceFinder docs](http://developer.yahoo.com/geo/placefinder/guide/index.html)
-* [Bing Maps (aka Virtual Earth)](http://www.microsoft.com/maps/) - [Bing geocoding docs](http://msdn.microsoft.com/en-us/library/ff701715.aspx)
-* :warning: MapQuest [(Commercial API)](http://www.mapquestapi.com/) - [MapQuest geocoding docs](http://www.mapquestapi.com/geocoding/)
-* :warning: MapQuest [(OpenStreetMap)](http://open.mapquestapi.com/) - [MapQuest OpenStreetMap geocoding docs](http://open.mapquestapi.com/geocoding/)
-* [HERE Maps](https://www.here.com/) - [HERE developer documentation](https://developer.here.com/documentation)
+| Provider | Package | Status | Auth | Notes |
+| --- | --- | --- | --- | --- |
+| Google Maps | `Geocoding.Google` | Supported | API key or signed client credentials | `BusinessKey` supports signed Google Maps client-based requests when your deployment requires them. |
+| Azure Maps | `Geocoding.Microsoft` | Supported | Azure Maps subscription key | Primary Microsoft-backed geocoder. |
+| Bing Maps | `Geocoding.Microsoft` | Deprecated compatibility | Bing Maps enterprise key | `BingMapsGeocoder` remains available for existing consumers and is marked obsolete for new development. |
+| HERE Geocoding and Search | `Geocoding.Here` | Supported | HERE API key | Uses the current HERE Geocoding and Search API. |
+| MapQuest | `Geocoding.MapQuest` | Supported | API key | Commercial API only. OpenStreetMap mode is no longer supported. |
+| Yahoo PlaceFinder/BOSS | `Geocoding.Yahoo` | Deprecated | OAuth consumer key + secret | Legacy package retained for compatibility, but the service remains deprecated and unverified. |
 
 The API returns latitude/longitude coordinates and normalized address information.  This can be used to perform address validation, real time mapping of user-entered addresses, distance calculations, and much more.
 
 See latest [release notes](https://github.com/exceptionless/Geocoding.net/releases/latest).
 
-:warning: There is a potential issue ([#29](https://github.com/chadly/Geocoding.net/issues/29)) regarding MapQuest that has a workaround. If you would like to help fix the issue, PRs are welcome.
+:warning: MapQuest OpenStreetMap mode was tied to a retired service surface and now fails fast instead of silently calling dead endpoints.
 
 ## Installation
 
@@ -29,9 +31,10 @@ and then choose which provider you want to install (or install all of them):
 Install-Package Geocoding.Google
 Install-Package Geocoding.MapQuest
 Install-Package Geocoding.Microsoft
-Install-Package Geocoding.Yahoo
 Install-Package Geocoding.Here
 ```
+
+If you still need the deprecated Yahoo compatibility package, install `Geocoding.Yahoo` explicitly and plan to remove it before the next major version.
 
 ## Example Usage
 
@@ -47,7 +50,7 @@ Console.WriteLine("Coordinates: " + addresses.First().Coordinates.Latitude + ", 
 It can also be used to return address information from latitude/longitude coordinates (aka reverse geocoding):
 
 ```csharp
-IGeocoder geocoder = new YahooGeocoder("consumer-key", "consumer-secret");
+IGeocoder geocoder = new AzureMapsGeocoder("this-is-my-azure-maps-key");
 IEnumerable<Address> addresses = await geocoder.ReverseGeocodeAsync(38.8976777, -77.036517);
 ```
 
@@ -61,19 +64,23 @@ var country = addresses.Where(a => !a.IsPartialMatch).Select(a => a[GoogleAddres
 Console.WriteLine("Country: " + country.LongName + ", " + country.ShortName); //Country: United States, US
 ```
 
-The Microsoft and Yahoo implementations each provide their own address class as well, `BingAddress` and `YahooAddress`.
+The Microsoft providers expose `AzureMapsAddress`, and the legacy `BingMapsGeocoder` / `BingAddress` surface remains available as an obsolete compatibility layer. The Yahoo package also remains deprecated and should only be used for compatibility scenarios.
 
 ## API Keys
 
-Google can use a [Server API Key](https://developers.google.com/maps/documentation/javascript/tutorial#api_key), and some environments now require one to access the service reliably.
+Google uses a [Geocoding API key](https://developers.google.com/maps/documentation/geocoding/get-api-key), and many environments now require one for reliable access.
 
-Bing [requires an API key](http://msdn.microsoft.com/en-us/library/ff428642.aspx) to access its service.
+Azure Maps requires an [Azure Maps account key](https://learn.microsoft.com/en-us/azure/azure-maps/how-to-manage-account-keys#create-a-new-account).
 
-You will need a [consumer secret and consumer key](http://developer.yahoo.com/boss/geo/BOSS_Signup.pdf) (PDF) for Yahoo.
+Bing Maps requires an existing Bing Maps enterprise key. The provider is deprecated and retained only for compatibility during migration to Azure Maps.
 
-MapQuest API requires a key. Sign up here: (<http://developer.mapquest.com/web/products/open>)
+MapQuest requires a [developer API key](https://developer.mapquest.com/user/me/apps).
 
-HERE requires an [app ID and app Code](https://developer.here.com/?create=Freemium-Basic&keepState=true&step=account)
+HERE supports a [HERE API key](https://www.here.com/docs/category/identity-and-access-management) for the current Geocoding and Search API.
+
+The current major-version line no longer supports HERE `app_id`/`app_code` credentials. Migrate existing HERE integrations to API keys before upgrading.
+
+Yahoo still uses the legacy OAuth consumer key and consumer secret flow, but onboarding remains unverified and the package is deprecated.
 
 ## How to Build from Source
 
@@ -88,16 +95,16 @@ Alternatively, if you are on Windows, you can open the solution in [Visual Studi
 
 ### Service Tests
 
-You will need to generate API keys for each respective service to run the service tests. Make a `settings-override.json` as a copy of `settings.json` in the test project and put in your API keys. Then you should be able to run the tests.
+You will need credentials for each respective service to run the service tests. Make a `settings-override.json` as a copy of `settings.json` in the test project and put in your provider credentials there. Then you should be able to run the tests.
 
-Most provider-backed integration tests skip with a message indicating which setting is required when credentials are missing. The Yahoo suite is still explicitly skipped while issue #27 remains open, but it now uses the same credential checks when those tests are re-enabled.
+Most provider-backed integration tests skip with a message indicating which setting is required when credentials are missing. The Yahoo suite now follows the same credential gating, but the provider remains deprecated and unverified.
 
 ## Sample App
 
-The sample app in `samples/Example.Web` is an ASP.NET Core 10 minimal API that can geocode and reverse geocode against any configured provider.
+The sample app in `samples/Example.Web` is an ASP.NET Core 10 minimal API that can geocode and reverse geocode against any configured provider, including the deprecated Bing compatibility option when explicitly enabled. Yahoo remains excluded from the sample because the legacy provider still targets discontinued non-TLS endpoints.
 
 ```bash
 dotnet run --project samples/Example.Web/Example.Web.csproj
 ```
 
-Configure a provider in `samples/Example.Web/appsettings.json` or via environment variables such as `Providers__Google__ApiKey`. Once the app is running, use `samples/Example.Web/sample.http` to call `/providers`, `/geocode`, and `/reverse`.
+Configure a provider in `samples/Example.Web/appsettings.json` or via environment variables such as `Providers__Azure__ApiKey`, `Providers__Bing__ApiKey`, `Providers__Google__ApiKey`, `Providers__Here__ApiKey`, or `Providers__MapQuest__ApiKey`. Once the app is running, use `samples/Example.Web/sample.http` to call `/providers`, `/geocode`, and `/reverse`.

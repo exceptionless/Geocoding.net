@@ -10,12 +10,12 @@ namespace Geocoding.Google;
 /// Provides geocoding and reverse geocoding through the Google Maps geocoding API.
 /// </summary>
 /// <remarks>
-/// http://code.google.com/apis/maps/documentation/geocoding/
+/// https://developers.google.com/maps/documentation/geocoding/overview
 /// </remarks>
 public class GoogleGeocoder : IGeocoder
 {
-    private string _apiKey;
-    private BusinessKey _businessKey;
+    private string? _apiKey;
+    private BusinessKey? _businessKey;
     private const string KeyMessage = "Only one of BusinessKey or ApiKey should be set on the GoogleGeocoder.";
 
     /// <summary>
@@ -46,15 +46,15 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the Google Maps API key.
     /// </summary>
-    public string ApiKey
+    public string? ApiKey
     {
         get { return _apiKey; }
         set
         {
-            if (_businessKey != null)
+            if (_businessKey is not null)
                 throw new InvalidOperationException(KeyMessage);
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("ApiKey can not be null or empty");
+            if (String.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("ApiKey can not be null or empty.", nameof(ApiKey));
 
             _apiKey = value;
         }
@@ -63,15 +63,15 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the Google business key used to sign requests.
     /// </summary>
-    public BusinessKey BusinessKey
+    public BusinessKey? BusinessKey
     {
         get { return _businessKey; }
         set
         {
-            if (!string.IsNullOrEmpty(_apiKey))
+            if (!String.IsNullOrEmpty(_apiKey))
                 throw new InvalidOperationException(KeyMessage);
-            if (value == null)
-                throw new ArgumentException("BusinessKey can not be null");
+            if (value is null)
+                throw new ArgumentNullException(nameof(BusinessKey));
 
             _businessKey = value;
         }
@@ -80,23 +80,23 @@ public class GoogleGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Google requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the language used for results.
     /// </summary>
-    public string Language { get; set; }
+    public string? Language { get; set; }
     /// <summary>
     /// Gets or sets the regional bias used for requests.
     /// </summary>
-    public string RegionBias { get; set; }
+    public string? RegionBias { get; set; }
     /// <summary>
     /// Gets or sets the bounds bias used for requests.
     /// </summary>
-    public Bounds BoundsBias { get; set; }
+    public Bounds? BoundsBias { get; set; }
     /// <summary>
     /// Gets or sets the Google component filters used for requests.
     /// </summary>
-    public IList<GoogleComponentFilter> ComponentFilters { get; set; }
+    public IList<GoogleComponentFilter>? ComponentFilters { get; set; }
 
     /// <summary>
     /// Gets the base Google service URL including configured request options.
@@ -106,27 +106,27 @@ public class GoogleGeocoder : IGeocoder
         get
         {
             var builder = new StringBuilder();
-            builder.Append("https://maps.googleapis.com/maps/api/geocode/xml?{0}={1}&sensor=false");
+            builder.Append("https://maps.googleapis.com/maps/api/geocode/xml?{0}={1}");
 
-            if (!string.IsNullOrEmpty(Language))
+            if (!String.IsNullOrEmpty(Language))
             {
                 builder.Append("&language=");
                 builder.Append(WebUtility.UrlEncode(Language));
             }
 
-            if (!string.IsNullOrEmpty(RegionBias))
+            if (!String.IsNullOrEmpty(RegionBias))
             {
                 builder.Append("&region=");
                 builder.Append(WebUtility.UrlEncode(RegionBias));
             }
 
-            if (!string.IsNullOrEmpty(ApiKey))
+            if (!String.IsNullOrEmpty(ApiKey))
             {
                 builder.Append("&key=");
                 builder.Append(WebUtility.UrlEncode(ApiKey));
             }
 
-            if (BusinessKey != null)
+            if (BusinessKey is not null)
             {
                 builder.Append("&client=");
                 builder.Append(WebUtility.UrlEncode(BusinessKey.ClientId));
@@ -137,7 +137,7 @@ public class GoogleGeocoder : IGeocoder
                 }
             }
 
-            if (BoundsBias != null)
+            if (BoundsBias is not null)
             {
                 builder.Append("&bounds=");
                 builder.Append(BoundsBias.SouthWest.Latitude.ToString(CultureInfo.InvariantCulture));
@@ -149,10 +149,10 @@ public class GoogleGeocoder : IGeocoder
                 builder.Append(BoundsBias.NorthEast.Longitude.ToString(CultureInfo.InvariantCulture));
             }
 
-            if (ComponentFilters != null)
+            if (ComponentFilters is not null)
             {
                 builder.Append("&components=");
-                builder.Append(string.Join("|", ComponentFilters.Select(x => x.ComponentFilter)));
+                builder.Append(String.Join("|", ComponentFilters.Select(x => x.ComponentFilter)));
             }
 
             return builder.ToString();
@@ -162,8 +162,8 @@ public class GoogleGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<GoogleAddress>> GeocodeAsync(string address, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (string.IsNullOrEmpty(address))
-            throw new ArgumentNullException("address");
+        if (String.IsNullOrEmpty(address))
+            throw new ArgumentNullException(nameof(address));
 
         var request = BuildWebRequest("address", WebUtility.UrlEncode(address));
         return ProcessRequest(request, cancellationToken);
@@ -172,8 +172,8 @@ public class GoogleGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<GoogleAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
-            throw new ArgumentNullException("location");
+        if (location is null)
+            throw new ArgumentNullException(nameof(location));
 
         return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
     }
@@ -192,33 +192,38 @@ public class GoogleGeocoder : IGeocoder
 
     private string BuildGeolocation(double latitude, double longitude)
     {
-        return string.Format(CultureInfo.InvariantCulture, "{0:0.00000000},{1:0.00000000}", latitude, longitude);
+        return String.Format(CultureInfo.InvariantCulture, "{0:0.00000000},{1:0.00000000}", latitude, longitude);
     }
 
     private async Task<IEnumerable<GoogleAddress>> ProcessRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         try
         {
-            using (var client = BuildClient())
+            using var requestToDispose = request;
+            using var client = BuildClient();
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
             {
-                return await ProcessWebResponse(await client.SendAsync(request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                throw new GoogleGeocodingException(new HttpRequestException($"Google request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}"));
             }
+
+            return await ProcessWebResponse(response).ConfigureAwait(false);
         }
-        catch (GoogleGeocodingException)
+        catch (Exception ex) when (ex is not GoogleGeocodingException)
         {
-            //let these pass through
-            throw;
-        }
-        catch (Exception ex)
-        {
-            //wrap in google exception
             throw new GoogleGeocodingException(ex);
         }
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for Google requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
-        if (Proxy == null)
+        if (Proxy is null)
             return new HttpClient();
 
         var handler = new HttpClientHandler();
@@ -248,12 +253,29 @@ public class GoogleGeocoder : IGeocoder
 
     private HttpRequestMessage BuildWebRequest(string type, string value)
     {
-        string url = string.Format(ServiceUrl, type, value);
+        string url = String.Format(ServiceUrl, type, value);
 
-        if (BusinessKey != null)
+        if (BusinessKey is not null)
             url = BusinessKey.GenerateSignature(url);
 
         return new HttpRequestMessage(HttpMethod.Get, url);
+    }
+
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
+    {
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+
+        char[] buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+        if (read == 0)
+            return String.Empty;
+
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
+
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private async Task<IEnumerable<GoogleAddress>> ProcessWebResponse(HttpResponseMessage response)
@@ -262,9 +284,10 @@ public class GoogleGeocoder : IGeocoder
         XPathNavigator nav = xmlDoc.CreateNavigator();
 
         GoogleStatus status = EvaluateStatus((string)nav.Evaluate("string(/GeocodeResponse/status)"));
+        string providerMessage = (string)nav.Evaluate("string(/GeocodeResponse/error_message)");
 
         if (status != GoogleStatus.Ok && status != GoogleStatus.ZeroResults)
-            throw new GoogleGeocodingException(status);
+            throw new GoogleGeocodingException(status, String.IsNullOrWhiteSpace(providerMessage) ? null : providerMessage);
 
         if (status == GoogleStatus.Ok)
             return ParseAddresses(nav.Select("/GeocodeResponse/result")).ToArray();
@@ -285,7 +308,7 @@ public class GoogleGeocoder : IGeocoder
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             GoogleAddressType type = EvaluateType((string)nav.Evaluate("string(type)"));
             string placeId = (string)nav.Evaluate("string(place_id)");
@@ -309,8 +332,8 @@ public class GoogleGeocoder : IGeocoder
 
             GoogleLocationType locationType = EvaluateLocationType((string)nav.Evaluate("string(geometry/location_type)"));
 
-            Bounds bounds = null;
-            if (nav.SelectSingleNode("geometry/bounds") != null)
+            Bounds? bounds = null;
+            if (nav.SelectSingleNode("geometry/bounds") is not null)
             {
                 double neBoundsLatitude = (double)nav.Evaluate("number(geometry/bounds/northeast/lat)");
                 double neBoundsLongitude = (double)nav.Evaluate("number(geometry/bounds/northeast/lng)");
@@ -334,7 +357,7 @@ public class GoogleGeocoder : IGeocoder
     {
         while (nodes.MoveNext())
         {
-            XPathNavigator nav = nodes.Current;
+            XPathNavigator nav = nodes.Current!;
 
             string longName = (string)nav.Evaluate("string(long_name)");
             string shortName = (string)nav.Evaluate("string(short_name)");
@@ -348,11 +371,11 @@ public class GoogleGeocoder : IGeocoder
     private IEnumerable<GoogleAddressType> ParseComponentTypes(XPathNodeIterator nodes)
     {
         while (nodes.MoveNext())
-            yield return EvaluateType(nodes.Current.InnerXml);
+            yield return EvaluateType(nodes.Current!.InnerXml);
     }
 
     /// <remarks>
-    /// http://code.google.com/apis/maps/documentation/geocoding/#StatusCodes
+    /// https://developers.google.com/maps/documentation/geocoding/requests-geocoding#StatusCodes
     /// </remarks>
     private GoogleStatus EvaluateStatus(string status)
     {
@@ -363,12 +386,14 @@ public class GoogleGeocoder : IGeocoder
             case "OVER_QUERY_LIMIT": return GoogleStatus.OverQueryLimit;
             case "REQUEST_DENIED": return GoogleStatus.RequestDenied;
             case "INVALID_REQUEST": return GoogleStatus.InvalidRequest;
+            case "OVER_DAILY_LIMIT": return GoogleStatus.OverDailyLimit;
+            case "UNKNOWN_ERROR": return GoogleStatus.UnknownError;
             default: return GoogleStatus.Error;
         }
     }
 
     /// <remarks>
-    /// http://code.google.com/apis/maps/documentation/geocoding/#Types
+    /// https://developers.google.com/maps/documentation/geocoding/requests-geocoding#Types
     /// </remarks>
     private GoogleAddressType EvaluateType(string type)
     {
@@ -382,6 +407,10 @@ public class GoogleGeocoder : IGeocoder
             case "administrative_area_level_1": return GoogleAddressType.AdministrativeAreaLevel1;
             case "administrative_area_level_2": return GoogleAddressType.AdministrativeAreaLevel2;
             case "administrative_area_level_3": return GoogleAddressType.AdministrativeAreaLevel3;
+            case "administrative_area_level_4": return GoogleAddressType.AdministrativeAreaLevel4;
+            case "administrative_area_level_5": return GoogleAddressType.AdministrativeAreaLevel5;
+            case "administrative_area_level_6": return GoogleAddressType.AdministrativeAreaLevel6;
+            case "administrative_area_level_7": return GoogleAddressType.AdministrativeAreaLevel7;
             case "colloquial_area": return GoogleAddressType.ColloquialArea;
             case "locality": return GoogleAddressType.Locality;
             case "sublocality": return GoogleAddressType.SubLocality;
@@ -405,6 +434,13 @@ public class GoogleGeocoder : IGeocoder
             case "sublocality_level_4": return GoogleAddressType.SubLocalityLevel4;
             case "sublocality_level_5": return GoogleAddressType.SubLocalityLevel5;
             case "postal_code_suffix": return GoogleAddressType.PostalCodeSuffix;
+            case "postal_code_prefix": return GoogleAddressType.PostalCodePrefix;
+            case "plus_code": return GoogleAddressType.PlusCode;
+            case "landmark": return GoogleAddressType.Landmark;
+            case "parking": return GoogleAddressType.Parking;
+            case "bus_station": return GoogleAddressType.BusStation;
+            case "train_station": return GoogleAddressType.TrainStation;
+            case "transit_station": return GoogleAddressType.TransitStation;
 
             default: return GoogleAddressType.Unknown;
         }

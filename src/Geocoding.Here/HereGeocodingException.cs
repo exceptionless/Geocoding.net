@@ -12,12 +12,12 @@ public class HereGeocodingException : GeocodingException
     /// <summary>
     /// Gets the HERE error type returned by the API.
     /// </summary>
-    public string ErrorType { get; }
+    public string? ErrorType { get; }
 
     /// <summary>
     /// Gets the HERE error subtype returned by the API.
     /// </summary>
-    public string ErrorSubtype { get; }
+    public string? ErrorSubtype { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HereGeocodingException"/> class.
@@ -34,7 +34,7 @@ public class HereGeocodingException : GeocodingException
     /// <param name="message">The error message.</param>
     /// <param name="errorType">The provider error type.</param>
     /// <param name="errorSubtype">The provider error subtype.</param>
-    public HereGeocodingException(string message, string errorType, string errorSubtype)
+    public HereGeocodingException(string message, string? errorType, string? errorSubtype)
         : base(message)
     {
         ErrorType = errorType;

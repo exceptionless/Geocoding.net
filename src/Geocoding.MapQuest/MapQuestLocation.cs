@@ -1,16 +1,22 @@
 ﻿using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
 /// <summary>
 /// MapQuest address object.
-/// See http://open.mapquestapi.com/geocoding/.
+/// See https://developer.mapquest.com/documentation/api/geocoding/.
 /// </summary>
 public class MapQuestLocation : ParsedAddress
 {
     private const string Unknown = "unknown";
     private static readonly string DEFAULT_LOC = new Location(0, 0).ToString();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MapQuestLocation"/> class for deserialization.
+    /// </summary>
+    [JsonConstructor]
+    protected MapQuestLocation() { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MapQuestLocation"/> class.
@@ -19,7 +25,7 @@ public class MapQuestLocation : ParsedAddress
     /// <param name="coordinates">The coordinates.</param>
     public MapQuestLocation(string formattedAddress, Location coordinates)
         : base(
-            string.IsNullOrWhiteSpace(formattedAddress) ? Unknown : formattedAddress,
+            String.IsNullOrWhiteSpace(formattedAddress) ? Unknown : formattedAddress,
             coordinates ?? new Location(0, 0),
             "MapQuest")
     {
@@ -27,18 +33,22 @@ public class MapQuestLocation : ParsedAddress
     }
 
     /// <inheritdoc />
-    [JsonProperty("location")]
+    [JsonPropertyName("location")]
     public override string FormattedAddress
     {
         get
         {
             return ToString();
         }
-        set { base.FormattedAddress = value; }
+        set
+        {
+            if (!String.IsNullOrWhiteSpace(value))
+                base.FormattedAddress = value;
+        }
     }
 
     /// <inheritdoc />
-    [JsonProperty("latLng")]
+    [JsonPropertyName("latLng")]
     public override Location Coordinates
     {
         get { return base.Coordinates; }
@@ -48,56 +58,57 @@ public class MapQuestLocation : ParsedAddress
     /// <summary>
     /// Gets or sets the display coordinates.
     /// </summary>
-    [JsonProperty("displayLatLng")]
-    public virtual Location DisplayCoordinates { get; set; }
+    [JsonPropertyName("displayLatLng")]
+    public virtual Location? DisplayCoordinates { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("street")]
-    public override string Street { get; set; }
+    [JsonPropertyName("street")]
+    public override string? Street { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("adminArea5")]
-    public override string City { get; set; }
+    [JsonPropertyName("adminArea5")]
+    public override string? City { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("adminArea4")]
-    public override string County { get; set; }
+    [JsonPropertyName("adminArea4")]
+    public override string? County { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("adminArea3")]
-    public override string State { get; set; }
+    [JsonPropertyName("adminArea3")]
+    public override string? State { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("adminArea1")]
-    public override string Country { get; set; }
+    [JsonPropertyName("adminArea1")]
+    public override string? Country { get; set; }
 
     /// <inheritdoc />
-    [JsonProperty("postalCode")]
-    public override string PostCode { get; set; }
+    [JsonPropertyName("postalCode")]
+    public override string? PostCode { get; set; }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        if (base.FormattedAddress != Unknown)
-            return base.FormattedAddress;
+        string baseAddress = base.FormattedAddress;
+        if (!String.IsNullOrEmpty(baseAddress) && baseAddress != Unknown)
+            return baseAddress;
         else
         {
             var sb = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(Street))
+            if (!String.IsNullOrWhiteSpace(Street))
                 sb.AppendFormat("{0}, ", Street);
 
-            if (!string.IsNullOrWhiteSpace(City))
+            if (!String.IsNullOrWhiteSpace(City))
                 sb.AppendFormat("{0}, ", City);
 
-            if (!string.IsNullOrWhiteSpace(State))
+            if (!String.IsNullOrWhiteSpace(State))
                 sb.AppendFormat("{0} ", State);
-            else if (!string.IsNullOrWhiteSpace(County))
+            else if (!String.IsNullOrWhiteSpace(County))
                 sb.AppendFormat("{0} ", County);
 
-            if (!string.IsNullOrWhiteSpace(PostCode))
+            if (!String.IsNullOrWhiteSpace(PostCode))
                 sb.AppendFormat("{0} ", PostCode);
 
-            if (!string.IsNullOrWhiteSpace(Country))
+            if (!String.IsNullOrWhiteSpace(Country))
                 sb.AppendFormat("{0} ", Country);
 
             if (sb.Length > 1)
@@ -110,7 +121,7 @@ public class MapQuestLocation : ParsedAddress
 
                 return s;
             }
-            else if (Coordinates != null && Coordinates.ToString() != DEFAULT_LOC)
+            else if (Coordinates is not null && Coordinates.ToString() != DEFAULT_LOC)
                 return Coordinates.ToString();
             else
                 return Unknown;
@@ -120,50 +131,50 @@ public class MapQuestLocation : ParsedAddress
     /// <summary>
     /// Type of location
     /// </summary>
-    [JsonProperty("type")]
+    [JsonPropertyName("type")]
     public virtual LocationType Type { get; set; }
 
     /// <summary>
     /// Granularity code of quality or accuracy guarantee.
-    /// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
+    /// See https://developer.mapquest.com/documentation/api/geocoding/.
     /// </summary>
-    [JsonProperty("geocodeQuality")]
+    [JsonPropertyName("geocodeQuality")]
     public virtual Quality Quality { get; set; }
 
     /// <summary>
     /// Text string comparable, sortable score.
-    /// See http://open.mapquestapi.com/geocoding/geocodequality.html#granularity.
+    /// See https://developer.mapquest.com/documentation/api/geocoding/.
     /// </summary>
-    [JsonProperty("geocodeQualityCode")]
-    public virtual string Confidence { get; set; }
+    [JsonPropertyName("geocodeQualityCode")]
+    public virtual string? Confidence { get; set; }
 
     /// <summary>
     /// Identifies the closest road to the address for routing purposes.
     /// </summary>
-    [JsonProperty("linkId")]
-    public virtual string LinkId { get; set; }
+    [JsonPropertyName("linkId")]
+    public virtual string? LinkId { get; set; }
 
     /// <summary>
     /// Which side of the street this address is in
     /// </summary>
-    [JsonProperty("sideOfStreet")]
+    [JsonPropertyName("sideOfStreet")]
     public virtual SideOfStreet SideOfStreet { get; set; }
 
     /// <summary>
     /// Url to a MapQuest map
     /// </summary>
-    [JsonProperty("mapUrl")]
-    public virtual Uri MapUrl { get; set; }
+    [JsonPropertyName("mapUrl")]
+    public virtual Uri? MapUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the country label returned by MapQuest.
     /// </summary>
-    [JsonProperty("adminArea1Type")]
-    public virtual string CountryLabel { get; set; }
+    [JsonPropertyName("adminArea1Type")]
+    public virtual string? CountryLabel { get; set; }
 
     /// <summary>
     /// Gets or sets the state label returned by MapQuest.
     /// </summary>
-    [JsonProperty("adminArea3Type")]
-    public virtual string StateLabel { get; set; }
+    [JsonPropertyName("adminArea3Type")]
+    public virtual string? StateLabel { get; set; }
 }

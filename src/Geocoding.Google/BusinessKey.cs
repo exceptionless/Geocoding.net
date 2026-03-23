@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace Geocoding.Google;
 
 /// <summary>
-/// Represents a Google Maps business key used to sign requests.
+/// Represents Google Maps signed request credentials.
 /// </summary>
 /// <remarks>
 /// https://developers.google.com/maps/documentation/business/webservices/auth#business-specific_parameters
@@ -26,11 +26,11 @@ public class BusinessKey
     /// https://developers.google.com/maps/documentation/directions/get-api-key
     /// https://developers.google.com/maps/premium/reports/usage-reports#channels
     /// </summary>
-    private string _channel;
+    private string? _channel;
     /// <summary>
     /// Gets or sets the usage reporting channel.
     /// </summary>
-    public string Channel
+    public string? Channel
     {
         get
         {
@@ -38,18 +38,18 @@ public class BusinessKey
         }
         set
         {
-            if (string.IsNullOrWhiteSpace(value))
+            if (String.IsNullOrWhiteSpace(value))
             {
                 return;
             }
-            string formattedChannel = value.Trim().ToLower();
+            string formattedChannel = value!.Trim().ToLowerInvariant();
             if (Regex.IsMatch(formattedChannel, @"^[a-z_0-9.-]+$"))
             {
                 _channel = formattedChannel;
             }
             else
             {
-                throw new ArgumentException("Must be an ASCII alphanumeric string; can include a period (.), underscore (_) and hyphen (-) character", "channel");
+                throw new ArgumentException("Must be an ASCII alphanumeric string; can include a period (.), underscore (_) and hyphen (-) character.", nameof(Channel));
             }
         }
     }
@@ -60,7 +60,7 @@ public class BusinessKey
     {
         get
         {
-            return !string.IsNullOrEmpty(Channel);
+            return !String.IsNullOrEmpty(Channel);
         }
     }
 
@@ -70,7 +70,7 @@ public class BusinessKey
     /// <param name="clientId">The Google Maps client identifier.</param>
     /// <param name="signingKey">The private signing key.</param>
     /// <param name="channel">The optional usage channel.</param>
-    public BusinessKey(string clientId, string signingKey, string channel = null)
+    public BusinessKey(string clientId, string signingKey, string? channel = null)
     {
         ClientId = CheckParam(clientId, "clientId");
         SigningKey = CheckParam(signingKey, "signingKey");
@@ -79,7 +79,7 @@ public class BusinessKey
 
     private string CheckParam(string value, string name)
     {
-        if (string.IsNullOrEmpty(value))
+        if (String.IsNullOrEmpty(value))
             throw new ArgumentNullException(name, "Value cannot be null or empty.");
 
         return value.Trim();
@@ -113,7 +113,7 @@ public class BusinessKey
     }
 
     /// <inheritdoc />
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as BusinessKey);
     }
@@ -123,9 +123,9 @@ public class BusinessKey
     /// </summary>
     /// <param name="other">The other business key to compare.</param>
     /// <returns><c>true</c> if the keys are equal; otherwise, <c>false</c>.</returns>
-    public bool Equals(BusinessKey other)
+    public bool Equals(BusinessKey? other)
     {
-        if (other == null) return false;
+        if (other is null) return false;
         return ClientId.Equals(other.ClientId) && SigningKey.Equals(other.SigningKey);
     }
 

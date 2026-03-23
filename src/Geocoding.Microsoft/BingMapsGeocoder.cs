@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
+using Geocoding.Extensions;
 
 namespace Geocoding.Microsoft;
 
@@ -10,12 +12,12 @@ namespace Geocoding.Microsoft;
 /// Provides geocoding and reverse geocoding through the Bing Maps API.
 /// </summary>
 /// <remarks>
-/// http://msdn.microsoft.com/en-us/library/ff701715.aspx
+/// New development should prefer <see cref="AzureMapsGeocoder"/>. Bing Maps remains available for existing enterprise consumers only.
 /// </remarks>
 public class BingMapsGeocoder : IGeocoder
 {
-    private const string UnformattedQuery = "http://dev.virtualearth.net/REST/v1/Locations/{0}?key={1}";
-    private const string FormattedQuery = "http://dev.virtualearth.net/REST/v1/Locations?{0}&key={1}";
+    private const string UnformattedQuery = "https://dev.virtualearth.net/REST/v1/Locations/{0}?key={1}";
+    private const string FormattedQuery = "https://dev.virtualearth.net/REST/v1/Locations?{0}&key={1}";
     private const string Query = "q={0}";
     private const string Country = "countryRegion={0}";
     private const string Admin = "adminDistrict={0}";
@@ -29,23 +31,23 @@ public class BingMapsGeocoder : IGeocoder
     /// <summary>
     /// Gets or sets the proxy used for Bing Maps requests.
     /// </summary>
-    public IWebProxy Proxy { get; set; }
+    public IWebProxy? Proxy { get; set; }
     /// <summary>
     /// Gets or sets the culture used for results.
     /// </summary>
-    public string Culture { get; set; }
+    public string? Culture { get; set; }
     /// <summary>
     /// Gets or sets the user location bias.
     /// </summary>
-    public Location UserLocation { get; set; }
+    public Location? UserLocation { get; set; }
     /// <summary>
     /// Gets or sets the user map view bias.
     /// </summary>
-    public Bounds UserMapView { get; set; }
+    public Bounds? UserMapView { get; set; }
     /// <summary>
     /// Gets or sets the user IP address sent to Bing Maps.
     /// </summary>
-    public IPAddress UserIP { get; set; }
+    public IPAddress? UserIP { get; set; }
     /// <summary>
     /// Gets or sets a value indicating whether neighborhoods should be included.
     /// </summary>
@@ -61,8 +63,8 @@ public class BingMapsGeocoder : IGeocoder
     /// <param name="bingKey">The Bing Maps API key.</param>
     public BingMapsGeocoder(string bingKey)
     {
-        if (string.IsNullOrWhiteSpace(bingKey))
-            throw new ArgumentException("bingKey can not be null or empty");
+        if (String.IsNullOrWhiteSpace(bingKey))
+            throw new ArgumentException("bingKey can not be null or empty.", nameof(bingKey));
 
         _bingKey = bingKey;
     }
@@ -74,7 +76,7 @@ public class BingMapsGeocoder : IGeocoder
         first = AppendParameter(parameters, address, Query, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return string.Format(FormattedQuery, parameters.ToString(), _bingKey);
+        return String.Format(FormattedQuery, parameters, _bingKey);
     }
 
     private string GetQueryUrl(string street, string city, string state, string postalCode, string country)
@@ -88,34 +90,34 @@ public class BingMapsGeocoder : IGeocoder
         first = AppendParameter(parameters, street, Address, first);
         first = AppendGlobalParameters(parameters, first);
 
-        return string.Format(FormattedQuery, parameters.ToString(), _bingKey);
+        return String.Format(FormattedQuery, parameters, _bingKey);
     }
 
     private string GetQueryUrl(double latitude, double longitude)
     {
-        var builder = new StringBuilder(string.Format(UnformattedQuery, string.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), _bingKey));
+        var builder = new StringBuilder(String.Format(UnformattedQuery, String.Format(CultureInfo.InvariantCulture, "{0},{1}", latitude, longitude), _bingKey));
         AppendGlobalParameters(builder, false);
         return builder.ToString();
     }
 
     private IEnumerable<KeyValuePair<string, string>> GetGlobalParameters()
     {
-        if (!string.IsNullOrEmpty(Culture))
+        if (Culture is { Length: > 0 })
             yield return new KeyValuePair<string, string>("c", Culture);
 
-        if (UserLocation != null)
+        if (UserLocation is not null)
             yield return new KeyValuePair<string, string>("userLocation", UserLocation.ToString());
 
-        if (UserMapView != null)
-            yield return new KeyValuePair<string, string>("userMapView", string.Concat(UserMapView.SouthWest.ToString(), ",", UserMapView.NorthEast.ToString()));
+        if (UserMapView is not null)
+            yield return new KeyValuePair<string, string>("userMapView", String.Concat(UserMapView.SouthWest.ToString(), ",", UserMapView.NorthEast.ToString()));
 
-        if (UserIP != null)
+        if (UserIP is not null)
             yield return new KeyValuePair<string, string>("userIp", UserIP.ToString());
 
         if (IncludeNeighborhood)
             yield return new KeyValuePair<string, string>("inclnb", IncludeNeighborhood ? "1" : "0");
 
-        if (MaxResults != null && MaxResults.Value > 0)
+        if (MaxResults is not null && MaxResults.Value > 0)
             yield return new KeyValuePair<string, string>("maxResults", Math.Min(MaxResults.Value, Bingmaxresultsvalue).ToString());
     }
 
@@ -152,7 +154,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -167,7 +169,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -176,8 +178,8 @@ public class BingMapsGeocoder : IGeocoder
     /// <inheritdoc />
     public Task<IEnumerable<BingAddress>> ReverseGeocodeAsync(Location location, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (location == null)
-            throw new ArgumentNullException("location");
+        if (location is null)
+            throw new ArgumentNullException(nameof(location));
 
         return ReverseGeocodeAsync(location.Latitude, location.Longitude, cancellationToken);
     }
@@ -191,7 +193,7 @@ public class BingMapsGeocoder : IGeocoder
             var response = await GetResponse(url, cancellationToken).ConfigureAwait(false);
             return ParseResponse(response);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BingGeocodingException)
         {
             throw new BingGeocodingException(ex);
         }
@@ -219,37 +221,58 @@ public class BingMapsGeocoder : IGeocoder
 
     private bool AppendParameter(StringBuilder sb, string parameter, string format, bool first)
     {
-        if (!string.IsNullOrEmpty(parameter))
+        if (!String.IsNullOrEmpty(parameter))
         {
             if (!first)
             {
                 sb.Append('&');
             }
-            sb.Append(string.Format(format, BingUrlEncode(parameter)));
+            sb.Append(String.Format(format, BingUrlEncode(parameter)));
             return false;
         }
         return first;
     }
 
-    private IEnumerable<BingAddress> ParseResponse(Json.Response response)
+    /// <summary>
+    /// Parses a Bing Maps response into address results.
+    /// </summary>
+    /// <param name="response">The Bing Maps response payload.</param>
+    /// <returns>The parsed address results.</returns>
+    protected virtual IEnumerable<BingAddress> ParseResponse(Json.Response response)
     {
         var list = new List<BingAddress>();
 
-        foreach (Json.Location location in response.ResourceSets[0].Resources)
+        if (response.ResourceSets.IsNullOrEmpty())
+            return list;
+
+        foreach (var resourceSet in response.ResourceSets)
         {
-            list.Add(new BingAddress(
-                location.Address.FormattedAddress,
-                new Location(location.Point.Coordinates[0], location.Point.Coordinates[1]),
-                location.Address.AddressLine,
-                location.Address.AdminDistrict,
-                location.Address.AdminDistrict2,
-                location.Address.CountryRegion,
-                location.Address.Locality,
-                location.Address.Neighborhood,
-                location.Address.PostalCode,
-                (EntityType)Enum.Parse(typeof(EntityType), location.EntityType),
-                EvaluateConfidence(location.Confidence)
-            ));
+            if (resourceSet is null)
+                continue;
+
+            foreach (var location in resourceSet.Resources.OfType<Json.Location>().Where(location => location.Point?.Coordinates is { Length: >= 2 }
+                && location.Address is not null
+                && !String.IsNullOrWhiteSpace(location.Address.FormattedAddress)))
+            {
+                var coordinates = location.Point!.Coordinates!;
+
+                if (!Enum.TryParse(location.EntityType, out EntityType entityType))
+                    entityType = EntityType.Unknown;
+
+                list.Add(new BingAddress(
+                    location.Address!.FormattedAddress!,
+                    new Location(coordinates[0], coordinates[1]),
+                    location.Address.AddressLine,
+                    location.Address.AdminDistrict,
+                    location.Address.AdminDistrict2,
+                    location.Address.CountryRegion,
+                    location.Address.Locality,
+                    location.Address.Neighborhood,
+                    location.Address.PostalCode,
+                    entityType,
+                    EvaluateConfidence(location.Confidence)
+                ));
+            }
         }
 
         return list;
@@ -260,9 +283,13 @@ public class BingMapsGeocoder : IGeocoder
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    private HttpClient BuildClient()
+    /// <summary>
+    /// Builds the HTTP client used for Bing Maps requests.
+    /// </summary>
+    /// <returns>The configured HTTP client.</returns>
+    protected virtual HttpClient BuildClient()
     {
-        if (Proxy == null)
+        if (Proxy is null)
             return new HttpClient();
 
         var handler = new HttpClientHandler();
@@ -274,34 +301,58 @@ public class BingMapsGeocoder : IGeocoder
     {
         using (var client = BuildClient())
         {
-            var response = await client.SendAsync(CreateRequest(queryUrl), cancellationToken).ConfigureAwait(false);
+            using var request = CreateRequest(queryUrl);
+            using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var preview = await BuildResponsePreviewAsync(response.Content).ConfigureAwait(false);
+                throw new BingGeocodingException(new HttpRequestException($"Bing Maps request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{preview}"));
+            }
+
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
-                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(Json.Response));
-                return jsonSerializer.ReadObject(stream) as Json.Response;
+                return await JsonSerializer.DeserializeAsync<Json.Response>(stream, JsonExtensions.JsonOptions, cancellationToken).ConfigureAwait(false)
+                    ?? new Json.Response();
             }
         }
     }
 
-    private ConfidenceLevel EvaluateConfidence(string confidence)
+    private ConfidenceLevel EvaluateConfidence(string? confidence)
     {
-        switch (confidence.ToLower())
-        {
-            case "low":
-                return ConfidenceLevel.Low;
-            case "medium":
-                return ConfidenceLevel.Medium;
-            case "high":
-                return ConfidenceLevel.High;
-            default:
-                return ConfidenceLevel.Unknown;
-        }
+        if (String.Equals(confidence, "low", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.Low;
+
+        if (String.Equals(confidence, "medium", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.Medium;
+
+        if (String.Equals(confidence, "high", StringComparison.OrdinalIgnoreCase))
+            return ConfidenceLevel.High;
+
+        return ConfidenceLevel.Unknown;
+    }
+
+    private static async Task<string> BuildResponsePreviewAsync(HttpContent content)
+    {
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+        var buffer = new char[256];
+        int read = await reader.ReadBlockAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+
+        if (read == 0)
+            return String.Empty;
+
+        var preview = new string(buffer, 0, read).Trim();
+        if (String.IsNullOrWhiteSpace(preview))
+            return String.Empty;
+
+        return " Response preview: " + preview + (reader.EndOfStream ? String.Empty : "...");
     }
 
     private string BingUrlEncode(string toEncode)
     {
-        if (string.IsNullOrEmpty(toEncode))
-            return string.Empty;
+        if (String.IsNullOrEmpty(toEncode))
+            return String.Empty;
 
         return WebUtility.UrlEncode(toEncode);
     }

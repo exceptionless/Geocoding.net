@@ -4,7 +4,10 @@
 /// Represents the location type returned by the HERE geocoding service.
 /// </summary>
 /// <remarks>
-/// https://developer.here.com/documentation/geocoder/topics/resource-type-response-geocode.html
+/// The v1 Geocoding and Search API maps result types to <see cref="Address"/>, <see cref="Point"/>,
+/// or <see cref="Area"/>. The remaining values are retained from the legacy v6.2 Geocoder API for
+/// backward compatibility but are not returned by the current API.
+/// See https://www.here.com/docs/category/geocoding-search
 /// </remarks>
 public enum HereLocationType
 {

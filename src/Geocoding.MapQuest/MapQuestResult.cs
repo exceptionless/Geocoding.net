@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace Geocoding.MapQuest;
 
@@ -10,12 +10,12 @@ public class MapQuestResult
     /// <summary>
     /// Gets or sets the locations returned for the query.
     /// </summary>
-    [JsonProperty("locations")]
-    public IList<MapQuestLocation> Locations { get; set; }
+    [JsonPropertyName("locations")]
+    public IList<MapQuestLocation>? Locations { get; set; }
 
     /// <summary>
     /// Gets or sets the location originally provided in the request.
     /// </summary>
-    [JsonProperty("providedLocation")]
-    public MapQuestLocation ProvidedLocation { get; set; }
+    [JsonPropertyName("providedLocation")]
+    public MapQuestLocation? ProvidedLocation { get; set; }
 }

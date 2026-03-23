@@ -5,7 +5,7 @@
 /// </summary>
 public class HereAddress : Address
 {
-    private readonly string _street, _houseNumber, _city, _state, _country, _postalCode;
+    private readonly string? _street, _houseNumber, _city, _state, _country, _postalCode;
     private readonly HereLocationType _type;
 
     /// <summary>
@@ -76,8 +76,8 @@ public class HereAddress : Address
     /// <param name="postalCode">The postal code.</param>
     /// <param name="country">The country name.</param>
     /// <param name="type">The HERE location type.</param>
-    public HereAddress(string formattedAddress, Location coordinates, string street, string houseNumber, string city,
-        string state, string postalCode, string country, HereLocationType type)
+    public HereAddress(string formattedAddress, Location coordinates, string? street, string? houseNumber, string? city,
+        string? state, string? postalCode, string? country, HereLocationType type)
         : base(formattedAddress, coordinates, "HERE")
     {
         _street = street;

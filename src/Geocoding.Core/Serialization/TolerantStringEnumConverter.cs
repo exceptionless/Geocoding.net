@@ -23,7 +23,12 @@ internal sealed class TolerantStringEnumConverterFactory : JsonConverterFactory
         var converterType = nullableEnumType is null
             ? typeof(TolerantStringEnumConverter<>).MakeGenericType(typeToConvert)
             : typeof(NullableTolerantStringEnumConverter<>).MakeGenericType(nullableEnumType);
-        return (JsonConverter)Activator.CreateInstance(converterType);
+
+        var converter = Activator.CreateInstance(converterType);
+        if (converter is not JsonConverter jsonConverter)
+            throw new InvalidOperationException($"Unable to create converter '{converterType}' for enum type '{typeToConvert}'.");
+
+        return jsonConverter;
     }
 }
 

@@ -1,10 +1,33 @@
 using Geocoding.Extensions;
+using System.Text.Json.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests.Serialization;
 
 public class TolerantStringEnumConverterTest
 {
+    [Fact]
+    public void CreateConverter_ForEnumType_ReturnsTypedConverter()
+    {
+        // Act
+        var converter = JsonExtensions.JsonOptions.GetConverter(typeof(EnumWithUnknown));
+
+        // Assert
+        Assert.NotNull(converter);
+        Assert.IsAssignableFrom<JsonConverter<EnumWithUnknown>>(converter);
+    }
+
+    [Fact]
+    public void CreateConverter_ForNullableEnumType_ReturnsTypedConverter()
+    {
+        // Act
+        var converter = JsonExtensions.JsonOptions.GetConverter(typeof(EnumWithUnknown?));
+
+        // Assert
+        Assert.NotNull(converter);
+        Assert.IsAssignableFrom<JsonConverter<EnumWithUnknown?>>(converter);
+    }
+
     [Fact]
     public void FromJson_UnknownStringForEnumWithUnknownMember_ReturnsUnknown()
     {

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Geocoding.Serialization;
 
 namespace Geocoding.Microsoft;
 
@@ -210,7 +211,7 @@ public class AzureMapsGeocoder : IGeocoder
 
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            var payload = JsonSerializer.Deserialize<AzureSearchResponse>(json, Extensions.JsonOptions);
+            var payload = JsonSerializer.Deserialize<AzureSearchResponse>(json, JsonExtensions.JsonOptions);
             return payload ?? new AzureSearchResponse();
         }
     }

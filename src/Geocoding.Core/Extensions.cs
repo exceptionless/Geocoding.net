@@ -1,12 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Geocoding.Serialization;
 
 namespace Geocoding;
 
 /// <summary>
-/// Common helper extensions used by geocoding providers.
+/// Backward-compatible entry point for shared geocoding helper extensions.
 /// </summary>
 public static class Extensions
 {
@@ -18,7 +16,7 @@ public static class Extensions
     /// <returns><c>true</c> when the collection is null or empty.</returns>
     public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this ICollection<T>? col)
     {
-        return col is null || col.Count == 0;
+        return global::Geocoding.Collections.CollectionExtensions.IsNullOrEmpty(col);
     }
 
     /// <summary>
@@ -29,37 +27,13 @@ public static class Extensions
     /// <param name="actor">The action to execute for each item.</param>
     public static void ForEach<T>(this IEnumerable<T>? self, Action<T> actor)
     {
-        if (actor is null)
-            throw new ArgumentNullException(nameof(actor));
-
-        if (self is null)
-            return;
-
-        foreach (T item in self)
-        {
-            actor(item);
-        }
-    }
-
-    private static readonly JsonSerializerOptions _jsonOptions = CreateJsonOptions();
-
-    private static JsonSerializerOptions CreateJsonOptions()
-    {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            NumberHandling = JsonNumberHandling.AllowReadingFromString,
-            Converters = { new TolerantStringEnumConverterFactory() },
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-        options.MakeReadOnly(populateMissingResolver: true);
-        return options;
+        global::Geocoding.Collections.EnumerableExtensions.ForEach(self, actor);
     }
 
     /// <summary>
     /// Shared serialization options used across geocoding providers.
     /// </summary>
-    public static JsonSerializerOptions JsonOptions => _jsonOptions;
+    public static JsonSerializerOptions JsonOptions => global::Geocoding.Serialization.JsonExtensions.JsonOptions;
 
     /// <summary>
     /// Serializes an object to JSON.
@@ -68,10 +42,7 @@ public static class Extensions
     /// <returns>The JSON payload, or an empty string when the input is null.</returns>
     public static string ToJSON(this object? o)
     {
-        if (o is null)
-            return String.Empty;
-
-        return JsonSerializer.Serialize(o, o.GetType(), _jsonOptions);
+        return global::Geocoding.Serialization.JsonExtensions.ToJSON(o);
     }
 
     /// <summary>
@@ -80,11 +51,8 @@ public static class Extensions
     /// <typeparam name="T">The destination type.</typeparam>
     /// <param name="json">The JSON payload.</param>
     /// <returns>A deserialized instance, or default value for blank input.</returns>
-    public static T? FromJSON<T>(this string json)
+    public static T? FromJSON<T>(this string? json)
     {
-        if (String.IsNullOrWhiteSpace(json))
-            return default;
-
-        return JsonSerializer.Deserialize<T>(json, _jsonOptions);
+        return global::Geocoding.Serialization.JsonExtensions.FromJSON<T>(json);
     }
 }

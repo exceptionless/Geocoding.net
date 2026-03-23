@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Geocoding.Collections;
 
 namespace Geocoding.MapQuest;
 
@@ -15,7 +16,7 @@ public class BatchGeocodeRequest : BaseRequest
     public BatchGeocodeRequest(string key, ICollection<string> addresses)
         : base(key)
     {
-        if (addresses.IsNullOrEmpty())
+        if (CollectionExtensions.IsNullOrEmpty(addresses))
             throw new ArgumentException("addresses can not be null or empty");
 
         Locations = (from l in addresses select new LocationRequest(l)).ToArray();
@@ -33,13 +34,15 @@ public class BatchGeocodeRequest : BaseRequest
         get { return _locations; }
         set
         {
-            if (value.IsNullOrEmpty())
+            if (CollectionExtensions.IsNullOrEmpty(value))
                 throw new ArgumentNullException("Locations can not be null or empty!");
 
             _locations.Clear();
-            (from v in value
-             where v is not null
-             select v).ForEach(v => _locations.Add(v));
+            EnumerableExtensions.ForEach(
+                from v in value
+                where v is not null
+                select v,
+                v => _locations.Add(v));
 
             if (_locations.Count == 0)
                 throw new InvalidOperationException("At least one valid Location is required");

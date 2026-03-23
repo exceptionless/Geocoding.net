@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Geocoding.Microsoft;
 using Geocoding.Microsoft.Json;
+using Geocoding.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -248,7 +249,7 @@ public class MicrosoftJsonCompatibilityTest
         """;
 
         // Act
-        var response = JsonSerializer.Deserialize<Response>(json, Extensions.JsonOptions);
+        var response = JsonSerializer.Deserialize<Response>(json, JsonExtensions.JsonOptions);
 
         // Assert
         Assert.NotNull(response);
@@ -287,7 +288,7 @@ public class MicrosoftJsonCompatibilityTest
         """;
 
         // Act
-        var response = JsonSerializer.Deserialize<Response>(json, Extensions.JsonOptions);
+        var response = JsonSerializer.Deserialize<Response>(json, JsonExtensions.JsonOptions);
 
         // Assert
         Assert.NotNull(response);

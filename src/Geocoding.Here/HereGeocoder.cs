@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Geocoding.Serialization;
 
 namespace Geocoding.Here;
 
@@ -266,7 +267,7 @@ public class HereGeocoder : IGeocoder
         if (!response.IsSuccessStatusCode)
             throw new HereGeocodingException($"HERE request failed ({(int)response.StatusCode} {response.ReasonPhrase}).{BuildResponsePreview(json)}", response.ReasonPhrase, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture));
 
-        return JsonSerializer.Deserialize<HereResponse>(json, Extensions.JsonOptions) ?? new HereResponse();
+        return JsonSerializer.Deserialize<HereResponse>(json, JsonExtensions.JsonOptions) ?? new HereResponse();
     }
 
     private static string BuildResponsePreview(string? body)

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using Geocoding.Here;
+using Geocoding.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests;
@@ -81,7 +82,7 @@ public class HereAsyncGeocoderTest : AsyncGeocoderTest
     private static HereAddress[] ParseResponse(HereGeocoder geocoder, string json)
     {
         var responseType = typeof(HereGeocoder).GetNestedType("HereResponse", BindingFlags.NonPublic)!;
-        var response = JsonSerializer.Deserialize(json, responseType, Extensions.JsonOptions);
+        var response = JsonSerializer.Deserialize(json, responseType, JsonExtensions.JsonOptions);
         var parseMethod = typeof(HereGeocoder).GetMethod("ParseResponse", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
         var results = (IEnumerable)parseMethod.Invoke(geocoder, [response!])!;

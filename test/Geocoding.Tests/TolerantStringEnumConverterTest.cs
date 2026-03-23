@@ -1,3 +1,4 @@
+using Geocoding.Serialization;
 using Xunit;
 
 namespace Geocoding.Tests;

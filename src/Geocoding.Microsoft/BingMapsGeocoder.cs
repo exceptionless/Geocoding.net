@@ -4,6 +4,8 @@ using System.Net.Http;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using Geocoding.Collections;
+using Geocoding.Serialization;
 
 namespace Geocoding.Microsoft;
 
@@ -241,7 +243,7 @@ public class BingMapsGeocoder : IGeocoder
     {
         var list = new List<BingAddress>();
 
-        if (response.ResourceSets.IsNullOrEmpty())
+        if (CollectionExtensions.IsNullOrEmpty(response.ResourceSets))
             return list;
 
         foreach (var resourceSet in response.ResourceSets)
@@ -311,7 +313,7 @@ public class BingMapsGeocoder : IGeocoder
 
             using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
             {
-                return await JsonSerializer.DeserializeAsync<Json.Response>(stream, Extensions.JsonOptions, cancellationToken).ConfigureAwait(false)
+                return await JsonSerializer.DeserializeAsync<Json.Response>(stream, JsonExtensions.JsonOptions, cancellationToken).ConfigureAwait(false)
                     ?? new Json.Response();
             }
         }

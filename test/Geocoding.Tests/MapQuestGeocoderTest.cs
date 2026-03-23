@@ -128,11 +128,12 @@ public class MapQuestGeocoderTest : GeocoderTest
         var geocoder = new TestableMapQuestGeocoder(new TestHttpMessageHandler((_, _) => throw new HttpRequestException("Name or service not known")));
 
         // Act
-        var exception = await Assert.ThrowsAsync<Exception>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<MapQuestGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
 
         // Assert
         Assert.Contains("[POST]", exception.Message, StringComparison.Ordinal);
         Assert.Contains("mapquestapi.com/geocoding/v1/address", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("key=mapquest-key", exception.Message, StringComparison.Ordinal);
         Assert.IsType<HttpRequestException>(exception.InnerException);
     }
 
@@ -144,11 +145,12 @@ public class MapQuestGeocoderTest : GeocoderTest
         var geocoder = new TestableMapQuestGeocoder(new TestHttpMessageHandler((_, _) => TestHttpMessageHandler.CreateResponseAsync(HttpStatusCode.BadGateway, "Bad Gateway", body)));
 
         // Act
-        var exception = await Assert.ThrowsAsync<Exception>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<MapQuestGeocodingException>(() => geocoder.GeocodeAsync("1600 pennsylvania ave nw, washington dc", TestContext.Current.CancellationToken));
 
         // Assert
         Assert.Contains("502", exception.Message, StringComparison.Ordinal);
         Assert.Contains("Response preview:", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("key=mapquest-key", exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(body, exception.Message, StringComparison.Ordinal);
     }
 

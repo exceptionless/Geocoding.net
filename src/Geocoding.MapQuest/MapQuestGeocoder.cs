@@ -212,7 +212,7 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
 
     private async Task<MapQuestResponse> Parse(HttpClient client, HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        string requestInfo = $"[{request.Method}] {request.RequestUri}";
+        string requestInfo = BuildRequestInfo(request);
         try
         {
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -221,21 +221,32 @@ public class MapQuestGeocoder : IGeocoder, IBatchGeocoder
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"{(int)response.StatusCode} {requestInfo} | {response.ReasonPhrase}{BuildResponsePreview(json)}");
+                throw new MapQuestGeocodingException($"{(int)response.StatusCode} {requestInfo} | {response.ReasonPhrase}{BuildResponsePreview(json)}");
 
             if (String.IsNullOrWhiteSpace(json))
-                throw new Exception("Remote system response with blank: " + requestInfo);
+                throw new MapQuestGeocodingException("Remote system response with blank: " + requestInfo);
 
             MapQuestResponse? o = json.FromJson<MapQuestResponse>();
             if (o is null)
-                throw new Exception("Unable to deserialize remote response: " + requestInfo);
+                throw new MapQuestGeocodingException("Unable to deserialize remote response: " + requestInfo);
 
             return o;
         }
         catch (HttpRequestException ex)
         {
-            throw new Exception($"{requestInfo} | {ex.Message}", ex);
+            throw new MapQuestGeocodingException($"{requestInfo} | {ex.Message}", ex);
         }
+        catch (Exception ex) when (ex is not MapQuestGeocodingException)
+        {
+            throw new MapQuestGeocodingException(ex);
+        }
+    }
+
+    private static string BuildRequestInfo(HttpRequestMessage request)
+    {
+        string method = request.Method.Method;
+        string requestUri = request.RequestUri?.GetLeftPart(UriPartial.Path) ?? "(unknown-uri)";
+        return $"[{method}] {requestUri}";
     }
 
     private static string BuildResponsePreview(string? body)

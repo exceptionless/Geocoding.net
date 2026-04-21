@@ -1,4 +1,3 @@
-<!-- markdownlint-disable MD041 MD034 MD007 MD032 -->
 ---
 layout: home
 
@@ -28,7 +27,6 @@ features:
   - title: Sample App
     details: The sample web app demonstrates how to wire providers into a minimal ASP.NET Core application.
 ---
-<!-- markdownlint-enable MD041 MD034 MD007 MD032 -->
 
 ## Quick Example
 

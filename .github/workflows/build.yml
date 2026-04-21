@@ -110,6 +110,11 @@ jobs:
         run: |
           if [ -n "$NUGET_KEY" ]; then
             for package in $(find . -name "*.nupkg" | grep -v "minver"); do
-              dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_KEY" --skip-duplicate
+              if echo "$package" | grep -q "Geocoding.Yahoo"; then
+                dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_KEY" --skip-duplicate \
+                  || echo "⚠️ Skipping Yahoo package (no publish permission): $package"
+              else
+                dotnet nuget push "$package" --source https://api.nuget.org/v3/index.json --api-key "$NUGET_KEY" --skip-duplicate
+              fi
             done
           fi
